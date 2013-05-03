@@ -40,10 +40,43 @@ class VenueController {
         render(text:result.objects[0] as JSON ,  contentType:"application/json")
     }
 
-    def getMenu = {
-        def resources = grailsApplication.mainContext.getResource("response.txt").file
-        def fileContents = resources.text          
-        def parsedData = JSON.parse(fileContents)  
+    def getMenuTest = {
+//        def resources = grailsApplication.mainContext.getResource("response.txt").file
+//        def fileContents = resources.text
+		URL url = new URL("http://api.locu.com/v1_0/venue/49be3dcf7e507f6b4775/");
+		println "url : "+url
+		log.info("url : "+url)
+		 HttpURLConnection httpConn= (HttpURLConnection) url.openConnection();
+				  httpConn.setRequestMethod('POST');
+		 httpConn.setRequestProperty("Content-type", "application/x-www-form-urlencoded; charset=utf-8");
+		 httpConn.setDoOutput(true)
+		  def os = httpConn.getOutputStream();
+		 log.info("os  :"+os)
+		 BufferedWriter osw = new BufferedWriter(new OutputStreamWriter(os));
+		 osw.write("?api_key=4c009dd9b25397d2c45dfde5a5d8435dfffc58a9");
+		 osw.flush();
+		 osw.close();
+		 
+		 BufferedInputStream instream = new BufferedInputStream(httpConn.getInputStream());
+
+		 int x = 0;
+
+		 StringBuffer sb = new StringBuffer();
+
+		 while ((x = instream.read()) != -1) {
+			 sb.append((char) x);
+		 }
+
+		 instream.close();
+		 instream = null;
+
+
+		 if (httpConn != null) {
+			 httpConn.disconnect();
+		}
+		if (httpConn.getResponseCode()  == 200) {
+
+        def parsedData = JSON.parse(sb.toString())  
         parsedData.objects.menus.each { 
             // println "iterator "+it
             def parsedData1 = it
@@ -58,7 +91,32 @@ class VenueController {
                         
     }
     
-        
+    }   
+	
+	def getMenu = {
+		def resources = grailsApplication.mainContext.getResource("response.txt").file
+		def fileContents = resources.text
+		def parsedData = JSON.parse(fileContents)
+		parsedData.objects.menus.each {
+			// println "iterator "+it
+			def parsedData1 = it
+			parsedData1.each{
+				def parsedData2 = it
+				if("Bar".equals(parsedData2.menu_name.toString()))
+				{
+					render (text:parsedData2.sections as JSON  , contentType:"application/json")
+				}
+			}
+	} 
     
+}
+	
+	def getMenuSwetha = {
+		log.info("inside GetMenuSwetha");
+		def data = JSON.parse( new URL('http://api.locu.com/v1_0/venue/49be3dcf7e507f6b4775/?api_key=4c009dd9b25397d2c45dfde5a5d8435dfffc58a9').text )
+		println "Data--------->>>>"+data
+		log.info("inside GetMenuSwetha1");
+		log.info("Data Received------>"+data)		
+	}
 }
     
