@@ -1,0 +1,27 @@
+{
+    "meta": {
+        "cache-expiry": 3600,
+        "limit": 25
+    },
+    "objects": [
+        {
+            "categories": [
+                "restaurant"
+            ],
+            "country": "United States",
+            "cuisines": [],
+            "has_menu": true,
+            "id": "5a0999dda39f9fe07a44",
+            "lat": 33.997031,
+            "locality": "Venice",
+            "long": -118.47932,
+            "name": "Chaya Venice",
+            "phone": "3103961179x",
+            "postal_code": "90291",
+            "region": "CA",
+            "resource_uri": "/v1_0/venue/5a0999dda39f9fe07a44/",
+            "street_address": "110 Navy St.",
+            "website_url": "http://www.thechaya.com"
+        }
+    ]
+}
