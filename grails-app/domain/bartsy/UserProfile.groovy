@@ -10,11 +10,11 @@ class UserProfile {
 		 //userImage(sqlType:'blob')
 	}
         
-    static belongsTo = [bartsyUserDetails:BartsyUserDetails]
+   // static belongsTo = [bartsyUserDetails:BartsyUserDetails]
 	
-        String firstName
+        String name
         //String middleName
-	//String lastName
+		//String lastName
 	//String location
 	//String emailAddress
 	//String mobileNumber
@@ -24,5 +24,10 @@ class UserProfile {
         //String userStatus
        // String language1
         //String language2
-       // byte[] userImage
+        //byte[] userImage
+		String loginId
+		long barstyId
+		String loginType
+		String userName
+		String gender
       }
