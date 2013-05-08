@@ -3,6 +3,7 @@ package bartsy
 class Venue {
 
     static constraints = {
+		menu maxSize: 60000
     }
     
     String venueName
@@ -17,5 +18,15 @@ class Venue {
     String region
     String streetAddress
     String websiteURL
-    
+	int hasBarSection
+	String facebookURL
+	String openHours
+	String twitterId
+	String venueId
+	String menu
+	String wifiName
+	String wifiPassword
+	String typeOfAuthentication
+	String deviceToken
+	String deviceType  
 }
