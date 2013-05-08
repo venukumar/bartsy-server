@@ -26,8 +26,10 @@ class UserProfile {
         //String language2
         //byte[] userImage
 		String loginId
-		long barstyId
+		long bartsyId
 		String loginType
 		String userName
 		String gender
+		int deviceType
+		String deviceToken
       }
