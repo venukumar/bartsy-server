@@ -1,7 +1,7 @@
 dataSource {
     pooled = true
     driverClassName = "com.mysql.jdbc.Driver"
-    dialect = org.hibernate.dialect.MySQLInnoDBDialect
+    dialect = org.hibernate.dialect.MySQL5InnoDBDialect
     username = "root"
     password = "techv1@3"
 }
@@ -14,7 +14,7 @@ hibernate {
 environments {
     development {
         dataSource {
-            dbCreate = "create-drop" // one of 'create', 'create-drop', 'update', 'validate', ''
+            dbCreate = "update" // one of 'create', 'create-drop', 'update', 'validate', ''
             url = "jdbc:mysql://localhost/bartsy"
         }
     }
@@ -26,7 +26,7 @@ environments {
     }
     production {
         dataSource {
-            dbCreate = "create-drop"
+            dbCreate = "update"
             url = "jdbc:mysql://localhost/bartsy"
             pooled = true
             properties {
