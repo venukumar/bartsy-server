@@ -79,8 +79,8 @@ log4j = {
         rollingFile name:"BartsyLog", 
         maxFileSize:"100MB", 
         maxBackupIndex: 10, 
-                file:"/home/swethab/swetha/Bartsy_logs/Bartsy.log", 
-		//file:"/usr/local/tomcat/Bartsy_logs/Bartsy.log", 
+              // file:"/home/swethab/swetha/Bartsy_logs/Bartsy.log", 
+		file:"/usr/local/tomcat/Bartsy_logs/Bartsy.log", 
 		'append':true, 
         threshold:org.apache.log4j.Level.INFO
     }
@@ -99,3 +99,30 @@ log4j = {
            'org.hibernate',
            'net.sf.ehcache.hibernate'
 }
+
+environments {
+	development {
+		apns {
+			pathToCertificate = "/home/swethab/swetha/Bartsy/Certificates.p12"
+			password = "123456"
+			environment = "sandbox"
+		}
+	}
+
+//	test {
+//	apns {
+//			pathToCertificate = "/home/bhargavi/ck.pem"
+//			password = "123456"
+//			environment = "sandbox"
+//		}
+//	}
+
+	production {
+		apns {
+			pathToCertificate = "/usr/local/Bartsy/Certificates.p12"
+			password = "123456"
+			environment = "sandbox"
+		}
+	}
+}
+
