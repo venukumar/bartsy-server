@@ -4,6 +4,8 @@ import grails.converters.JSON
 
 
 class UserController {
+	
+	def androidPNService
 
 	def index() {
 	}
@@ -15,14 +17,26 @@ class UserController {
 	def saveUserProfile = {
 		def json = JSON.parse(request)
 		Map response = new HashMap()
-		def userProfile = UserProfile.findByUserName(json.userName)
+		UserProfile userProfileToSave = new UserProfile()
+		def userProfile = UserProfile.findByUserNameAndDeviceType(json.userName,json.deviceType)
 		if(userProfile) {
+			userProfileToSave.setName(json.name)
+			userProfileToSave.setLoginId(json.loginId)
+			userProfileToSave.setLoginType(json.loginType)
+			userProfileToSave.setGender(json.gender)
+			userProfileToSave.setDeviceToken(json.deviceToken)
+			if(userProfileToSave.save()){
 			response.put("bartsyUserId",userProfile.bartsyId)
 			response.put("errorCode","1")
-			response.put("errorMessage","UserId already exists")
+			response.put("errorMessage","User Profile updated")
+			}
+			else{
+				response.put("bartsyUserId",userProfile.bartsyId)
+				response.put("errorCode","1")
+				response.put("errorMessage","User Profile already exists")
+			}
 		}
-		else{
-			UserProfile userProfileToSave = new UserProfile()
+		else{			
 			userProfileToSave.setUserName(json.userName)
 			userProfileToSave.setName(json.name)
 			userProfileToSave.setLoginId(json.loginId)
@@ -74,6 +88,11 @@ class UserController {
 				if(checkedInUsers.save(flush:true)){
 					response.put("errorCode","0")
 					response.put("errorMessage","User Checked In Successfully")
+					def userProfileMap = [:]
+					userProfileMap.put("bartsyId",userProfile.bartsyId)
+					userProfileMap.put("gender",userProfile.gender)
+					userProfileMap.put("name",userProfile.name)
+					androidPNService.sendUserProfilePN(userProfileMap,venue.deviceToken,"userProfile")
 				}
 				else{
 					response.put("errorCode","1")
