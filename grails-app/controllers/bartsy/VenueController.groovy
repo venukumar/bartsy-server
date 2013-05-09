@@ -52,16 +52,18 @@ class VenueController {
 
 
 	def saveVenueDetailsTest = {
+		println "saveVenueDetailsTest"
+		def json = JSON.parse(request)
 		def resources = grailsApplication.mainContext.getResource("response.txt").file
 		def fileContents = resources.text
 		def parsedData = JSON.parse(fileContents)
 		def hasBarSection
 		def menu
 		Map response = new HashMap()
-		Venue venue = Venue.findByLocuId("100001")
+		Venue venue = Venue.findByLocuId(json.locuId)
 		if(venue){
 			response.put("venueId",venue.getVenueId())
-			response.put("errorCode","2")
+			response.put("errorCode","1")
 			response.put("errorMessage","Venue already exists")
 			render(text:response as JSON ,  contentType:"application/json")
 		}
@@ -74,8 +76,9 @@ class VenueController {
 				if("Bar".equals(parsedData2.menu_name.toString()))
 				{
 					hasBarSection = 1
-					menu = parsedData2.sections as JSON
-					saveDrinks(menu.toString())
+					menu = URLEncoder.encode(parsedData2.sections.toString(),"UTF-8")
+					println menu
+					//saveDrinks(menu.toString())
 					}
 			}
 		}
@@ -97,12 +100,22 @@ class VenueController {
 		venue.twitterId = parsedData.objects[0].twitter_id
 		venue.facebookURL = parsedData.objects[0].facebook_url
 		venue.openHours = parsedData.objects[0].open_hours
+		venue.wifiPresent = json.wifiPresent
+		if(json.wifiPresent == 1){
+			venue.wifiName = json.wifiName
+			venue.wifiPassword = json.wifiPassword
+			venue.typeOfAuthentication = json.typeOfAuthentication
+		}
+		else{
 		venue.wifiName = "XYZ"
 		venue.wifiPassword = "XYZ"
 		venue.typeOfAuthentication = "XYZ"
+		}
 		venue.menu = menu
-		venue.deviceToken = "APA91bF33DOOKODN6L10LmqpnIHXW4pooi4w5ZvjM4aGpmI2_BgxzKJTt8DbRVj4gE3_MxGqHEmG0nJyfTr4XeE9bZwpa3xXvRRwWIdtoNrMBo0NdL_8WZlK633VaF8NzO-LI2ceqTRsUF_LawYq81btJWbu9Q6LfQ"
-		venue.deviceType = "0"
+		venue.deviceToken = json.deviceToken
+		venue.deviceType = json.deviceType
+		venue.accountNumber = json.accountNumber
+		venue.bankName = json.bankName
 		def maxId = Venue.createCriteria().get { projections { max "venueId" } } as Long
 		if(maxId){
 			maxId = maxId+1
@@ -126,12 +139,15 @@ class VenueController {
 	}
 
 	def saveVenueDetails = {
-		def url = message(code:'app.locu.url')+message(code:'app.locu.id')+'/?api_key='+message(code:'app.locu.apikey')
+		def json = JSON.parse(request)
+		def url = message(code:'app.locu.url')+json.locuId+'/?api_key='+message(code:'app.locu.apikey')
+		//println url
 		def parsedData = JSON.parse( new URL(url).text )
+		println "parsedData==========>"+parsedData
 		def hasBarSection
 		def menu
 		Map response = new HashMap()
-		Venue venue = Venue.findByVenueId("100001")
+		Venue venue = Venue.findByLocuId(json.locuId)
 		if(venue){
 			response.put("venueId",venue.getVenueId())
 			response.put("errorCode","2")
@@ -147,8 +163,10 @@ class VenueController {
 				if("Bar".equals(parsedData2.menu_name.toString()))
 				{
 					hasBarSection = 1
-					menu = parsedData2.sections as JSON
-					saveDrinks(menu.toString())
+					println "before casting=====>"+parsedData2.sections
+					menu = URLEncoder.encode(parsedData2.sections.toString(),"UTF-8")
+					println "After Casting=========>"+menu
+					//saveDrinks(menu.toString())
 					}
 			}
 		}
@@ -170,12 +188,22 @@ class VenueController {
 		venue.twitterId = parsedData.objects[0].twitter_id
 		venue.facebookURL = parsedData.objects[0].facebook_url
 		venue.openHours = parsedData.objects[0].open_hours
+		venue.wifiPresent = json.wifiPresent
+		if(json.wifiPresent == 1){
+			venue.wifiName = json.wifiName
+			venue.wifiPassword = json.wifiPassword
+			venue.typeOfAuthentication = json.typeOfAuthentication
+		}
+		else{
 		venue.wifiName = "XYZ"
 		venue.wifiPassword = "XYZ"
 		venue.typeOfAuthentication = "XYZ"
+		}
 		venue.menu = menu
-		venue.deviceToken = "APA91bF33DOOKODN6L10LmqpnIHXW4pooi4w5ZvjM4aGpmI2_BgxzKJTt8DbRVj4gE3_MxGqHEmG0nJyfTr4XeE9bZwpa3xXvRRwWIdtoNrMBo0NdL_8WZlK633VaF8NzO-LI2ceqTRsUF_LawYq81btJWbu9Q6LfQ"
-		venue.deviceType = "0"
+		venue.deviceToken = json.deviceToken
+		venue.deviceType = json.deviceType
+		venue.accountNumber = json.accountNumber
+		venue.bankName = json.bankName
 		def maxId = Venue.createCriteria().get { projections { max "venueId" } } as Long
 		if(maxId){
 			maxId = maxId+1
@@ -294,9 +322,9 @@ class VenueController {
 			def venue = Venue.findByVenueId(venueId)
 			//println "venueObj------->>>"+venueObj
 			if(venue){			
-			def menuJson = JSON.parse(venue.menu)
+			def menuJson = JSON.parse(URLDecoder.decode(venue.menu))
 			//println "data from table:"+venue.menu
-			//println "menuJson:"+menuJson
+			println "menuJson:"+menuJson
 			response.put("menu",menuJson)
 			response.put("errorCode","0")
 			response.put("errorMessage","Venue exists")
@@ -325,6 +353,8 @@ class VenueController {
 				venueMap.put("venueId",venue.getVenueId())
 				venueMap.put("latitude",venue.getLat())
 				venueMap.put("longitude",venue.getLongtd())
+				def address = venue.getStreetAddress()+","+venue.getLocality()+","+venue.getCountry()+","+venue.getPostalCode()
+				venueMap.put("address",address)
 				totalVenueList.add(venueMap)
 			}
 			render(text:totalVenueList as JSON,contentType:"application/json")
