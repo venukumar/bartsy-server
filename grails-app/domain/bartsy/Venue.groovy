@@ -3,9 +3,11 @@ package bartsy
 class Venue {
 
     static constraints = {
-		menu maxSize: 60000
+		//menu(size:0..65535)
     }
-    
+	static mapping = {
+		menu type:"text"
+	}
     String venueName
     String country
     String hasLocuMenu
@@ -28,5 +30,8 @@ class Venue {
 	String wifiPassword
 	String typeOfAuthentication
 	String deviceToken
-	String deviceType  
+	String deviceType 
+	String bankName
+	String accountNumber
+	int wifiPresent 
 }
