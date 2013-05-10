@@ -22,6 +22,7 @@ class OrderController {
 		UserProfile userprofile = UserProfile.findByBartsyId(json.bartsyId)
 		Venue venue = Venue.findByVenueId(json.venueId)
 		if(userprofile && venue){
+			println "userProfile and venue exists"
 			def maxId = Orders.createCriteria().get { projections { max "orderId" } } as Long
 			if(maxId){
 				maxId = maxId+1
@@ -40,13 +41,13 @@ class OrderController {
 			order.setUser(userprofile)
 			order.setVenue(venue)
 
-
+			println "Device Token:"+venue.deviceToken
 			if(order.save()){
 				response.put("orderId",maxId)
 				response.put("orderStatus","NEW")
 				response.put("errorCode","0")
 				response.put("errorMessage","Order Placed")
-				androidPNService.sendPlaceOrderPN("NEW", maxId.toString(), json.itemName, new Date().toString(), json.basePrice, json.tipPercentage, json.totalPrice, venue.deviceToken,"placeOrder")
+				androidPNService.sendPlaceOrderPN("0", maxId.toString(), json.itemName, new Date().toString(), json.basePrice, json.tipPercentage, json.totalPrice, venue.deviceToken,"placeOrder")
 			}
 			else{
 				response.put("errorCode","1")
@@ -73,27 +74,21 @@ class OrderController {
 			if(order.save()){
 				response.put("errorCode","0")
 				response.put("errorMessage","Order Status Changed")
-				if(json.orderStatus in [
-					"ACCEPTED",
-					"REJECTED",
-					"FAILED",
-					"COMPLETED",
-					"NOSHOW",
-					"PICKEDUP"
-				]){
+				if(json.orderStatus){
 					println "device type:"+order.user.deviceType
 					println "order status"+json.orderStatus
 					if(order.user.deviceType == 1 ){
 
-						applePNService.sendPN(order.orderStatus.toString(),order.orderId.toString(), order.user.deviceToken, "1","Your Order Has been Accepted","orderStatus")
+						applePNService.sendPN(order.orderStatus.toString(),order.orderId.toString(), order.user.deviceToken, "1","Your Order Has been Accepted","updateOrderStatus")
 					}
 					else{
 
-						androidPNService.sendPN(order.orderStatus.toString(), order.orderId.toString(), order.user.deviceToken,"orderStatus")
+						androidPNService.sendPN(order.orderStatus.toString(), order.orderId.toString(), order.user.deviceToken,"updateOrderStatus")
 					}
 				}
 				else{
-					println "in else"
+					response.put("errorCode","1")
+				response.put("errorMessage","Please send order status flag")
 				}
 			}
 			else{
@@ -114,7 +109,7 @@ class OrderController {
 	//	}
 	//
 	def testPNAndroid = {
-		androidPNService.sendPN("ACCEPTED", "100001", "APA91bFBGUl-4seat_3vNarkoODj0mgXlYI2uboHsCAcpc-0R4EamKpIrBYRqf7FzgV7tUrmeZaZX0FC7pBKTDtf4rG_xQ89I1OMseAh3d4OBuJv3EuntERKnLzqIV41EGo1-TOkGGeekZAR2A4Ce6ek20oyeDHfPA","Test")
+		androidPNService.sendPN("ACCEPTED", "100001", "AQ5458PM84","Test")
 		//println message(code:'venue.exists')
 	}
 }
