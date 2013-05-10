@@ -7,5 +7,5 @@ class CheckedInUsers {
     
     static belongsTo = [userProfile : UserProfile,venue : Venue]
 	
-	//String status
+	int status
 }
