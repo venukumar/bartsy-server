@@ -7,7 +7,7 @@ class UserProfile {
     }
 	
 	static mapping = {
-		 //userImage(sqlType:'blob')
+		// userImage(sqlType:'blob')
 	}
         
    // static belongsTo = [bartsyUserDetails:BartsyUserDetails]
@@ -24,7 +24,7 @@ class UserProfile {
         //String userStatus
        // String language1
         //String language2
-        //byte[] userImage
+        String userImage
 		String loginId
 		long bartsyId
 		String loginType
