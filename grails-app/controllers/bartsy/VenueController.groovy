@@ -149,6 +149,8 @@ class VenueController {
 		Map response = new HashMap()
 		Venue venue = Venue.findByLocuId(json.locuId)
 		if(venue){
+			venue.setDeviceToken(json.deviceToken)
+			venue.save()
 			response.put("venueId",venue.getVenueId())
 			response.put("errorCode","2")
 			response.put("errorMessage","Venue already exists")
