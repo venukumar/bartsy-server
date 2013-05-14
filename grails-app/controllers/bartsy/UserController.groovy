@@ -101,12 +101,13 @@ class UserController {
 				if(checkedInUsers.save(flush:true)){
 					response.put("errorCode","0")
 					response.put("errorMessage","User Checked In Successfully")
-					def userProfileMap = [:]
-					userProfileMap.put("bartsyId",userProfile.bartsyId)
-					userProfileMap.put("gender",userProfile.gender)
-					userProfileMap.put("name",userProfile.name)
+					Map pnMessage = new HashMap()
+					pnMessage.put("bartsyId",userProfile.bartsyId)
+					pnMessage.put("gender",userProfile.gender)
+					pnMessage.put("name",userProfile.name)
+					pnMessage.put("messageType","userCheckIn")
 					//userProfileMap.put("userImage",userProfile.userImage)
-					androidPNService.sendUserProfilePN(userProfileMap,venue.deviceToken,"userCheckIn")
+					androidPNService.sendPN(pnMessage,venue.deviceToken)
 				}
 				else{
 					response.put("errorCode","1")
@@ -143,12 +144,13 @@ class UserController {
 				if(checkedInUsers.save(flush:true)){
 					response.put("errorCode","0")
 					response.put("errorMessage","User Checked Out Successfully")
-					def userProfileMap = [:]
-					userProfileMap.put("bartsyId",userProfile.bartsyId)
-					userProfileMap.put("gender",userProfile.gender)
-					userProfileMap.put("name",userProfile.name)
+					Map pnMessage = new HashMap()
+					pnMessage.put("bartsyId",userProfile.bartsyId)
+					pnMessage.put("gender",userProfile.gender)
+					pnMessage.put("name",userProfile.name)
+					pnMessage.put("messageType","userCheckOut")
 					//userProfileMap.put("userImage",userProfile.userImage)
-					androidPNService.sendUserProfilePN(userProfileMap,venue.deviceToken,"userCheckOut")
+					androidPNService.sendPN(pnMessage,venue.deviceToken)
 				}
 				else{
 					response.put("errorCode","1")
@@ -177,9 +179,9 @@ class UserController {
 			userProfileToSave.setDeviceToken(json.deviceToken)
 			def userImageFile = request.getFile("userImage")
 			def webRootDir = servletContext.getRealPath("/")
-			def userDir = new File("userImages/")
+			def userDir = new File("web-app/userImages/")
 			userDir.mkdirs()
-			String tmp = json.userName+"_"+userImageFile.originalFilename.toString()
+			String tmp = json.userName.toString()
 			userImageFile.transferTo( new File( userDir, tmp))
 			def userImagePath = "userImages/"+tmp
 			println userImagePath
@@ -207,9 +209,9 @@ class UserController {
 			def webRootDir = servletContext.getRealPath("/")
 			def userDir = new File("web-app/userImages/")
 			userDir.mkdirs()
-			String tmp = json.userName+"_"+userImageFile.originalFilename.toString()
+			String tmp = json.userName.toString()
 			userImageFile.transferTo( new File( userDir, tmp))
-			def userImagePath = "web-app/userImages/"+tmp
+			def userImagePath = "userImages/"+tmp
 			println userImagePath
 			userProfileToSave.setUserImage(userImagePath)
 			//userProfileToSave.setUserImage(json.userImage)
