@@ -47,7 +47,17 @@ class OrderController {
 				response.put("orderStatus","NEW")
 				response.put("errorCode","0")
 				response.put("errorMessage","Order Placed")
-				androidPNService.sendPlaceOrderPN("0", maxId.toString(), json.itemName, new Date().toString(), json.basePrice, json.tipPercentage, json.totalPrice, venue.deviceToken,"placeOrder")
+				Map pnMessage = new HashMap()
+				pnMessage.put("bartsyId",json.bartsyId)
+				pnMessage.put("orderStatus","0")
+				pnMessage.put("orderId",maxId.toString())
+				pnMessage.put("itemName",json.itemName)
+				pnMessage.put("orderTime",new Date().toString())
+				pnMessage.put("basePrice",json.basePrice)
+				pnMessage.put("tipPercentage",json.tipPercentage)
+				pnMessage.put("totalPrice", json.totalPrice)	
+				pnMessage.put("messageType","placeOrder")
+				androidPNService.sendPN(pnMessage, venue.deviceToken)
 			}
 			else{
 				response.put("errorCode","1")
@@ -68,22 +78,26 @@ class OrderController {
 	def updateOrderStatus = {
 		def json = JSON.parse(request)
 		Map response =  new HashMap()
+		Map pnMessage = new HashMap()
+		
 		Orders order = Orders.findByOrderId(json.orderId)
 		if(order) {
-			order.setOrderStatus(json.orderStatus)
+			order.setOrderStatus(json.orderStatus.toString())
 			if(order.save()){
 				response.put("errorCode","0")
 				response.put("errorMessage","Order Status Changed")
 				if(json.orderStatus){
 					println "device type:"+order.user.deviceType
 					println "order status"+json.orderStatus
+					pnMessage.put("orderStatus",json.orderStatus.toString())
+					pnMessage.put("orderId",json.orderId.toString())
+					pnMessage.put("messageType","updateOrderStatus")
 					if(order.user.deviceType == 1 ){
-
-						applePNService.sendPN(order.orderStatus.toString(),order.orderId.toString(), order.user.deviceToken, "1","Your Order Has been Accepted","updateOrderStatus")
+						applePNService.sendPN(pnMessage, order.user.deviceToken, "1","Your Order Has been Accepted")
 					}
 					else{
 
-						androidPNService.sendPN(order.orderStatus.toString(), order.orderId.toString(), order.user.deviceToken,"updateOrderStatus")
+						androidPNService.sendPN(pnMessage,order.user.deviceToken)
 					}
 				}
 				else{
@@ -104,12 +118,4 @@ class OrderController {
 		}
 	}
 
-	//	def testPN = {
-	//		applePNService.sendPN("Test", "1c0cd4989cd90e41350e114490832276ecace8bc622bb6c5878a4ddd2cba3c6f", "1")
-	//	}
-	//
-	def testPNAndroid = {
-		androidPNService.sendPN("ACCEPTED", "100001", "AQ5458PM84","Test")
-		//println message(code:'venue.exists')
 	}
-}
