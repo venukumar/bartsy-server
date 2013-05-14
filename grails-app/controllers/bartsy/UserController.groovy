@@ -78,12 +78,19 @@ class UserController {
 		def userProfile = UserProfile.findByBartsyId(json.bartsyId)
 		def venue = Venue.findByVenueId(json.venueId)
 		def response = [:]
+		CheckedInUsers userCheckedIn
 		if(userProfile && venue){
-			if(CheckedInUsers.findByUserProfileAndVenueAndStatus(userProfile,venue,1)){
+			userCheckedIn = CheckedInUsers.findByUserProfileAndVenueAndStatus(userProfile,venue,1)
+			if(userCheckedIn){
 				response.put("errorCode","0")
 				response.put("errorMessage","User already Checked In the selected venue")
 			}
 			else{
+				userCheckedIn = CheckedInUsers.findByUserProfileAndStatus(userProfile,1)
+				if(userCheckedIn){
+					userCheckedIn.setStatus(0)
+					userCheckedIn.save(flush:true)
+				}
 				def checkedInUsers = CheckedInUsers.findByUserProfileAndVenueAndStatus(userProfile,venue,0)
 				if(!checkedInUsers){
 				checkedInUsers = new CheckedInUsers()
@@ -106,6 +113,7 @@ class UserController {
 					response.put("errorMessage","User check in failed")
 				}
 			}
+			
 		}
 		else{
 			response.put("errorCode","1")
@@ -197,11 +205,11 @@ class UserController {
 			userProfileToSave.setDeviceType(json.deviceType as int)
 			def userImageFile = request.getFile("userImage")
 			def webRootDir = servletContext.getRealPath("/")
-			def userDir = new File("userImages/")
+			def userDir = new File("web-app/userImages/")
 			userDir.mkdirs()
 			String tmp = json.userName+"_"+userImageFile.originalFilename.toString()
 			userImageFile.transferTo( new File( userDir, tmp))
-			def userImagePath = "userImages/"+tmp
+			def userImagePath = "web-app/userImages/"+tmp
 			println userImagePath
 			userProfileToSave.setUserImage(userImagePath)
 			//userProfileToSave.setUserImage(json.userImage)
