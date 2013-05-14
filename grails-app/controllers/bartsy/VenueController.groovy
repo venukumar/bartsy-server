@@ -63,6 +63,7 @@ class VenueController {
 		Venue venue = Venue.findByLocuId(json.locuId)
 		if(venue){
 			response.put("venueId",venue.getVenueId())
+			response.put("venueName",venue.getVenueName())
 			response.put("errorCode","1")
 			response.put("errorMessage","Venue already exists")
 			render(text:response as JSON ,  contentType:"application/json")
@@ -127,6 +128,7 @@ class VenueController {
 
 		if(venue.save()){		
 		response.put("venueId",maxId)
+		response.put("venueName",venue.getVenueName())
 		response.put("errorCode","0")
 		response.put("errorMessage","Save Successful")
 		}
@@ -152,7 +154,8 @@ class VenueController {
 			venue.setDeviceToken(json.deviceToken)
 			venue.save()
 			response.put("venueId",venue.getVenueId())
-			response.put("errorCode","2")
+			response.put("venueName",venue.getVenueName())
+			response.put("errorCode","1")
 			response.put("errorMessage","Venue already exists")
 			render(text:response as JSON ,  contentType:"application/json")
 		}
@@ -217,6 +220,7 @@ class VenueController {
 
 		if(venue.save()){		
 		response.put("venueId",maxId)
+		response.put("venueName",venue.getVenueName())
 		response.put("errorCode","0")
 		response.put("errorMessage","Save Successful")
 		}
