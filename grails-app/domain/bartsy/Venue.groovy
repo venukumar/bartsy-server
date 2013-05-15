@@ -31,7 +31,6 @@ class Venue {
 	String typeOfAuthentication
 	String deviceToken
 	String deviceType 
-	String bankName
-	String accountNumber
+	String paypalId
 	int wifiPresent 
 }
