@@ -115,8 +115,7 @@ class VenueController {
 		venue.menu = menu
 		venue.deviceToken = json.deviceToken
 		venue.deviceType = json.deviceType
-		venue.accountNumber = json.accountNumber
-		venue.bankName = json.bankName
+		venue.paypalId = json.paypalId
 		def maxId = Venue.createCriteria().get { projections { max "venueId" } } as Long
 		if(maxId){
 			maxId = maxId+1
@@ -207,8 +206,7 @@ class VenueController {
 		venue.menu = menu
 		venue.deviceToken = json.deviceToken
 		venue.deviceType = json.deviceType
-		venue.accountNumber = json.accountNumber
-		venue.bankName = json.bankName
+		venue.paypalId = json.paypalId
 		def maxId = Venue.createCriteria().get { projections { max "venueId" } } as Long
 		if(maxId){
 			maxId = maxId+1
@@ -363,7 +361,8 @@ class VenueController {
 				venueMap.put("address",address)
 				totalVenueList.add(venueMap)
 			}
-			render(text:totalVenueList as JSON,contentType:"application/json")
+			
 		}
+		render(text:totalVenueList as JSON,contentType:"application/json")
 	}
 }
