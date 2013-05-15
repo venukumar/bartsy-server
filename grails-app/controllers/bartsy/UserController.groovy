@@ -14,7 +14,8 @@ class UserController {
 	 * Author 		: Swetha Bhatnagar
 	 * Description	: This is a webservice to be called while user regsitration to store user profile data into the server		
 	 */
-	def saveUserProfile = {
+	def saveUserProfileTest = {
+		println "testing"
 		def json = JSON.parse(request)
 		Map response = new HashMap()
 		UserProfile userProfileToSave = new UserProfile()
@@ -25,6 +26,15 @@ class UserController {
 			userProfileToSave.setLoginType(json.loginType)
 			userProfileToSave.setGender(json.gender)
 			userProfileToSave.setDeviceToken(json.deviceToken)
+//			def userImageFile = request.getFile("userImage")
+//			def webRootDir = servletContext.getRealPath("/")
+//			def userDir = new File("web-app/userImages/")
+//			userDir.mkdirs()
+//			String tmp = userProfile.bartsyId.toString()
+//			userImageFile.transferTo( new File( userDir, tmp))
+//			def userImagePath = "userImages/"+tmp
+//			println userImagePath
+//			userProfileToSave.setUserImage(userImagePath)
 			userProfileToSave.setUserImage("Swetha")
 			if(userProfileToSave.save()){
 			response.put("bartsyUserId",userProfile.bartsyId)
@@ -45,6 +55,15 @@ class UserController {
 			userProfileToSave.setGender(json.gender)
 			userProfileToSave.setDeviceToken(json.deviceToken)
 			userProfileToSave.setDeviceType(json.deviceType as int)
+//			def userImageFile = request.getFile("userImage")
+//			def webRootDir = servletContext.getRealPath("/")
+//			def userDir = new File("web-app/userImages/")
+//			userDir.mkdirs()
+//			String tmp = userProfile.bartsyId.toString()
+//			userImageFile.transferTo( new File( userDir, tmp))
+//			def userImagePath = "userImages/"+tmp
+//			println userImagePath
+//			userProfileToSave.setUserImage(userImagePath)
 			userProfileToSave.setUserImage("Swetha")
 			def maxId = UserProfile.createCriteria().get { projections { max "bartsyId"
 				} } as Long
@@ -66,6 +85,7 @@ class UserController {
 			}
 		}
 		render(text:response as JSON ,  contentType:"application/json")
+		
 	}
 	
 	
@@ -102,10 +122,11 @@ class UserController {
 					response.put("errorCode","0")
 					response.put("errorMessage","User Checked In Successfully")
 					Map pnMessage = new HashMap()
-					pnMessage.put("bartsyId",userProfile.bartsyId)
-					pnMessage.put("gender",userProfile.gender)
-					pnMessage.put("name",userProfile.name)
+					pnMessage.put("bartsyId",userProfile.getBartsyId())
+					pnMessage.put("gender",userProfile.getGender())
+					pnMessage.put("name",userProfile.getName())
 					pnMessage.put("messageType","userCheckIn")
+					pnMessage.put("userImagePath",userProfile.getUserImage())
 					//userProfileMap.put("userImage",userProfile.userImage)
 					androidPNService.sendPN(pnMessage,venue.deviceToken)
 				}
@@ -149,6 +170,7 @@ class UserController {
 					pnMessage.put("gender",userProfile.gender)
 					pnMessage.put("name",userProfile.name)
 					pnMessage.put("messageType","userCheckOut")
+					pnMessage.put("userImagePath",userProfile.getUserImage())
 					//userProfileMap.put("userImage",userProfile.userImage)
 					androidPNService.sendPN(pnMessage,venue.deviceToken)
 				}
@@ -165,7 +187,10 @@ class UserController {
 		render(text:response as JSON ,  contentType:"application/json")
 	}
 	
-	def saveUserProfileTest = {
+	def saveUserProfile = {
+		try{
+			println "saveUserprofiletest"
+		println params
 		def json = JSON.parse(params.details)
 		println "josn:"+ json
 		Map response = new HashMap()
@@ -173,7 +198,7 @@ class UserController {
 		def userProfile = UserProfile.findByUserNameAndDeviceType(json.userName,json.deviceType)
 		if(userProfile) {
 			userProfileToSave.setName(json.name)
-			userProfileToSave.setLoginId(json.loginId)
+			userProfileToSave.setLoginId(json.loginId.toString())
 			userProfileToSave.setLoginType(json.loginType)
 			userProfileToSave.setGender(json.gender)
 			userProfileToSave.setDeviceToken(json.deviceToken)
@@ -181,7 +206,7 @@ class UserController {
 			def webRootDir = servletContext.getRealPath("/")
 			def userDir = new File("web-app/userImages/")
 			userDir.mkdirs()
-			String tmp = json.userName.toString()
+			String tmp = userProfile.bartsyId.toString()
 			userImageFile.transferTo( new File( userDir, tmp))
 			def userImagePath = "userImages/"+tmp
 			println userImagePath
@@ -194,36 +219,36 @@ class UserController {
 			else{
 				response.put("bartsyUserId",userProfile.bartsyId)
 				response.put("errorCode","1")
-				response.put("errorMessage","User Profile already exists")
+				response.put("errorMessage","Save not successful")
 			}
 		}
 		else{
 			userProfileToSave.setUserName(json.userName)
 			userProfileToSave.setName(json.name)
-			userProfileToSave.setLoginId(json.loginId)
+			userProfileToSave.setLoginId(json.loginId.toString())
 			userProfileToSave.setLoginType(json.loginType)
 			userProfileToSave.setGender(json.gender)
 			userProfileToSave.setDeviceToken(json.deviceToken)
 			userProfileToSave.setDeviceType(json.deviceType as int)
+			def maxId = UserProfile.createCriteria().get { projections { max "bartsyId"
+			} } as Long
+		if(maxId){
+			maxId = maxId+1
+		}
+		else{
+			maxId = 100001
+		}
+		userProfileToSave.setBartsyId(maxId)
 			def userImageFile = request.getFile("userImage")
 			def webRootDir = servletContext.getRealPath("/")
 			def userDir = new File("web-app/userImages/")
 			userDir.mkdirs()
-			String tmp = json.userName.toString()
+			String tmp = maxId.toString()
 			userImageFile.transferTo( new File( userDir, tmp))
 			def userImagePath = "userImages/"+tmp
 			println userImagePath
 			userProfileToSave.setUserImage(userImagePath)
-			//userProfileToSave.setUserImage(json.userImage)
-			def maxId = UserProfile.createCriteria().get { projections { max "bartsyId"
-				} } as Long
-			if(maxId){
-				maxId = maxId+1
-			}
-			else{
-				maxId = 100001
-			}
-			userProfileToSave.setBartsyId(maxId)
+			
 			if(userProfileToSave.save()){
 				response.put("bartsyUserId",maxId)
 				response.put("errorCode","0")
@@ -235,5 +260,9 @@ class UserController {
 			}
 		}
 		render(text:response as JSON ,  contentType:"application/json")
+	}catch(Exception e){
+	println "Exception:"+e.getMessage()
 	}
+	}
+	
 }
