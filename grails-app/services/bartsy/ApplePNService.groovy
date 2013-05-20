@@ -6,16 +6,13 @@ import grails.converters.JSON
 
 class ApplePNService {
 
-    def sendPN(Map pnMessage,String token,String bad,String body) {
-		println "in Apple PN"
+	def sendPN(Map pnMessage,String token,String bad,String body) {
 		ApnsService service = APNS.newService()
-		//.withCert("/home/swethab/swetha/Bartsy/Certificates.p12", "123456")
-		.withCert("/usr/local/Bartsy/Certificates.p12", "123456")
-		.withSandboxDestination()
-		.build();
-		
-		
-		
+				//.withCert("/home/swethab/swetha/Bartsy/Certificates.p12", "123456")
+				.withCert("/usr/local/Bartsy/Certificates.p12", "123456")
+				.withSandboxDestination()
+				.build();
+
 		String payload = APNS.newPayload().alertBody(body)
 				.badge(Integer.parseInt(bad))
 				.customField("orderStatus", pnMessage.get("orderStatus"))
