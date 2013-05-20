@@ -4,95 +4,129 @@ import grails.converters.JSON
 
 
 class UserController {
-	
+
 	def androidPNService
 
-	def index() {
-	}
-	
 	/**
-	 * Author 		: Swetha Bhatnagar
-	 * Description	: This is a webservice to be called while user regsitration to store user profile data into the server		
-	 */
-	def saveUserProfileTest = {
-		println "testing"
-		def json = JSON.parse(request)
-		Map response = new HashMap()
-		UserProfile userProfileToSave = new UserProfile()
-		def userProfile = UserProfile.findByUserNameAndDeviceType(json.userName,json.deviceType)
-		if(userProfile) {
-			userProfileToSave.setName(json.name)
-			userProfileToSave.setLoginId(json.loginId)
-			userProfileToSave.setLoginType(json.loginType)
-			userProfileToSave.setGender(json.gender)
-			userProfileToSave.setDeviceToken(json.deviceToken)
-//			def userImageFile = request.getFile("userImage")
-//			def webRootDir = servletContext.getRealPath("/")
-//			def userDir = new File("web-app/userImages/")
-//			userDir.mkdirs()
-//			String tmp = userProfile.bartsyId.toString()
-//			userImageFile.transferTo( new File( userDir, tmp))
-//			def userImagePath = "userImages/"+tmp
-//			println userImagePath
-//			userProfileToSave.setUserImage(userImagePath)
-			userProfileToSave.setUserImage("Swetha")
-			if(userProfileToSave.save()){
-			response.put("bartsyUserId",userProfile.bartsyId)
-			response.put("errorCode","1")
-			response.put("errorMessage","User Profile updated")
-			}
-			else{
-				response.put("bartsyUserId",userProfile.bartsyId)
+	 * This is the webservice to save the user registration details received from the customer application.
+	 *
+	 * @author Swetha Bhatnagar
+	 *
+	 * @errorCodes 1 : failure, 0 : success
+	 *
+	 * @param userName         		userName of google+ or facebook
+	 * @param deviceToken    		GCM registration id for Android and device id for IOS
+	 * @param gender    			gender of the user
+	 * @param userImage       		profile picture of the user 
+	 * @param name   				name of the user
+	 * @param loginId  				google+ or facebook loginId
+	 * @param deviceType		    deviceType is Android=0 or IOS=1
+	 * @param loginType   			login type : facebook or google
+	 *
+	 * @return  {
+	 * @return      errorCode 		: success/failure code
+	 * @return      errorMessage 	: success/failure message
+	 * @return      bartsyUserId	: bartsy id generated for that user
+	 * @return  }
+	 *
+	 **/
+	def saveUserProfile = {
+		try{
+			def json = JSON.parse(params.details)
+			Map response = new HashMap()
+			UserProfile userProfileToSave = new UserProfile()
+			if(json.deviceToken.equals("") || json.deviceToken == null ){
 				response.put("errorCode","1")
-				response.put("errorMessage","User Profile already exists")
-			}
-		}
-		else{			
-			userProfileToSave.setUserName(json.userName)
-			userProfileToSave.setName(json.name)
-			userProfileToSave.setLoginId(json.loginId)
-			userProfileToSave.setLoginType(json.loginType)
-			userProfileToSave.setGender(json.gender)
-			userProfileToSave.setDeviceToken(json.deviceToken)
-			userProfileToSave.setDeviceType(json.deviceType as int)
-//			def userImageFile = request.getFile("userImage")
-//			def webRootDir = servletContext.getRealPath("/")
-//			def userDir = new File("web-app/userImages/")
-//			userDir.mkdirs()
-//			String tmp = userProfile.bartsyId.toString()
-//			userImageFile.transferTo( new File( userDir, tmp))
-//			def userImagePath = "userImages/"+tmp
-//			println userImagePath
-//			userProfileToSave.setUserImage(userImagePath)
-			userProfileToSave.setUserImage("Swetha")
-			def maxId = UserProfile.createCriteria().get { projections { max "bartsyId"
-				} } as Long
-			if(maxId){
-				maxId = maxId+1
+				response.put("errorMessage","GCM Registration ID is empty")
 			}
 			else{
-				maxId = 100001
+				def userProfile = UserProfile.findByUserName(json.userName)
+				if(userProfile) {
+					userProfile.setName(json.name)
+					userProfile.setLoginId(json.loginId.toString())
+					userProfile.setLoginType(json.loginType)
+					userProfile.setGender(json.gender)
+					userProfile.setDeviceToken(json.deviceToken)
+					userProfile.setDeviceType(json.deviceType as int)
+					def userImageFile = request.getFile("userImage")
+					def webRootDir = servletContext.getRealPath("/")
+					def userDir = new File("Bartsy/userImages/")
+					userDir.mkdirs()
+					String tmp = userProfile.bartsyId.toString()
+					userImageFile.transferTo( new File( userDir, tmp))
+					def userImagePath = "Bartsy/userImages/"+tmp
+					userProfile.setUserImage(userImagePath)
+					if(userProfile.save()){
+						response.put("bartsyUserId",userProfile.bartsyId)
+						response.put("errorCode","0")
+						response.put("errorMessage","User Profile updated")
+					}
+					else{
+						response.put("bartsyUserId",userProfile.bartsyId)
+						response.put("errorCode","1")
+						response.put("errorMessage","Save not successful")
+					}
+					response.put("userExists","0")
+				}
+				else{
+					userProfileToSave.setUserName(json.userName)
+					userProfileToSave.setName(json.name)
+					userProfileToSave.setLoginId(json.loginId.toString())
+					userProfileToSave.setLoginType(json.loginType)
+					userProfileToSave.setGender(json.gender)
+					userProfileToSave.setDeviceToken(json.deviceToken)
+					userProfileToSave.setDeviceType(json.deviceType as int)
+					def maxId = UserProfile.createCriteria().get { projections { max "bartsyId"
+						} } as Long
+					if(maxId){
+						maxId = maxId+1
+					}
+					else{
+						maxId = 100001
+					}
+					userProfileToSave.setBartsyId(maxId)
+					def userImageFile = request.getFile("userImage")
+					def webRootDir = servletContext.getRealPath("/")
+					def userDir = new File("Bartsy/userImages/")
+					userDir.mkdirs()
+					String tmp = maxId.toString()
+					userImageFile.transferTo( new File( userDir, tmp))
+					def userImagePath = "Bartsy/userImages/"+tmp
+					userProfileToSave.setUserImage(userImagePath)
+					if(userProfileToSave.save()){
+						response.put("bartsyUserId",maxId)
+						response.put("errorCode","0")
+						response.put("errorMessage","Save Successful")
+					}
+					else{
+						response.put("errorCode","1")
+						response.put("errorMessage","Save not successful")
+					}
+					response.put("userExists","1")
+				}
 			}
-			userProfileToSave.setBartsyId(maxId)
-			if(userProfileToSave.save()){
-				response.put("bartsyUserId",maxId)
-				response.put("errorCode","0")
-				response.put("errorMessage","Save Successful")
-			}
-			else{
-				response.put("errorCode","1")
-				response.put("errorMessage","Save not successful")
-			}
+			render(text:response as JSON ,  contentType:"application/json")
+		}catch(Exception e){
+			println "Exception:"+e.getMessage()
 		}
-		render(text:response as JSON ,  contentType:"application/json")
-		
 	}
-	
-	
+
 	/**
-	 * Author 		: Swetha Bhatnagar
-	 * Description	: This is a webservice to be called while user checks in to store user status into the server
-	 */
+	 * This is the webservice to check in a user into a venue
+	 *
+	 * @author Swetha Bhatnagar
+	 *
+	 * @errorCodes 1 : failure, 0 : success
+	 *
+	 * @param venueId         		server generated id for the venue
+	 * @param bartsyId    			server generated id for the user
+	 *
+	 * @return  {
+	 * @return      errorCode 		: success/failure code
+	 * @return      errorMessage 	: success/failure message
+	 * @return  }
+	 *
+	 **/
 	def userCheckIn = {
 		def json = JSON.parse(request)
 		def userProfile = UserProfile.findByBartsyId(json.bartsyId)
@@ -113,7 +147,7 @@ class UserController {
 				}
 				def checkedInUsers = CheckedInUsers.findByUserProfileAndVenueAndStatus(userProfile,venue,0)
 				if(!checkedInUsers){
-				checkedInUsers = new CheckedInUsers()
+					checkedInUsers = new CheckedInUsers()
 				}
 				checkedInUsers.setUserProfile(userProfile)
 				checkedInUsers.setVenue(venue)
@@ -127,7 +161,6 @@ class UserController {
 					pnMessage.put("name",userProfile.getName())
 					pnMessage.put("messageType","userCheckIn")
 					pnMessage.put("userImagePath",userProfile.getUserImage())
-					//userProfileMap.put("userImage",userProfile.userImage)
 					androidPNService.sendPN(pnMessage,venue.deviceToken)
 				}
 				else{
@@ -135,7 +168,6 @@ class UserController {
 					response.put("errorMessage","User check in failed")
 				}
 			}
-			
 		}
 		else{
 			response.put("errorCode","1")
@@ -143,7 +175,23 @@ class UserController {
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}
-	
+
+	/**
+	 * This is the webservice to check out a user from a venue
+	 *
+	 * @author Swetha Bhatnagar
+	 *
+	 * @errorCodes 1 : failure, 0 : success
+	 *
+	 * @param venueId         		server generated id for the venue
+	 * @param bartsyId    			server generated id for the user
+	 *
+	 * @return  {
+	 * @return      errorCode 		: success/failure code
+	 * @return      errorMessage 	: success/failure message
+	 * @return  }
+	 *
+	 **/
 	def userCheckOut = {
 		def json = JSON.parse(request)
 		def userProfile = UserProfile.findByBartsyId(json.bartsyId)
@@ -157,7 +205,7 @@ class UserController {
 			else{
 				def checkedInUsers = CheckedInUsers.findByUserProfileAndVenueAndStatus(userProfile,venue,1)
 				if(!checkedInUsers){
-				checkedInUsers = new CheckedInUsers()
+					checkedInUsers = new CheckedInUsers()
 				}
 				checkedInUsers.setUserProfile(userProfile)
 				checkedInUsers.setVenue(venue)
@@ -171,7 +219,6 @@ class UserController {
 					pnMessage.put("name",userProfile.name)
 					pnMessage.put("messageType","userCheckOut")
 					pnMessage.put("userImagePath",userProfile.getUserImage())
-					//userProfileMap.put("userImage",userProfile.userImage)
 					androidPNService.sendPN(pnMessage,venue.deviceToken)
 				}
 				else{
@@ -181,88 +228,9 @@ class UserController {
 			}
 		}
 		else{
-			response.put("errorCode","1")
+			response.put("errorCode","0")
 			response.put("errorMessage","User ID or Venue ID does not exist")
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}
-	
-	def saveUserProfile = {
-		try{
-			println "saveUserprofiletest"
-		println params
-		def json = JSON.parse(params.details)
-		println "josn:"+ json
-		Map response = new HashMap()
-		UserProfile userProfileToSave = new UserProfile()
-		def userProfile = UserProfile.findByUserNameAndDeviceType(json.userName,json.deviceType)
-		if(userProfile) {
-			userProfileToSave.setName(json.name)
-			userProfileToSave.setLoginId(json.loginId.toString())
-			userProfileToSave.setLoginType(json.loginType)
-			userProfileToSave.setGender(json.gender)
-			userProfileToSave.setDeviceToken(json.deviceToken)
-			def userImageFile = request.getFile("userImage")
-			def webRootDir = servletContext.getRealPath("/")
-			def userDir = new File("web-app/userImages/")
-			userDir.mkdirs()
-			String tmp = userProfile.bartsyId.toString()
-			userImageFile.transferTo( new File( userDir, tmp))
-			def userImagePath = "userImages/"+tmp
-			println userImagePath
-			userProfileToSave.setUserImage(userImagePath)
-			if(userProfileToSave.save()){
-			response.put("bartsyUserId",userProfile.bartsyId)
-			response.put("errorCode","1")
-			response.put("errorMessage","User Profile updated")
-			}
-			else{
-				response.put("bartsyUserId",userProfile.bartsyId)
-				response.put("errorCode","1")
-				response.put("errorMessage","Save not successful")
-			}
-		}
-		else{
-			userProfileToSave.setUserName(json.userName)
-			userProfileToSave.setName(json.name)
-			userProfileToSave.setLoginId(json.loginId.toString())
-			userProfileToSave.setLoginType(json.loginType)
-			userProfileToSave.setGender(json.gender)
-			userProfileToSave.setDeviceToken(json.deviceToken)
-			userProfileToSave.setDeviceType(json.deviceType as int)
-			def maxId = UserProfile.createCriteria().get { projections { max "bartsyId"
-			} } as Long
-		if(maxId){
-			maxId = maxId+1
-		}
-		else{
-			maxId = 100001
-		}
-		userProfileToSave.setBartsyId(maxId)
-			def userImageFile = request.getFile("userImage")
-			def webRootDir = servletContext.getRealPath("/")
-			def userDir = new File("web-app/userImages/")
-			userDir.mkdirs()
-			String tmp = maxId.toString()
-			userImageFile.transferTo( new File( userDir, tmp))
-			def userImagePath = "userImages/"+tmp
-			println userImagePath
-			userProfileToSave.setUserImage(userImagePath)
-			
-			if(userProfileToSave.save()){
-				response.put("bartsyUserId",maxId)
-				response.put("errorCode","0")
-				response.put("errorMessage","Save Successful")
-			}
-			else{
-				response.put("errorCode","1")
-				response.put("errorMessage","Save not successful")
-			}
-		}
-		render(text:response as JSON ,  contentType:"application/json")
-	}catch(Exception e){
-	println "Exception:"+e.getMessage()
-	}
-	}
-	
 }
