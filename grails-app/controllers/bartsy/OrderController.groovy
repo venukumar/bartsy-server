@@ -2,7 +2,6 @@ package bartsy
 
 import grails.converters.JSON
 
-
 class OrderController {
 
 	def applePNService
@@ -37,11 +36,11 @@ class OrderController {
 			def json = JSON.parse(request)
 			Map response = new HashMap()
 			Orders order = new Orders()
+			Date orderDate = new Date()
 			UserProfile userprofile = UserProfile.findByBartsyId(json.bartsyId)
 			Venue venue = Venue.findByVenueId(json.venueId)
 			if(userprofile && venue){
-				def maxId = Orders.createCriteria().get { projections { max "orderId"
-					} } as Long
+				def maxId = Orders.createCriteria().get { projections { max "orderId" } } as Long
 				if(maxId){
 					maxId = maxId+1
 				}
@@ -53,16 +52,13 @@ class OrderController {
 				order.setItemId(json.itemId)
 				order.setItemName(json.itemName)
 				order.setTipPercentage(json.tipPercentage)
-				order.setOrderStatus("NEW")
+				order.setOrderStatus("0")
 				order.setTotalPrice(json.totalPrice)
-				order.setOrderTime(new Date().toGMTString())
 				order.setDescription(json.description)
 				order.setUser(userprofile)
 				order.setVenue(venue)
-				order.setUpdateTime(new Date().toGMTString())
 				if(order.save()){
 					response.put("orderId",maxId)
-					response.put("orderStatus","NEW")
 					response.put("errorCode","0")
 					response.put("errorMessage","Order Placed")
 					Map pnMessage = new HashMap()
@@ -70,13 +66,13 @@ class OrderController {
 					pnMessage.put("orderStatus","0")
 					pnMessage.put("orderId",maxId.toString())
 					pnMessage.put("itemName",json.itemName)
-					pnMessage.put("orderTime",new Date().toGMTString())
+					pnMessage.put("orderTime",orderDate.toGMTString())
 					pnMessage.put("basePrice",json.basePrice)
 					pnMessage.put("tipPercentage",json.tipPercentage)
 					pnMessage.put("totalPrice", json.totalPrice)
 					pnMessage.put("messageType","placeOrder")
 					pnMessage.put("description",json.description)
-					pnMessage.put("updateTime",new Date().toGMTString())
+					pnMessage.put("updateTime",orderDate.toGMTString())
 					androidPNService.sendPN(pnMessage, venue.deviceToken)
 				}
 				else{
@@ -91,7 +87,7 @@ class OrderController {
 			render(text:response as JSON,contentType:"application/json")
 		}
 		catch(Exception e){
-			log.warn(e.message)
+			println "error Message"+e.getMessage()
 		}
 	}
 
@@ -115,23 +111,41 @@ class OrderController {
 		def json = JSON.parse(request)
 		Map response =  new HashMap()
 		Map pnMessage = new HashMap()
-
+		Date orderDate = new Date()
 		Orders order = Orders.findByOrderId(json.orderId)
 		if(order) {
+			def body
+			switch(json.orderStatus.toString()){
+				case "1" :
+					body = "Your order has been Rejected"
+					break
+				case "2" :
+					body = "Your order has been Accepted"
+					break
+				case "3" :
+					body = "Your order is Complete"
+					break
+				case "4" :
+					body = "Your order has Failed"
+					break
+				case "5" :
+					body = "You have picked up the order"
+					break
+				case "6" :
+					body = "order is cancelled due to NOSHOW"
+					break
+			}
 			order.setOrderStatus(json.orderStatus.toString())
-			order.setUpdateTime(new Date().toGMTString())
 			if(order.save()){
 				response.put("errorCode","0")
 				response.put("errorMessage","Order Status Changed")
 				if(json.orderStatus){
-					println "device type:"+order.user.deviceType
-					println "order status"+json.orderStatus
 					pnMessage.put("orderStatus",json.orderStatus.toString())
 					pnMessage.put("orderId",json.orderId.toString())
 					pnMessage.put("messageType","updateOrderStatus")
-					pnMessage.put("updateTime",new Date().toGMTString())
+					pnMessage.put("updateTime",orderDate.toGMTString())
 					if(order.user.deviceType == 1 ){
-						applePNService.sendPN(pnMessage, order.user.deviceToken, "1","Your Order Has been Accepted")
+						applePNService.sendPN(pnMessage, order.user.deviceToken, "1",body)
 					}
 					else{
 
