@@ -2,34 +2,23 @@ package bartsy
 
 class UserProfile {
 
-     static constraints = {
-         
-    }
-	
-	static mapping = {
-		// userImage(sqlType:'blob')
+	static constraints = {
 	}
-        
-   // static belongsTo = [bartsyUserDetails:BartsyUserDetails]
-	
-        String name
-        //String middleName
-		//String lastName
-	//String location
-	//String emailAddress
-	//String mobileNumber
-	//String preference
-        //String gender
-        //String relationshipStatus
-        //String userStatus
-       // String language1
-        //String language2
-        String userImage
-		String loginId
-		long bartsyId
-		String loginType
-		String userName
-		String gender
-		int deviceType
-		String deviceToken
-      }
+
+	String name
+	//String firstName
+	//String lastName
+	//String relationshipStatus
+	//String orientation
+	//Date DOB
+	String userImage
+	String loginId
+	long bartsyId
+	String loginType
+	String userName
+	String gender
+	int deviceType
+	String deviceToken
+	Date dateCreated
+	Date lastUpdated
+}
