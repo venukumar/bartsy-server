@@ -7,7 +7,7 @@ class Orders {
     
     static belongsTo = [user:UserProfile,venue:Venue]
 	
-    String orderTime
+    Date dateCreated
     String orderStatus 
     String basePrice
 	String totalPrice
@@ -16,5 +16,5 @@ class Orders {
 	String itemId
 	long orderId
 	String description
-	String updateTime
+	Date lastUpdated
 }
