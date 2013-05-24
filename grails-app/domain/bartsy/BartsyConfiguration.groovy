@@ -5,8 +5,9 @@ class BartsyConfiguration {
     static constraints = {
     }
     
-    static belongsTo = [role:Role]
-    
+     
     String configName
     String value
+	Date dateCreated
+	Date lastUpdated
 }
