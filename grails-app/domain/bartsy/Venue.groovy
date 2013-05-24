@@ -32,5 +32,8 @@ class Venue {
 	String deviceToken
 	String deviceType 
 	String paypalId
-	int wifiPresent 
+	int wifiPresent
+	Date dateCreated
+	Date lastUpdated
+	int cancelOrderTime 
 }
