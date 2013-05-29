@@ -3,6 +3,7 @@ package bartsy
 class CheckedInUsers {
 
     static constraints = {
+		lastHBResponse(nullable:true)
     }
     
     static belongsTo = [userProfile : UserProfile,venue : Venue]
@@ -10,4 +11,5 @@ class CheckedInUsers {
 	int status
 	Date dateCreated
 	Date lastUpdated
+	Date lastHBResponse
 }
