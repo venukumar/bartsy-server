@@ -36,4 +36,7 @@ class Venue {
 	Date dateCreated
 	Date lastUpdated
 	int cancelOrderTime 
+	String status
+	Date lastHBResponse
+	Date lastActivity
 }
