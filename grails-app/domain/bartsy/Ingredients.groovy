@@ -5,10 +5,10 @@ class Ingredients {
     static constraints = {
     }
     
-    static belongsTo = [venue:Venue]
+    static belongsTo = [venue:Venue,category:IngredientCategory,type:IngredientType]
     
-    String ingredientName
-    String brand
-    String availability
-    String extraCost
-}
+	long ingredientId
+    String name
+    int price
+	String available
+   }
