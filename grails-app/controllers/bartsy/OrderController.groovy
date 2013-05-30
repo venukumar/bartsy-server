@@ -40,6 +40,7 @@ class OrderController {
 			UserProfile userprofile = UserProfile.findByBartsyId(json.bartsyId)
 			Venue venue = Venue.findByVenueId(json.venueId)
 			if(userprofile && venue){
+				if(venue.status.equals("OPEN")){
 				def maxId = Orders.createCriteria().get { projections { max "orderId" } } as Long
 				if(maxId){
 					maxId = maxId+1
@@ -79,6 +80,11 @@ class OrderController {
 					response.put("errorCode","1")
 					response.put("errorMessage","Order placing Failed")
 				}
+			}
+			else{
+				response.put("errorCode","1")
+				response.put("errorMessage","Venue is CLOSED or IDLE")
+			}
 			}
 			else{
 				response.put("errorCode","1")
