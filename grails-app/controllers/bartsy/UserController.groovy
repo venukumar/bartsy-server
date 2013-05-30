@@ -43,41 +43,64 @@ class UserController {
 				def userProfile = UserProfile.findByUserName(json.userName)
 				if(userProfile) {
 					userProfile.setName(json.name)
+					userProfile.setFirstName(json.firstname)
+					userProfile.setLastName(json.lastname)
+					userProfile.setDateOfBirth(json.dateofbirth)
+					userProfile.setNickName(json.nickname)
+					userProfile.setDescription(json.description)
+					userProfile.setOrientation(json.orientation)
+					userProfile.setStatus(json.status)
 					userProfile.setLoginId(json.loginId.toString())
 					userProfile.setLoginType(json.loginType)
 					userProfile.setGender(json.gender)
 					userProfile.setDeviceToken(json.deviceToken)
 					userProfile.setDeviceType(json.deviceType as int)
+					userProfile.setShowProfile("ON")
 					def userImageFile = request.getFile("userImage")
 					def webRootDir = servletContext.getRealPath("/")
-					def userDir = new File("Bartsy/userImages/")
+					def userDir = new File(message(code:'userimage.path'))
 					userDir.mkdirs()
 					String tmp = userProfile.bartsyId.toString()
 					userImageFile.transferTo( new File( userDir, tmp))
-					def userImagePath = "Bartsy/userImages/"+tmp
+					def userImagePath = message(code:'userimage.path.save')+tmp
 					userProfile.setUserImage(userImagePath)
 					if(userProfile.save()){
 						response.put("bartsyUserId",userProfile.bartsyId)
 						response.put("errorCode","0")
 						response.put("errorMessage","User Profile updated")
+						def userCheckedIn = CheckedInUsers.findByUserProfileAndStatus(userProfile,1)
+						if(userCheckedIn){
+							response.put("userCheckedIn","0")
+							response.put("venueId",userCheckedIn.venue.venueId)
+							response.put("venueName",userCheckedIn.venue.venueName)
+						}
+						else{
+							response.put("userCheckedIn","1")
+						}
 					}
 					else{
 						response.put("bartsyUserId",userProfile.bartsyId)
 						response.put("errorCode","1")
 						response.put("errorMessage","Save not successful")
 					}
-					response.put("userExists","0")
 				}
 				else{
 					userProfileToSave.setUserName(json.userName)
+					userProfileToSave.setFirstName(json.firstname)
+					userProfileToSave.setLastName(json.lastname)
+					userProfileToSave.setDateOfBirth(json.dateofbirth)
+					userProfileToSave.setNickName(json.nickname)
+					userProfileToSave.setDescription(json.description)
+					userProfileToSave.setOrientation(json.orientation)
+					userProfileToSave.setStatus(json.status)
 					userProfileToSave.setName(json.name)
 					userProfileToSave.setLoginId(json.loginId.toString())
 					userProfileToSave.setLoginType(json.loginType)
 					userProfileToSave.setGender(json.gender)
 					userProfileToSave.setDeviceToken(json.deviceToken)
 					userProfileToSave.setDeviceType(json.deviceType as int)
-					def maxId = UserProfile.createCriteria().get { projections { max "bartsyId"
-						} } as Long
+					userProfileToSave.setShowProfile("ON")
+					def maxId = UserProfile.createCriteria().get { projections { max "bartsyId" } } as Long
 					if(maxId){
 						maxId = maxId+1
 					}
@@ -87,22 +110,22 @@ class UserController {
 					userProfileToSave.setBartsyId(maxId)
 					def userImageFile = request.getFile("userImage")
 					def webRootDir = servletContext.getRealPath("/")
-					def userDir = new File("Bartsy/userImages/")
+					def userDir = new File(message(code:'userimage.path'))
 					userDir.mkdirs()
 					String tmp = maxId.toString()
 					userImageFile.transferTo( new File( userDir, tmp))
-					def userImagePath = "Bartsy/userImages/"+tmp
+					def userImagePath = message(code:'userimage.path.save')+tmp
 					userProfileToSave.setUserImage(userImagePath)
 					if(userProfileToSave.save()){
 						response.put("bartsyUserId",maxId)
 						response.put("errorCode","0")
 						response.put("errorMessage","Save Successful")
+						response.put("userCheckedIn","1")
 					}
 					else{
 						response.put("errorCode","1")
 						response.put("errorMessage","Save not successful")
 					}
-					response.put("userExists","1")
 				}
 			}
 			render(text:response as JSON ,  contentType:"application/json")
@@ -134,6 +157,11 @@ class UserController {
 		def response = [:]
 		CheckedInUsers userCheckedIn
 		if(userProfile && venue){
+			if(venue.status.equals("CLOSED")){
+				response.put("errorCode","1")
+				response.put("errorMessage","Venue is Closed")
+			}
+			else{
 			userCheckedIn = CheckedInUsers.findByUserProfileAndVenueAndStatus(userProfile,venue,1)
 			if(userCheckedIn){
 				response.put("errorCode","0")
@@ -143,7 +171,17 @@ class UserController {
 				userCheckedIn = CheckedInUsers.findByUserProfileAndStatus(userProfile,1)
 				if(userCheckedIn){
 					userCheckedIn.setStatus(0)
-					userCheckedIn.save(flush:true)
+					if(userCheckedIn.save(flush:true)){
+						def cancelledOrders = cancelOpenOrders(userCheckedIn.userProfile)
+						Map pnMessage = new HashMap()
+						pnMessage.put("cancelledOrders",cancelledOrders)
+						pnMessage.put("bartsyId",userProfile.bartsyId)
+						pnMessage.put("gender",userProfile.gender)
+						pnMessage.put("name",userProfile.name)
+						pnMessage.put("messageType","userCheckOut")
+						pnMessage.put("userImagePath",userProfile.getUserImage())
+						androidPNService.sendPN(pnMessage,userCheckedIn.venue.deviceToken)
+					}
 				}
 				def checkedInUsers = CheckedInUsers.findByUserProfileAndVenueAndStatus(userProfile,venue,0)
 				if(!checkedInUsers){
@@ -152,6 +190,7 @@ class UserController {
 				checkedInUsers.setUserProfile(userProfile)
 				checkedInUsers.setVenue(venue)
 				checkedInUsers.setStatus(1)
+				checkedInUsers.setLastHBResponse(new Date())
 				if(checkedInUsers.save(flush:true)){
 					response.put("errorCode","0")
 					response.put("errorMessage","User Checked In Successfully")
@@ -168,6 +207,9 @@ class UserController {
 					response.put("errorMessage","User check in failed")
 				}
 			}
+		
+		
+		}
 		}
 		else{
 			response.put("errorCode","1")
@@ -213,12 +255,11 @@ class UserController {
 				if(checkedInUsers.save(flush:true)){
 					response.put("errorCode","0")
 					response.put("errorMessage","User Checked Out Successfully")
+					def cancelledOrders = cancelOpenOrders(checkedInUsers.userProfile)
 					Map pnMessage = new HashMap()
+					pnMessage.put("cancelledOrders",cancelledOrders)
 					pnMessage.put("bartsyId",userProfile.bartsyId)
-					pnMessage.put("gender",userProfile.gender)
-					pnMessage.put("name",userProfile.name)
 					pnMessage.put("messageType","userCheckOut")
-					pnMessage.put("userImagePath",userProfile.getUserImage())
 					androidPNService.sendPN(pnMessage,venue.deviceToken)
 				}
 				else{
@@ -231,6 +272,45 @@ class UserController {
 			response.put("errorCode","0")
 			response.put("errorMessage","User ID or Venue ID does not exist")
 		}
+		render(text:response as JSON ,  contentType:"application/json")
+	}
+
+	def List cancelOpenOrders(UserProfile userProfile){
+		def cancelledOrders = []
+		Orders order = new Orders()
+		def openOrdersCriteria = Orders.createCriteria()
+		def openOrders = openOrdersCriteria.list {
+			eq("user",userProfile)
+			and{
+				'in'("orderStatus",["0", "2", "3"])
+			}
+		}
+		if(openOrders){
+			openOrders.each{
+				order=it
+				cancelledOrders.add(order.orderId)
+				order.setOrderStatus("7")
+				//order.setUpdateTime(new Date())
+				order.save(flush:true)
+			}
+		}
+		return cancelledOrders
+	}
+
+	def heartBeat = {
+		def json = JSON.parse(request)
+		def userProfile = UserProfile.findByBartsyId(json.bartsyId)
+		def venue = Venue.findByVenueId(json.venueId)
+		def response = [:]
+		if(userProfile && venue){
+			def checkedInUsers = CheckedInUsers.findByUserProfileAndVenueAndStatus(userProfile,venue,1)
+			if(checkedInUsers){
+				checkedInUsers.setLastHBResponse(new Date())
+				checkedInUsers.save(flush:true)
+			}
+		}
+		response.put("errorCode","0")
+		response.put("errorMessage","Request Received")
 		render(text:response as JSON ,  contentType:"application/json")
 	}
 }
