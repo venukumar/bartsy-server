@@ -19,6 +19,10 @@ class VenueController {
 		Map response = new HashMap()
 		Venue venue = Venue.findByLocuId(json.locuId)
 		if(venue){
+			venue.cancelOrderTime = json.cancelOrderTime as int
+			venue.deviceToken = json.deviceToken
+			venue.lastHBResponse =  new Date()
+			venue.save()
 			response.put("venueId",venue.getVenueId())
 			response.put("venueName",venue.getVenueName())
 			response.put("errorCode","1")
@@ -35,7 +39,7 @@ class VenueController {
 					{
 						hasBarSection = 1
 						menu = URLEncoder.encode(parsedData2.sections.toString(),"UTF-8")
-						println menu
+						//println menu
 						//saveDrinks(menu.toString())
 					}
 				}
@@ -58,6 +62,7 @@ class VenueController {
 			venue.twitterId = parsedData.objects[0].twitter_id
 			venue.facebookURL = parsedData.objects[0].facebook_url
 			venue.openHours = parsedData.objects[0].open_hours
+			venue.cancelOrderTime = json.cancelOrderTime as int
 			venue.wifiPresent = json.wifiPresent
 			if(json.wifiPresent == 1){
 				venue.wifiName = json.wifiName
@@ -73,6 +78,9 @@ class VenueController {
 			venue.deviceToken = json.deviceToken
 			venue.deviceType = json.deviceType
 			venue.paypalId = json.paypalId
+			venue.status = "OPEN"
+			venue.lastHBResponse = new Date()
+			venue.lastActivity =  new Date()
 			def maxId = Venue.createCriteria().get { projections { max "venueId" } } as Long
 			if(maxId){
 				maxId = maxId+1
@@ -87,6 +95,7 @@ class VenueController {
 				response.put("venueName",venue.getVenueName())
 				response.put("errorCode","0")
 				response.put("errorMessage","Save Successful")
+				startTimer()
 			}
 			else{
 				response.put("errorCode","1")
@@ -129,7 +138,8 @@ class VenueController {
 		Map response = new HashMap()
 		Venue venue = Venue.findByLocuId(json.locuId)
 		if(venue){
-			venue.setDeviceToken(json.deviceToken)
+			venue.deviceToken = json.deviceToken
+			venue.cancelOrderTime = json.cancelOrderTime as int
 			venue.save()
 			response.put("venueId",venue.getVenueId())
 			response.put("venueName",venue.getVenueName())
@@ -167,6 +177,7 @@ class VenueController {
 			venue.twitterId = parsedData.objects[0].twitter_id
 			venue.facebookURL = parsedData.objects[0].facebook_url
 			venue.openHours = parsedData.objects[0].open_hours
+			venue.cancelOrderTime = json.cancelOrderTime as int
 			venue.wifiPresent = json.wifiPresent
 			if(json.wifiPresent == 1){
 				venue.wifiName = json.wifiName
@@ -182,6 +193,9 @@ class VenueController {
 			venue.deviceToken = json.deviceToken
 			venue.deviceType = json.deviceType
 			venue.paypalId = json.paypalId
+			venue.status = "OPEN"
+			venue.lastHBResponse = new Date()
+			venue.lastActivity =  new Date()
 			def maxId = Venue.createCriteria().get { projections { max "venueId" } } as Long
 			if(maxId){
 				maxId = maxId+1
@@ -196,6 +210,7 @@ class VenueController {
 				response.put("venueName",venue.getVenueName())
 				response.put("errorCode","0")
 				response.put("errorMessage",message(code:'venue.save'))
+				startTimer()
 			}
 			else{
 				response.put("errorCode","1")
@@ -259,7 +274,9 @@ class VenueController {
 		if(venueList){
 			venueList.each{
 				def venue = it
+				def checkedInUsers = CheckedInUsers.findAllByVenueAndStatus(venue,1)
 				def venueMap = [:]
+				venueMap.put("checkedInUsers",checkedInUsers.size())
 				venueMap.put("venueName",venue.getVenueName())
 				venueMap.put("venueId",venue.getVenueId())
 				venueMap.put("latitude",venue.getLat())
@@ -271,5 +288,45 @@ class VenueController {
 
 		}
 		render(text:totalVenueList as JSON,contentType:"application/json")
+	}
+	
+	def startTimer(){
+		def timer = BartsyConfiguration.findByConfigName("timer")
+		boolean flag = timer.value.toBoolean()
+		if(!flag){ //value should be false initially
+			timer.setValue("true")
+			timer.save(flush:true)
+			
+		}
+	}
+	
+	def heartBeatVenue = {
+		def json = JSON.parse(request)
+		def venue = Venue.findByVenueId(json.venueId)
+		def response = [:]
+		if(venue){			
+		venue.setLastHBResponse(new Date())
+		if(venue.status.equals("IDLE"))
+		{
+			venue.status =  "OPEN"
+		}
+		venue.save(flush:true)
+		response.put("errorCode","0")
+		response.put("errorMessage","Request Received")
+		render(text:response as JSON ,  contentType:"application/json")
+		}
+	}
+	
+	def setVenueStatus = {
+		def json =  JSON.parse(request)
+		def venue = Venue.findByVenueId(json.venueId)
+		def response = [:]
+		if(venue){
+		venue.setStatus(json.status)
+		venue.save(flush:true)
+		response.put("errorCode","0")
+		response.put("errorMessage","Save Successful")
+		render(text:response as JSON ,  contentType:"application/json")
+		}
 	}
 }
