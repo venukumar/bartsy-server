@@ -10,18 +10,19 @@ class InventoryController {
 			def response = [:]
 			def json =  JSON.parse(request)
 			def venue = Venue.findByVenueId(json.venueId)
-			if(venue){
-				def type = IngredientType.findByType(json.type)
-				if(!type){
-					type =  new IngredientType()
-					type.setType(json.type)
-					type.save(flush:true)
-				}
+			if(venue){				
 				def category =  IngredientCategory.findByCategory(json.category)
 				if(!category){
 					category =  new IngredientCategory()
 					category.setCategory(json.category)
 					category.save(flush:true)
+				}
+				def type = IngredientType.findByType(json.type)
+				if(!type){
+					type =  new IngredientType()
+					type.setType(json.type)
+					type.setCategory(category)
+					type.save(flush:true)
 				}
 				def ingredients = json.ingredients
 				if(ingredients) {
@@ -39,7 +40,6 @@ class InventoryController {
 							ingredientToSave.setPrice(ingredient.price as int)
 							ingredientToSave.setAvailable(ingredient.available)
 							ingredientToSave.setType(type)
-							ingredientToSave.setCategory(category)
 							ingredientToSave.setVenue(venue)
 						}
 						if(ingredientToSave.save(flush:true)) {
@@ -63,6 +63,7 @@ class InventoryController {
 			println e.getMessage()
 		}
 	}
+	
 	def saveCocktails= {
 		try {
 			def response = [:]
@@ -104,5 +105,58 @@ class InventoryController {
 		}catch(Exception e){
 			println "save cocktails ::: "+e.getMessage()
 		}
+	}
+	
+	def getIngredients = {
+		
+		def json = JSON.parse(request)
+		def venue = Venue.findByVenueId(json.venueId.toString())
+		def response = [:]
+		if(venue){
+			def types =  IngredientType.getAll()
+			if(types){
+				types.each{
+					def type = it
+					def categories =  IngredientCategory.findAllByType(type)
+					if(categories){
+						categories.each{
+							def category =  it
+							def ingredientsList = []
+							def ingredients = Ingredients.findAllByCategoryAndVenue(category,venue)
+							if(ingredients){
+								def ingredient = it
+								def ingredientMap = [:]
+								ingredientMap.put("ingredientId",ingredient.ingredientId)
+								ingredientMap.put("name",ingredient.name)
+								ingredientMap.put("price",ingredient.price)
+								ingredientMap.put("available",ingredient.available)
+								ingredientsList.add(ingredientMap)
+							}
+								response.put("errorCode","0")
+								response.put("ingredients",ingredientMap)
+								response.put("errorMessage","Ingredients Available")
+							}
+							else{
+								response.put("errorCode","1")
+								response.put("errorMessage","No Ingredients Available")
+							}
+						}
+					}
+					else{
+						response.put("errorCode","1")
+						response.put("errorMessage","No Categories Available")
+					}
+				}
+			}
+			else{
+				response.put("errorCode","1")
+				response.put("errorMessage","No Types Available")
+			}
+		}
+		else{
+			response.put("errorCode","1")
+			response.put("errorMessage","Venue Does not exist")
+		}
+		render(text:response as JSON ,  contentType:"application/json")
 	}
 }
