@@ -132,11 +132,8 @@ class InventoryController {
 								ingredientMap.put("available",ingredient.available)
 								ingredientsList.add(ingredientMap)
 							}
-								response.put("errorCode","0")
-								response.put("ingredients",ingredientMap)
-								response.put("errorMessage","Ingredients Available")
-							}
-							else{
+								
+						else{
 								response.put("errorCode","1")
 								response.put("errorMessage","No Ingredients Available")
 							}
