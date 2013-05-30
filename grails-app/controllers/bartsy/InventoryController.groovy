@@ -115,35 +115,51 @@ class InventoryController {
 		if(venue){
 			def types =  IngredientType.getAll()
 			if(types){
+				def listOfTypes=[]
 				types.each{
+					def typeMap=[:]
 					def type = it
+					typeMap.put("venueId", venue)
+					typeMap.put("typeName", type.name)
 					def categories =  IngredientCategory.findAllByType(type)
 					if(categories){
+						def listOfCategories=[]
 						categories.each{
+							def categoryMap=[:]
 							def category =  it
-							def ingredientsList = []
+							categoryMap.put("name",category.category)
 							def ingredients = Ingredients.findAllByCategoryAndVenue(category,venue)
+							
 							if(ingredients){
-								def ingredient = it
-								def ingredientMap = [:]
-								ingredientMap.put("ingredientId",ingredient.ingredientId)
-								ingredientMap.put("name",ingredient.name)
-								ingredientMap.put("price",ingredient.price)
-								ingredientMap.put("available",ingredient.available)
-								ingredientsList.add(ingredientMap)
+								def ingredientsList=[]
+								ingredients.each{
+									def ingredient = it
+									def ingredientMap = [:]
+									ingredientMap.put("ingredientId",ingredient.ingredientId)
+									ingredientMap.put("name",ingredient.name)
+									ingredientMap.put("price",ingredient.price)
+									ingredientMap.put("available",ingredient.available)
+									ingredientsList.add(ingredientMap)
+								}
+								categoryMap.put("ingredients", ingredientsList)
 							}
 								
 						else{
 								response.put("errorCode","1")
 								response.put("errorMessage","No Ingredients Available")
 							}
+						listOfCategories.add(categoryMap)
 						}
+						typeMap.put("categories", listOfCategories)
 					}
 					else{
 						response.put("errorCode","1")
 						response.put("errorMessage","No Categories Available")
 					}
+					listOfTypes.add(typeMap);
 				}
+				response.put("errorCode","0")
+				response.put("ingredients",listOfTypes)
 			}
 			else{
 				response.put("errorCode","1")
