@@ -87,16 +87,22 @@ class DataController {
 		def checkedInUsersList = []
 		def venue = Venue.findByVenueId(venueId.toString())
 		if(venue){
-			def checkedInUsers = CheckedInUsers.findAllByVenue(venue)
+			def checkedInUsers = CheckedInUsers.findAllByVenueAndStatus(venue,1)
 			if(checkedInUsers){
 				checkedInUsers.each{
 					def checkedInUser = it
+					if(checkedInUser.userProfile.showProfile.equals("ON")){
 					def checkedInUsersMap = [:]
 					checkedInUsersMap.put("bartsyId",checkedInUser.userProfile.bartsyId.toString())
-					checkedInUsersMap.put("name",checkedInUser.userProfile.name)
+					checkedInUsersMap.put("nickName",checkedInUser.userProfile.nickName)
 					checkedInUsersMap.put("userImagePath",checkedInUser.userProfile.userImage)
 					checkedInUsersMap.put("gender",checkedInUser.userProfile.gender)
+					checkedInUsersMap.put("orientation",checkedInUser.userProfile.orientation)
+					checkedInUsersMap.put("status",checkedInUser.userProfile.status)
+					checkedInUsersMap.put("description",checkedInUser.userProfile.description)
+					checkedInUsersMap.put("dateOfBirth",checkedInUser.userProfile.dateOfBirth)
 					checkedInUsersList.add(checkedInUsersMap)
+					}
 				}
 				response.put("checkedInUsers",checkedInUsersList)
 			}
@@ -132,12 +138,12 @@ class DataController {
 	 **/
 	def syncBartenderApp = {
 		def json = JSON.parse(request)
-		def venue = Venue.findByVenueId(json.venueId)
+		def venue = Venue.findByVenueId(json.venueId.toString())
 		def checkedInUsersList = []
 		def ordersList = []
 		def response = [:]
 		if(venue){
-			def checkedInUsers = CheckedInUsers.findAllByVenue(venue)
+			def checkedInUsers = CheckedInUsers.findAllByVenueAndStatus(venue,1)
 			if(checkedInUsers){
 				checkedInUsers.each{
 					def checkedInUser = it
@@ -182,5 +188,18 @@ class DataController {
 			response.put("errorMessage","Venue Does not exist")
 		}
 		render(text:response as JSON ,  contentType:"application/json")
+	}
+	
+	def setConfigValues = {
+		def json = JSON.parse(request)
+		def userTimeout = json.userTimeout
+		def venueTimeout =  json.venueTimeout
+		def timer = BartsyConfiguration.findByConfigName("venueTimeout")
+		timer.setValue(venueTimeout)
+		timer.save()
+		timer=BartsyConfiguration.findByConfigName("userTimeout")
+		timer.setValue(userTimeout)
+		timer.save()
+		render(text:'success',  contentType:"application/text")
 	}
 }
