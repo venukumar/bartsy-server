@@ -1,7 +1,18 @@
+import bartsy.BartsyConfiguration
+import bartsy.IngredientCategory;
+import bartsy.IngredientType;
+
 class BootStrap {
 
     def init = { servletContext ->
-    }
+		if(!BartsyConfiguration.count()){
+			new BartsyConfiguration(configName:'timer',value:'false').save(flush:true)
+			new BartsyConfiguration(configName:'heartbeat',value:'true').save(flush:true)
+			new BartsyConfiguration(configName:'userTimeout',value:'30').save(flush:true)
+			new BartsyConfiguration(configName:'venueTimeout',value:'15').save(flush:true)
+			
+		}
+			  }
     def destroy = {
     }
 }
