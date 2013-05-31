@@ -56,6 +56,7 @@ class UserController {
 					userProfile.setDeviceToken(json.deviceToken)
 					userProfile.setDeviceType(json.deviceType as int)
 					userProfile.setShowProfile("ON")
+					userProfile.setShowProfileUpdated(new Date())
 					def userImageFile = request.getFile("userImage")
 					def webRootDir = servletContext.getRealPath("/")
 					def userDir = new File(message(code:'userimage.path'))
@@ -100,7 +101,9 @@ class UserController {
 					userProfileToSave.setDeviceToken(json.deviceToken)
 					userProfileToSave.setDeviceType(json.deviceType as int)
 					userProfileToSave.setShowProfile("ON")
-					def maxId = UserProfile.createCriteria().get { projections { max "bartsyId" } } as Long
+					userProfile.setShowProfileUpdated(new Date())
+					def maxId = UserProfile.createCriteria().get { projections { max "bartsyId"
+						} } as Long
 					if(maxId){
 						maxId = maxId+1
 					}
@@ -162,54 +165,52 @@ class UserController {
 				response.put("errorMessage","Venue is Closed")
 			}
 			else{
-			userCheckedIn = CheckedInUsers.findByUserProfileAndVenueAndStatus(userProfile,venue,1)
-			if(userCheckedIn){
-				response.put("errorCode","0")
-				response.put("errorMessage","User already Checked In the selected venue")
-			}
-			else{
-				userCheckedIn = CheckedInUsers.findByUserProfileAndStatus(userProfile,1)
+				userCheckedIn = CheckedInUsers.findByUserProfileAndVenueAndStatus(userProfile,venue,1)
 				if(userCheckedIn){
-					userCheckedIn.setStatus(0)
-					if(userCheckedIn.save(flush:true)){
-						def cancelledOrders = cancelOpenOrders(userCheckedIn.userProfile)
-						Map pnMessage = new HashMap()
-						pnMessage.put("cancelledOrders",cancelledOrders)
-						pnMessage.put("bartsyId",userProfile.bartsyId)
-						pnMessage.put("gender",userProfile.gender)
-						pnMessage.put("name",userProfile.name)
-						pnMessage.put("messageType","userCheckOut")
-						pnMessage.put("userImagePath",userProfile.getUserImage())
-						androidPNService.sendPN(pnMessage,userCheckedIn.venue.deviceToken)
-					}
-				}
-				def checkedInUsers = CheckedInUsers.findByUserProfileAndVenueAndStatus(userProfile,venue,0)
-				if(!checkedInUsers){
-					checkedInUsers = new CheckedInUsers()
-				}
-				checkedInUsers.setUserProfile(userProfile)
-				checkedInUsers.setVenue(venue)
-				checkedInUsers.setStatus(1)
-				checkedInUsers.setLastHBResponse(new Date())
-				if(checkedInUsers.save(flush:true)){
 					response.put("errorCode","0")
-					response.put("errorMessage","User Checked In Successfully")
-					Map pnMessage = new HashMap()
-					pnMessage.put("bartsyId",userProfile.getBartsyId())
-					pnMessage.put("gender",userProfile.getGender())
-					pnMessage.put("name",userProfile.getName())
-					pnMessage.put("messageType","userCheckIn")
-					pnMessage.put("userImagePath",userProfile.getUserImage())
-					androidPNService.sendPN(pnMessage,venue.deviceToken)
+					response.put("errorMessage","User already Checked In the selected venue")
 				}
 				else{
-					response.put("errorCode","1")
-					response.put("errorMessage","User check in failed")
+					userCheckedIn = CheckedInUsers.findByUserProfileAndStatus(userProfile,1)
+					if(userCheckedIn){
+						userCheckedIn.setStatus(0)
+						if(userCheckedIn.save(flush:true)){
+							def cancelledOrders = cancelOpenOrders(userCheckedIn.userProfile)
+							Map pnMessage = new HashMap()
+							pnMessage.put("cancelledOrders",cancelledOrders)
+							pnMessage.put("bartsyId",userProfile.bartsyId)
+							pnMessage.put("gender",userProfile.gender)
+							pnMessage.put("name",userProfile.name)
+							pnMessage.put("messageType","userCheckOut")
+							pnMessage.put("userImagePath",userProfile.getUserImage())
+							androidPNService.sendPN(pnMessage,userCheckedIn.venue.deviceToken)
+						}
+					}
+					def checkedInUsers = CheckedInUsers.findByUserProfileAndVenueAndStatus(userProfile,venue,0)
+					if(!checkedInUsers){
+						checkedInUsers = new CheckedInUsers()
+					}
+					checkedInUsers.setUserProfile(userProfile)
+					checkedInUsers.setVenue(venue)
+					checkedInUsers.setStatus(1)
+					checkedInUsers.setLastHBResponse(new Date())
+					if(checkedInUsers.save(flush:true)){
+						response.put("errorCode","0")
+						response.put("errorMessage","User Checked In Successfully")
+						Map pnMessage = new HashMap()
+						pnMessage.put("bartsyId",userProfile.getBartsyId())
+						pnMessage.put("gender",userProfile.getGender())
+						pnMessage.put("name",userProfile.getName())
+						pnMessage.put("messageType","userCheckIn")
+						pnMessage.put("userImagePath",userProfile.getUserImage())
+						androidPNService.sendPN(pnMessage,venue.deviceToken)
+					}
+					else{
+						response.put("errorCode","1")
+						response.put("errorMessage","User check in failed")
+					}
 				}
 			}
-		
-		
-		}
 		}
 		else{
 			response.put("errorCode","1")
@@ -313,20 +314,31 @@ class UserController {
 		response.put("errorMessage","Request Received")
 		render(text:response as JSON ,  contentType:"application/json")
 	}
-	
+
 	def setShowProfile = {
 		def json =  JSON.parse(request)
 		def userProfile = UserProfile.findByBartsyId(json.bartsyId as long)
 		if(userProfile){
-			userProfile.setStatus(json.status)
-			if(userProfile.save(flush:true))
-			{
-				response.put("errorCode","0")
-				response.put("errorMessage","Show profile updated")
-			}
-			else{
-				response.put("errorCode","1")
-				response.put("errorMessage","Show profile not updated")
+			use(groovy.time.TimeCategory){
+				def diff = new Date() - user.showProfileUpdated
+				//log.warn("difference in minutes"+diff.minutes)
+				if(diff.hours >= 24){
+					userProfile.setStatus(json.status)
+					userProfile.setShowProfileUpdated(new Date())
+					if(userProfile.save(flush:true))
+					{
+						response.put("errorCode","0")
+						response.put("errorMessage","Show profile updated")
+					}
+					else{
+						response.put("errorCode","1")
+						response.put("errorMessage","Show profile not updated")
+					}
+				}
+				else{
+					response.put("errorCode","1")
+					response.put("errorMessage","Cannot Update this setting for 24 hrs from last update")
+				}
 			}
 		}
 		else{
