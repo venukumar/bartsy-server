@@ -4,7 +4,7 @@ import javassist.bytecode.stackmap.BasicBlock.Catch;
 import grails.converters.JSON
 
 class InventoryController {
-
+	def inventoryService
 	def saveIngredients = {
 		try{
 			def response = [:]
@@ -88,6 +88,8 @@ class InventoryController {
 							cocktailsToSave.setAlcohol(cocktail.alcohol)
 							cocktailsToSave.setIngredients(cocktail.ingredients)
 							cocktailsToSave.setInstructions(cocktail.instructions)
+							cocktailsToSave.setPrice(cocktail.price as int)
+							cocktailsToSave.setAvailable(cocktail.available)
 							cocktailsToSave.setVenue(venue)
 						}
 						if(cocktailsToSave.save(flush:true)) {
@@ -173,4 +175,31 @@ class InventoryController {
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}
+	
+	/**
+	 * To get the list of cocktails from DB and send to the client
+	 */
+	def getCocktails={
+		// To get request from client
+		def json = JSON.parse(request)
+		// get requested venue id from the json
+		def venueId=json.venueId.toString();
+		// created a map object for returning the response
+		def response = [:]
+		// checking if the venue ID is null or not
+		if(venueId){
+			response=inventoryService.getCocktails(venueId);
+		}else{
+		response.put("errorCode", 1)
+		response.put("errorMessage", "Vneue ID is empty or null")
+		}
+		render(text:response as JSON, contentType:"application/json")
+	}
+	
+	
+	
+	
+	
+	
+	
 }
