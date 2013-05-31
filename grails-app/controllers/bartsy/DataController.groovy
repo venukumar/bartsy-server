@@ -143,6 +143,7 @@ class DataController {
 		def ordersList = []
 		def response = [:]
 		if(venue){
+			response.put("venueStatus",venue.status)
 			def checkedInUsers = CheckedInUsers.findAllByVenueAndStatus(venue,1)
 			if(checkedInUsers){
 				checkedInUsers.each{
