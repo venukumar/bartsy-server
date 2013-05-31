@@ -306,7 +306,7 @@ class VenueController {
 		def response = [:]
 		if(venue){			
 		venue.setLastHBResponse(new Date())
-		if(venue.status.equals("IDLE"))
+		if(venue.status.equals("OFFLINE"))
 		{
 			venue.status =  "OPEN"
 		}
