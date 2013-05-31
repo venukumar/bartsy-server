@@ -39,7 +39,7 @@ class InventoryService {
 				return output
 			}
 			else{
-				// if cocktails doen't exists
+				// if cocktails doesn't exists
 				return ifCocktailsDoesNotExists(output)
 			}
 
