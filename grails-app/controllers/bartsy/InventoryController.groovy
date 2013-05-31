@@ -11,18 +11,18 @@ class InventoryController {
 			def json =  JSON.parse(request)
 			def venue = Venue.findByVenueId(json.venueId)
 			if(venue){				
-				def category =  IngredientCategory.findByCategory(json.category)
-				if(!category){
-					category =  new IngredientCategory()
-					category.setCategory(json.category)
-					category.save(flush:true)
-				}
 				def type = IngredientType.findByType(json.type)
 				if(!type){
 					type =  new IngredientType()
 					type.setType(json.type)
-					type.setCategory(category)
 					type.save(flush:true)
+				}
+				def category =  IngredientCategory.findByCategory(json.category)
+				if(!category){
+					category =  new IngredientCategory()
+					category.setCategory(json.category)
+					category.setType(type)
+					category.save(flush:true)
 				}
 				def ingredients = json.ingredients
 				if(ingredients) {
@@ -39,7 +39,7 @@ class InventoryController {
 							ingredientToSave.setName(ingredient.name)
 							ingredientToSave.setPrice(ingredient.price as int)
 							ingredientToSave.setAvailable(ingredient.available)
-							ingredientToSave.setType(type)
+							ingredientToSave.setCategory(category)
 							ingredientToSave.setVenue(venue)
 						}
 						if(ingredientToSave.save(flush:true)) {
@@ -113,22 +113,23 @@ class InventoryController {
 		def venue = Venue.findByVenueId(json.venueId.toString())
 		def response = [:]
 		if(venue){
+			response.put("venueId", json.venueId)
 			def types =  IngredientType.getAll()
 			if(types){
 				def listOfTypes=[]
 				types.each{
 					def typeMap=[:]
 					def type = it
-					typeMap.put("venueId", venue)
-					typeMap.put("typeName", type.name)
+					
+					typeMap.put("typeName", type.type)
 					def categories =  IngredientCategory.findAllByType(type)
 					if(categories){
 						def listOfCategories=[]
 						categories.each{
 							def categoryMap=[:]
-							def category =  it
-							categoryMap.put("name",category.category)
-							def ingredients = Ingredients.findAllByCategoryAndVenue(category,venue)
+							def categoryObject =  it
+							categoryMap.put("categoryName",categoryObject.category)
+							def ingredients = Ingredients.findAllByCategoryAndVenue(categoryObject,venue)
 							
 							if(ingredients){
 								def ingredientsList=[]
