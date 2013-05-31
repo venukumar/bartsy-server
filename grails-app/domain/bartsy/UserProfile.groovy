@@ -39,5 +39,6 @@ class UserProfile {
 		String deviceToken
 		Date dateCreated
 		Date lastUpdated
-		String showProfile		
+		String showProfile
+		Date showProfileUpdated	
       }
