@@ -313,4 +313,26 @@ class UserController {
 		response.put("errorMessage","Request Received")
 		render(text:response as JSON ,  contentType:"application/json")
 	}
+	
+	def setShowProfile = {
+		def json =  JSON.parse(request)
+		def userProfile = UserProfile.findByBartsyId(json.bartsyId as long)
+		if(userProfile){
+			userProfile.setStatus(json.status)
+			if(userProfile.save(flush:true))
+			{
+				response.put("errorCode","0")
+				response.put("errorMessage","Show profile updated")
+			}
+			else{
+				response.put("errorCode","1")
+				response.put("errorMessage","Show profile not updated")
+			}
+		}
+		else{
+			response.put("errorCode","1")
+			response.put("errorMessage","User Id does not exists")
+		}
+		render(text:response as JSON ,  contentType:"application/json")
+	}
 }
