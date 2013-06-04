@@ -195,4 +195,49 @@ class InventoryController {
 		}
 		render(text:response as JSON, contentType:"application/json")
 	}	
+	
+	/**
+	 * To delete an Ingredient based on client request
+	 *
+	 */
+	def deleteIngredient={
+		// To get body of request
+		def json = JSON.parse(request)
+		
+		println "delete ingredient"
+		
+		// get requested venue id from the json
+		def venueId=json.venueId;
+		def ingredientId=json.ingredientId
+		// created a map object for returning the response
+		def response = [:]
+		// checking if the venue ID is null or not
+		if(venueId){
+			// checking if the Ingredient ID is null or not
+			if(ingredientId){
+				response=inventoryService.deleteIngredient(venueId,ingredientId);
+			}else{
+			handleNegativeResponse(response,"Ingredient ID is empty or null")
+			}
+		}
+		else{
+			handleNegativeResponse(response,"Vneue ID is empty or null")
+		}
+		// sent response to client
+		render(text:response as JSON, contentType:"application/json")
+	}
+	/**
+	 * To return negative response
+	 *
+	 * @param response
+	 * @param message
+	 * @return
+	 */
+	def handleNegativeResponse(response,message){
+		response.put("errorCode", 1)
+		response.put("errorMessage", message)
+		return response
+	}
+	
+	
 }

@@ -40,34 +40,60 @@ class InventoryService {
 			}
 			else{
 				// if cocktails doesn't exists
-				return ifCocktailsDoesNotExists(output)
+				return returnNegativeResponse(output,"Cocktails are not available")
 			}
 
 		}
 		else{
 			// If venue id doesn't exist in db, just return the errror message to request
-			return ifVenueIdDoesNotExit(output)
+			return returnNegativeResponse(output,"Vneue ID does not exist")
 		}
 	}
 	/**
-	 * @methodName : ifVenueIdDoesNotExit
-	 * 		Calling when venue id is doesn't exist in db.
+	 * @methodName : This method we are used to delete the ingredient from the DB.
+	 * 
+	 * @param venueId
+	 * @param ingredientId
 	 * @return
 	 */
-	def ifVenueIdDoesNotExit(response){
-		response.put("errorCode", 1)
-		response.put("errorMessage", "Vneue ID does not exist")
-		return response
+	def deleteIngredient(venueId,ingredientId){
+		// for returning response of the service
+		def output=[:]
+		// get venue details from DB based on the venueId
+		def venue = Venue.findByVenueId(venueId)
+		// get ingredient from DB based on the ingredientId
+		def ingredient=Ingredients.findByIngredientId(ingredientId)
+		// Added venueid to response
+		output.put("venueId", venueId)
+		// checking venue id exists in DB
+		if(venue){
+			// checking ingredient id exists in DB
+			if(ingredient){
+				output.put("ingredientId", ingredientId)
+			def iingredient=Ingredients.get(ingredientId)
+			def status = iingredient.delete()
+			println "statussssss "+status
+			output.put("status", status)
+			}else{
+			// If venue id doesn't exist in db, just return the errror message to client
+			return returnNegativeResponse(output,"Ingredient ID does not exist")
+			}
+		}else{
+			// If venue id doesn't exist in db, just return the errror message to client
+			return returnNegativeResponse(output,"Vneue ID does not exist")
+		}
+		
 	}
 	/**
-	 * @methodName : ifCocktailsDoesNotExists
-	 * 		Calling when cocktails doesn't exist in db.
-	 * @return
+	 * @methodName : returnNegativeResponse
+	 * 		Calling when you didn't get from data from client return response to client
+	 * @return response
 	 */
-	def ifCocktailsDoesNotExists(response){
+	def returnNegativeResponse(response,message){
 		response.put("errorCode", 1)
-		response.put("errorMessage", "Cocktails are not available")
+		response.put("errorMessage", message)
 		return response
-
 	}
+
+	
 }
