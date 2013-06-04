@@ -17,7 +17,7 @@ class InventoryController {
 					type.setType(json.type)
 					type.save(flush:true)
 				}
-				def category =  IngredientCategory.findByCategory(json.category)
+				def category =  IngredientCategory.findByCategoryAndType(json.category,type)
 				if(!category){
 					category =  new IngredientCategory()
 					category.setCategory(json.category)
@@ -194,12 +194,5 @@ class InventoryController {
 		response.put("errorMessage", "Vneue ID is empty or null")
 		}
 		render(text:response as JSON, contentType:"application/json")
-	}
-	
-	
-	
-	
-	
-	
-	
+	}	
 }
