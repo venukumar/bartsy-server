@@ -138,11 +138,13 @@ class InventoryController {
 								ingredients.each{
 									def ingredient = it
 									def ingredientMap = [:]
+									if(ingredient.available.equals("true")){
 									ingredientMap.put("ingredientId",ingredient.ingredientId)
 									ingredientMap.put("name",ingredient.name)
 									ingredientMap.put("price",ingredient.price)
 									ingredientMap.put("available",ingredient.available)
 									ingredientsList.add(ingredientMap)
+							}
 								}
 								categoryMap.put("ingredients", ingredientsList)
 							}
