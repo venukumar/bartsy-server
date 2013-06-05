@@ -102,8 +102,11 @@ class UserController {
 					userProfileToSave.setDeviceType(json.deviceType as int)
 					userProfileToSave.setShowProfile("ON")
 					userProfileToSave.setShowProfileUpdated(new Date())
-					def maxId = UserProfile.createCriteria().get { projections { max "bartsyId"
-						} } as Long
+					def maxId = UserProfile.createCriteria().get {
+						projections {
+							max "bartsyId"
+						}
+					} as Long
 					if(maxId){
 						maxId = maxId+1
 					}
@@ -346,5 +349,89 @@ class UserController {
 			response.put("errorMessage","User Id does not exists")
 		}
 		render(text:response as JSON ,  contentType:"application/json")
+	}
+	/**
+	 * This is the service for checking the user. User is already exist in db or not
+	 */
+	def syncUserProfile={
+		// to get request object
+		def json = JSON.parse(request)
+		def userName=json.userName
+		println "userName :: "+userName
+		def response=[:]
+		// checking user name is empty or not
+		if(userName)
+		{
+			// get user name from DB
+			def user = UserProfile.findByUserName(userName)
+			// checking user is exist or not
+			if(user){
+				response.put("errorCode", 0)
+				response.put("userExist", "YES")
+			}else{
+			response.put("errorCode", 0)
+			response.put("userExist", "NO")
+			}
+
+		}else{
+		// if username is null we are sending negative response
+		response=handleNegativeResponse(response,"UserName should not be empty")
+		}
+		// sending response to client
+		render(text:response as JSON ,  contentType:"application/json")
+	}
+	/**
+	 * This service used to checking whether a user checkin into a venue or not
+	 * 
+	 * If user checkIn into a venue we are sending venue Id and venue Name
+	 */
+	def syncCheckInDetails = {
+		// to get request object
+		def json = JSON.parse(request)
+		// getting bartsy id from request
+		def bartsyId=json.bartsyId
+		
+		def response=[:]
+		println "bartsyId ::: "+bartsyId
+			// checking bartsy id
+			if(bartsyId){
+				def userProfile = UserProfile.findByBartsyId(bartsyId as long)
+				if(userProfile){
+					
+					def checkedInUserVenue= CheckedInUsers.findByUserProfileAndStatus(userProfile,1)
+					if(checkedInUserVenue){
+						response.put("errorCode", 0)
+						response.put("venueId", checkedInUserVenue.venue.venueId)
+						response.put("venueName", checkedInUserVenue.venue.venueName)
+					}else{
+					// if user does not checkedIn in any venue in DB. We are sending negative response
+					response=handleNegativeResponse(response,"User not checkedIn into any venue")
+					}
+				}else{
+				// if userProfile does not exists in DB. We are sending negative response
+				response=handleNegativeResponse(response,"userProfile does not exists")
+				}
+							
+			}else{
+			// if bartsy id is null we are sending negative response
+			response=handleNegativeResponse(response,"Bartsy ID should not be empty")
+			}
+			
+
+		
+		// sending response to client
+		render(text:response as JSON ,  contentType:"application/json")
+	}
+	/**
+	 * To return negative response
+	 *
+	 * @param response
+	 * @param message
+	 * @return
+	 */
+	def handleNegativeResponse(response,message){
+		response.put("errorCode", 1)
+		response.put("errorMessage", message)
+		return response
 	}
 }
