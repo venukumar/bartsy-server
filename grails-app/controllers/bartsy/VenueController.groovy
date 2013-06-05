@@ -281,6 +281,7 @@ class VenueController {
 				venueMap.put("venueId",venue.getVenueId())
 				venueMap.put("latitude",venue.getLat())
 				venueMap.put("longitude",venue.getLongtd())
+				venueMap.put("venueStatus",venue.getStatus())
 				def address = venue.getStreetAddress()+","+venue.getLocality()+","+venue.getCountry()+","+venue.getPostalCode()
 				venueMap.put("address",address)
 				totalVenueList.add(venueMap)
