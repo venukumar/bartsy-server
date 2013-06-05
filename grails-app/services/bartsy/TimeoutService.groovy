@@ -166,6 +166,9 @@ class TimeoutService {
 						def openOrders = openOrdersCriteria.list {
 							eq("user",user)
 							and{
+								eq("venue",venue)
+							}
+							and{
 								'in'("orderStatus",["0", "2", "3"])
 							}
 						}
@@ -177,16 +180,24 @@ class TimeoutService {
 						}
 						if(user.userProfile.deviceType == 0){
 							def pnMessage = [:]
+							pnMessage.put("bartsyId",user.userProfile.bartsyId)
+							pnMessage.put("venueId",venue.venueId)
+							pnMessage.put("venueName",venue.venueName)
 							pnMessage.put("messageType","heartBeat")
-							pnMessage.put("checkedInUsersList",checkedInUsersList)
-							pnMessage.put("ordersList",ordersList)
+							pnMessage.put("userCount",checkedInUsersList.size())
+							pnMessage.put("openOrders",ordersList)
+							pnMessage.put("oprderCount",ordersList.size())
 							androidPNService.sendPN(pnMessage,user.userProfile.deviceToken)
 						}
 						else{
 							def pnMessage = [:]
+							pnMessage.put("bartsyId",user.userProfile.bartsyId)
+							pnMessage.put("venueId",venue.venueId)
+							pnMessage.put("venueName",venue.venueName)
 							pnMessage.put("messageType","heartBeat")
-							pnMessage.put("checkedInUsersList",checkedInUsersList)
-							pnMessage.put("ordersList",ordersList)
+							pnMessage.put("userCount",checkedInUsersList.size())
+							pnMessage.put("openOrders",ordersList)
+							pnMessage.put("orderCount",ordersList.size())
 							applePNService.sendPNHeartBeat(pnMessage,user.userProfile.deviceToken, "1", "")
 						}
 					}
