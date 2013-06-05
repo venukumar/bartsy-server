@@ -101,7 +101,7 @@ class UserController {
 					userProfileToSave.setDeviceToken(json.deviceToken)
 					userProfileToSave.setDeviceType(json.deviceType as int)
 					userProfileToSave.setShowProfile("ON")
-					userProfile.setShowProfileUpdated(new Date())
+					userProfileToSave.setShowProfileUpdated(new Date())
 					def maxId = UserProfile.createCriteria().get { projections { max "bartsyId"
 						} } as Long
 					if(maxId){
