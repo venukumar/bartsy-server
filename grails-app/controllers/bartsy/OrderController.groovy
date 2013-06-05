@@ -42,9 +42,9 @@ class OrderController {
 			Venue venue = Venue.findByVenueId(json.venueId)
 			if(userprofile && venue){
 				if(venue.status.equals("OPEN")){
-					def authorizeResponse = paymentService.authorizePayment()
+					//def authorizeResponse = paymentService.authorizePayment()
 					//def authorizeResponseParsed = JSON.parse(authorizeResponse)
-					println authorizeResponse.responseCodeText
+					//println authorizeResponse.responseCodeText
 					//authorizeResponse.responseCodeText.equals("Approved")
 					if(true	){
 						def maxId = Orders.createCriteria().get { projections { max "orderId" } } as Long
@@ -54,7 +54,7 @@ class OrderController {
 						else{
 							maxId = 100001
 						}
-						order.setAuthTransactionId(authorizeResponse.transactionId as long)
+						//order.setAuthTransactionId(authorizeResponse.transactionId as long)
 						order.setOrderId(maxId)
 						order.setBasePrice(json.basePrice)
 						order.setItemId(json.itemId.toString())
@@ -69,6 +69,17 @@ class OrderController {
 							if(json.type != null && json.type.equals("custom")){
 								addDrinkIngredients(json.ingredients,order)
 							}
+							def openOrdersCriteria = Orders.createCriteria()
+							def openOrders = openOrdersCriteria.list {
+								eq("venue",venue)
+								and{
+									eq("user",userprofile)
+								}
+								and{
+									'in'("orderStatus",["0", "2", "3"])
+								}
+							}
+							response.put("orderCount",openOrders.size())
 							response.put("orderId",maxId)
 							response.put("errorCode","0")
 							response.put("errorMessage","Order Placed")
@@ -148,7 +159,6 @@ class OrderController {
 					break
 				case "3" :
 					body = "Your order is Complete"
-					//def capturePaymentResponse  = paymentService.capturePayment(order.getAuthTransactionId())
 					break
 				case "4" :
 					body = "Your order has Failed"
@@ -161,11 +171,22 @@ class OrderController {
 					break
 			}
 			if(true){
-			order.setOrderStatus(json.orderStatus.toString())
+				if(json.orderStatus){
+				order.setOrderStatus(json.orderStatus.toString())			
 			if(order.save()){
 				response.put("errorCode","0")
 				response.put("errorMessage","Order Status Changed")
-				if(json.orderStatus){
+				def openOrdersCriteria = Orders.createCriteria()
+				def openOrders = openOrdersCriteria.list {
+					eq("venue",order.venue)
+					and{
+						eq("user",order.user)
+					}
+					and{
+						'in'("orderStatus",["0", "2", "3"])
+					}
+				}
+					pnMessage.put("orderCount",openOrders.size())
 					pnMessage.put("orderStatus",json.orderStatus.toString())
 					pnMessage.put("orderId",json.orderId.toString())
 					pnMessage.put("messageType","updateOrderStatus")
@@ -180,12 +201,12 @@ class OrderController {
 				}
 				else{
 					response.put("errorCode","1")
-					response.put("errorMessage","Please send order status flag")
+					response.put("errorMessage","Order Status Change Failed")
 				}
 			}
 			else{
 				response.put("errorCode","1")
-				response.put("errorMessage","Order Status Change Failed")
+				response.put("errorMessage","Please send order status flag")
 			}
 			}
 			else{
@@ -202,12 +223,13 @@ class OrderController {
 		}
 	}
 
-	def testPayment = {
-		//paymentService.capturePayment()
-		//paymentService.authorizePayment()
-		def responseText = paymentService.authorizePayment()
-		render(text:responseText as JSON,contentType:"application/json")
-	}
+//	def testPayment = {
+//		//paymentService.capturePayment()
+//		paymentService.authorizePayment()
+//		//def responseText = paymentService.authorizePayment()
+//		//render(text:responseText as JSON,contentType:"application/json")
+//		paymentService.testing()
+//	}
 
 	def addDrinkIngredients(ingredients,order){
 		ingredients.each{
