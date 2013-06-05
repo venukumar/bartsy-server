@@ -42,21 +42,22 @@ class UserController {
 			else{
 				def userProfile = UserProfile.findByUserName(json.userName)
 				if(userProfile) {
-					userProfile.setName(json.name)
-					userProfile.setFirstName(json.firstname)
-					userProfile.setLastName(json.lastname)
-					userProfile.setDateOfBirth(json.dateofbirth)
-					userProfile.setNickName(json.nickname)
-					userProfile.setDescription(json.description)
-					userProfile.setOrientation(json.orientation)
-					userProfile.setStatus(json.status)
-					userProfile.setLoginId(json.loginId.toString())
-					userProfile.setLoginType(json.loginType)
-					userProfile.setGender(json.gender)
-					userProfile.setDeviceToken(json.deviceToken)
+					userProfile.setName(json.name ?: "")
+					userProfile.setFirstName(json.firstname ?: "")
+					userProfile.setLastName(json.lastname ?: "")
+					userProfile.setDateOfBirth(json.dateofbirth ?: "")
+					userProfile.setNickName(json.nickname ?: "")
+					userProfile.setDescription(json.description ?: "")
+					userProfile.setOrientation(json.orientation ?: "")
+					userProfile.setStatus(json.status ?: "")
+					userProfile.setLoginId(json.loginId.toString() ?: "")
+					userProfile.setLoginType(json.loginType ?: "")
+					userProfile.setGender(json.gender ?: "")
+					userProfile.setDeviceToken(json.deviceToken ?: "")
 					userProfile.setDeviceType(json.deviceType as int)
 					userProfile.setShowProfile("ON")
 					userProfile.setShowProfileUpdated(new Date())
+					userProfile.setEmailId(json.emailId ?: "")
 					def userImageFile = request.getFile("userImage")
 					def webRootDir = servletContext.getRealPath("/")
 					def userDir = new File(message(code:'userimage.path'))
@@ -66,7 +67,7 @@ class UserController {
 					def userImagePath = message(code:'userimage.path.save')+tmp
 					userProfile.setUserImage(userImagePath)
 					if(userProfile.save()){
-						response.put("bartsyUserId",userProfile.bartsyId)
+						response.put("bartsyId",userProfile.bartsyId)
 						response.put("errorCode","0")
 						response.put("errorMessage","User Profile updated")
 						def userCheckedIn = CheckedInUsers.findByUserProfileAndStatus(userProfile,1)
@@ -80,28 +81,29 @@ class UserController {
 						}
 					}
 					else{
-						response.put("bartsyUserId",userProfile.bartsyId)
+						response.put("bartsyId",userProfile.bartsyId)
 						response.put("errorCode","1")
 						response.put("errorMessage","Save not successful")
 					}
 				}
 				else{
-					userProfileToSave.setUserName(json.userName)
-					userProfileToSave.setFirstName(json.firstname)
-					userProfileToSave.setLastName(json.lastname)
-					userProfileToSave.setDateOfBirth(json.dateofbirth)
-					userProfileToSave.setNickName(json.nickname)
-					userProfileToSave.setDescription(json.description)
-					userProfileToSave.setOrientation(json.orientation)
-					userProfileToSave.setStatus(json.status)
-					userProfileToSave.setName(json.name)
-					userProfileToSave.setLoginId(json.loginId.toString())
-					userProfileToSave.setLoginType(json.loginType)
-					userProfileToSave.setGender(json.gender)
-					userProfileToSave.setDeviceToken(json.deviceToken)
+					userProfileToSave.setUserName(json.userName ?: "")
+					userProfileToSave.setFirstName(json.firstname ?: "")
+					userProfileToSave.setLastName(json.lastname ?: "")
+					userProfileToSave.setDateOfBirth(json.dateofbirth ?: "")
+					userProfileToSave.setNickName(json.nickname ?: "")
+					userProfileToSave.setDescription(json.description ?: "")
+					userProfileToSave.setOrientation(json.orientation ?: "")
+					userProfileToSave.setStatus(json.status ?: "")
+					userProfileToSave.setName(json.name ?: "")
+					userProfileToSave.setLoginId(json.loginId.toString() ?: "")
+					userProfileToSave.setLoginType(json.loginType ?: "")
+					userProfileToSave.setGender(json.gender ?: "")
+					userProfileToSave.setDeviceToken(json.deviceToken ?: "")
 					userProfileToSave.setDeviceType(json.deviceType as int)
 					userProfileToSave.setShowProfile("ON")
 					userProfileToSave.setShowProfileUpdated(new Date())
+					userProfileToSave.setEmailId(json.emailId ?: "")
 					def maxId = UserProfile.createCriteria().get {
 						projections {
 							max "bartsyId"
@@ -123,7 +125,7 @@ class UserController {
 					def userImagePath = message(code:'userimage.path.save')+tmp
 					userProfileToSave.setUserImage(userImagePath)
 					if(userProfileToSave.save()){
-						response.put("bartsyUserId",maxId)
+						response.put("bartsyId",maxId)
 						response.put("errorCode","0")
 						response.put("errorMessage","Save Successful")
 						response.put("userCheckedIn","1")
@@ -158,7 +160,7 @@ class UserController {
 	 **/
 	def userCheckIn = {
 		def json = JSON.parse(request)
-		def userProfile = UserProfile.findByBartsyId(json.bartsyId)
+		def userProfile = UserProfile.findByBartsyId(json.bartsyId as long)
 		def venue = Venue.findByVenueId(json.venueId)
 		def response = [:]
 		CheckedInUsers userCheckedIn
@@ -200,6 +202,8 @@ class UserController {
 					if(checkedInUsers.save(flush:true)){
 						response.put("errorCode","0")
 						response.put("errorMessage","User Checked In Successfully")
+						def userCount = CheckedInUsers.findAllByVenueAndStatus(venue,1)
+						response.put("userCount",userCount.size())
 						Map pnMessage = new HashMap()
 						pnMessage.put("bartsyId",userProfile.getBartsyId())
 						pnMessage.put("gender",userProfile.getGender())
@@ -422,6 +426,67 @@ class UserController {
 		// sending response to client
 		render(text:response as JSON ,  contentType:"application/json")
 	}
+	
+	def syncUserDetails = {
+		def json = JSON.parse(request)
+		def response = [:]
+		def userProfile
+		if(json.type.equals("login")){
+			userProfile = UserProfile.findByUserName(json.userName)			
+		}
+		else{
+			userProfile = UserProfile.findByBartsyId(json.bartsyId)
+		}
+		if(userProfile){
+			if(json.type.equals("login")){
+			userProfile.setDeviceToken(json.deviceToken)
+			userProfile.setDeviceType(json.deviceType as int)
+			userProfile.save()
+			}
+			response.put("errorCode", 0)
+			response.put("bartsyId",userProfile.bartsyId)
+			def checkedInUser = CheckedInUsers.findByUserProfileAndStatus(userProfile,1)
+			if(checkedInUser){
+				def openOrdersList = []
+				response.put("venueId",checkedInUser.venue.venueId)
+				response.put("venueName",checkedInUser.venue.venueName)
+				def openOrdersCriteria = Orders.createCriteria()
+				def openOrders = openOrdersCriteria.list {
+					eq("venue",checkedInUser.venue)
+					and{
+						eq("user",userProfile)
+					}
+					and{
+						'in'("orderStatus",["0", "2", "3"])
+					}
+				}
+				if(openOrders){					
+					openOrders.each{
+						def order = it
+						openOrdersList.addAll(order.orderId)
+					}
+				}
+				if(openOrdersList.size()){
+					response.put("openOrders",openOrdersList)
+					response.put("orderCount",openOrdersList.size())
+				}
+				def checkedInUsers = CheckedInUsers.findAllByVenueAndStatus(checkedInUser.venue,1)
+				if(checkedInUsers){
+					response.put("userCount",checkedInUsers.size())
+				}
+			}
+		}
+		else{
+			if(json.type.equals("login")){
+				response=handleNegativeResponse(response,"User not registered")
+			}
+			else{
+				response=handleNegativeResponse(response,"User not checked In")
+			}
+		}
+		render(text:response as JSON ,  contentType:"application/json")
+	}
+	
 	/**
 	 * To return negative response
 	 *
