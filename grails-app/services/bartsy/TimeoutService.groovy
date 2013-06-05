@@ -103,22 +103,22 @@ class TimeoutService {
 									user.setStatus(0)
 									user.save(flush:true)
 									usersCheckedOut.add(user.userProfile.bartsyId)
-									def openOrdersCriteria = Orders.createCriteria()
-									def openOrders = openOrdersCriteria.list {
-										eq("user",user.userProfile)
-										and{
-											'in'("orderStatus",["0", "2", "3"])
-										}
-									}
-									if(openOrders){
-										openOrders.each{
-											def order = it
-											order.setOrderStatus("7")
-											if(order.save()){
-												ordersCancelled.add(order.orderId)
-											}
-										}
-									}
+//									def openOrdersCriteria = Orders.createCriteria()
+//									def openOrders = openOrdersCriteria.list {
+//										eq("user",user.userProfile)
+//										and{
+//											'in'("orderStatus",["0", "2", "3"])
+//										}
+//									}
+//									if(openOrders){
+//										openOrders.each{
+//											def order = it
+//											order.setOrderStatus("7")
+//											if(order.save()){
+//												ordersCancelled.add(order.orderId)
+//											}
+//										}
+//									}
 									//									if(user.userProfile.deviceType == 0){
 									//										def pnMessage = [:]
 									//										pnMessage.put("messageType","userTimeout")
@@ -137,7 +137,7 @@ class TimeoutService {
 					}
 					if(usersCheckedOut.size()){
 						def pnMessage = [:]
-						pnMessage.put("ordersCancelled",ordersCancelled)
+						//pnMessage.put("ordersCancelled",ordersCancelled)
 						pnMessage.put("usersCheckedOut",usersCheckedOut)
 						pnMessage.put("messageType","userTimeout")
 						androidPNService.sendPN(pnMessage,venue.deviceToken)
@@ -234,7 +234,11 @@ class TimeoutService {
 	def venueTimeout(){
 		def usersCheckedOut = []
 		log.warn("userTimeout")
-		def venueList = Venue.findAllByStatus("OPEN")
+		def venueCriteria = Venue.createCriteria()
+		def venueList = venueCriteria.list {
+				'in'("status",["OPEN", "IDLE"])
+				}
+		//def venueList = Venue.findAllByStatus("OPEN")
 		if(venueList){
 			venueList.each{
 				def venue = it
@@ -244,8 +248,8 @@ class TimeoutService {
 						//log.warn("difference in minutes"+diff.minutes)
 						def venueTimeout = BartsyConfiguration.findByConfigName("venueTimeout")
 						if(diff.minutes >= (venueTimeout.value.toInteger())){
-							log.warn("Move venue to IDLE state")
-							venue.setStatus("IDLE")
+							log.warn("Move venue to OFFLINE state")
+							venue.setStatus("OFFLINE")
 							venue.save(flush:true)
 						}
 					}
