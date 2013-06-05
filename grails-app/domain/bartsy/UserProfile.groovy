@@ -40,5 +40,6 @@ class UserProfile {
 		Date dateCreated
 		Date lastUpdated
 		String showProfile
-		Date showProfileUpdated	
+		Date showProfileUpdated
+		String emailId	
       }
