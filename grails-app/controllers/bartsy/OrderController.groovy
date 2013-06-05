@@ -6,6 +6,7 @@ class OrderController {
 
 	def applePNService
 	def androidPNService
+	def paymentService
 
 	/**
 	 * This is the webservice to be called to place an order
@@ -41,50 +42,67 @@ class OrderController {
 			Venue venue = Venue.findByVenueId(json.venueId)
 			if(userprofile && venue){
 				if(venue.status.equals("OPEN")){
-				def maxId = Orders.createCriteria().get { projections { max "orderId" } } as Long
-				if(maxId){
-					maxId = maxId+1
+					def authorizeResponse = paymentService.authorizePayment()
+					//def authorizeResponseParsed = JSON.parse(authorizeResponse)
+					println authorizeResponse.responseCodeText
+					//authorizeResponse.responseCodeText.equals("Approved")
+					if(true	){
+						def maxId = Orders.createCriteria().get { projections { max "orderId" } } as Long
+						if(maxId){
+							maxId = maxId+1
+						}
+						else{
+							maxId = 100001
+						}
+						order.setAuthTransactionId(authorizeResponse.transactionId as long)
+						order.setOrderId(maxId)
+						order.setBasePrice(json.basePrice)
+						order.setItemId(json.itemId.toString())
+						order.setItemName(json.itemName)
+						order.setTipPercentage(json.tipPercentage)
+						order.setOrderStatus("0")
+						order.setTotalPrice(json.totalPrice)
+						order.setDescription(json.description)
+						order.setUser(userprofile)
+						order.setVenue(venue)
+						if(order.save()){
+							if(json.type != null && json.type.equals("custom")){
+								addDrinkIngredients(json.ingredients,order)
+							}
+							response.put("orderId",maxId)
+							response.put("errorCode","0")
+							response.put("errorMessage","Order Placed")
+							Map pnMessage = new HashMap()
+							pnMessage.put("bartsyId",json.bartsyId)
+							pnMessage.put("orderStatus","0")
+							pnMessage.put("orderId",maxId.toString())
+							pnMessage.put("itemName",json.itemName)
+							pnMessage.put("orderTime",orderDate.toGMTString())
+							pnMessage.put("basePrice",json.basePrice)
+							pnMessage.put("tipPercentage",json.tipPercentage)
+							pnMessage.put("totalPrice", json.totalPrice)
+							pnMessage.put("messageType","placeOrder")
+							pnMessage.put("description",json.description)
+							pnMessage.put("updateTime",orderDate.toGMTString())
+							androidPNService.sendPN(pnMessage, venue.deviceToken)
+						}
+						else{
+							response.put("errorCode","1")
+							response.put("errorMessage","Order placing Failed")
+
+						}
+					}
+					else{
+						response.put("errorCode","1")
+						response.put("errorMessage","Card not authorized")
+					}
+
 				}
-				else{
-					maxId = 100001
-				}
-				order.setOrderId(maxId)
-				order.setBasePrice(json.basePrice)
-				order.setItemId(json.itemId)
-				order.setItemName(json.itemName)
-				order.setTipPercentage(json.tipPercentage)
-				order.setOrderStatus("0")
-				order.setTotalPrice(json.totalPrice)
-				order.setDescription(json.description)
-				order.setUser(userprofile)
-				order.setVenue(venue)
-				if(order.save()){
-					response.put("orderId",maxId)
-					response.put("errorCode","0")
-					response.put("errorMessage","Order Placed")
-					Map pnMessage = new HashMap()
-					pnMessage.put("bartsyId",json.bartsyId)
-					pnMessage.put("orderStatus","0")
-					pnMessage.put("orderId",maxId.toString())
-					pnMessage.put("itemName",json.itemName)
-					pnMessage.put("orderTime",orderDate.toGMTString())
-					pnMessage.put("basePrice",json.basePrice)
-					pnMessage.put("tipPercentage",json.tipPercentage)
-					pnMessage.put("totalPrice", json.totalPrice)
-					pnMessage.put("messageType","placeOrder")
-					pnMessage.put("description",json.description)
-					pnMessage.put("updateTime",orderDate.toGMTString())
-					androidPNService.sendPN(pnMessage, venue.deviceToken)
-				}
+
 				else{
 					response.put("errorCode","1")
-					response.put("errorMessage","Order placing Failed")
+					response.put("errorMessage","Venue is CLOSED or OFFLINE")
 				}
-			}
-			else{
-				response.put("errorCode","1")
-				response.put("errorMessage","Venue is CLOSED or IDLE")
-			}
 			}
 			else{
 				response.put("errorCode","1")
@@ -130,6 +148,7 @@ class OrderController {
 					break
 				case "3" :
 					body = "Your order is Complete"
+					//def capturePaymentResponse  = paymentService.capturePayment(order.getAuthTransactionId())
 					break
 				case "4" :
 					body = "Your order has Failed"
@@ -141,6 +160,7 @@ class OrderController {
 					body = "order is cancelled due to NOSHOW"
 					break
 			}
+			if(true){
 			order.setOrderStatus(json.orderStatus.toString())
 			if(order.save()){
 				response.put("errorCode","0")
@@ -167,12 +187,36 @@ class OrderController {
 				response.put("errorCode","1")
 				response.put("errorMessage","Order Status Change Failed")
 			}
+			}
+			else{
+				response.put("errorCode","1")
+				response.put("errorMessage","Payment failed")
+			}
 			render(text:response as JSON,contentType:"application/json")
+		
 		}
 		else{
 			response.put("errorCode","1")
 			response.put("errorMessage","Order Id does not exist")
 			render(text:response as JSON,contentType:"application/json")
+		}
+	}
+
+	def testPayment = {
+		//paymentService.capturePayment()
+		//paymentService.authorizePayment()
+		def responseText = paymentService.authorizePayment()
+		render(text:responseText as JSON,contentType:"application/json")
+	}
+
+	def addDrinkIngredients(ingredients,order){
+		ingredients.each{
+			def ingredientId =  it
+			def drinkIngredients = new DrinkIngredients()
+			def ingredient =  Ingredients.findByIngredientId(ingredientId)
+			drinkIngredients.setIngredient(ingredient)
+			drinkIngredients.setOrder(order)
+			drinkIngredients.save()
 		}
 	}
 }
