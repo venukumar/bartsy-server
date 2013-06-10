@@ -1,5 +1,7 @@
 package bartsy
 
+import java.util.Date;
+
 class Cocktails {
 
 	long cocktailId
@@ -11,6 +13,8 @@ class Cocktails {
 	String instructions
 	int price
 	String available
+	Date dateCreated
+	Date lastUpdated
 	
 	static belongsTo =[venue:Venue]
 	
