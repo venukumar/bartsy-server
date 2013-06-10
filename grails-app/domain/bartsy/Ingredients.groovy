@@ -1,5 +1,7 @@
 package bartsy
 
+import java.util.Date;
+
 class Ingredients {
 
     static constraints = {
@@ -11,4 +13,6 @@ class Ingredients {
     String name
     int price
 	String available
+	Date dateCreated
+	Date lastUpdated
    }
