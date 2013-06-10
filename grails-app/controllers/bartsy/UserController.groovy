@@ -35,6 +35,9 @@ class UserController {
 			def json = JSON.parse(params.details)
 			Map response = new HashMap()
 			UserProfile userProfileToSave = new UserProfile()
+			def userImageFile = request.getFile("userImage")
+			// checking user image is posted or not
+			if(userImageFile){
 			if(json.deviceToken.equals("") || json.deviceToken == null ){
 				response.put("errorCode","1")
 				response.put("errorMessage","GCM Registration ID is empty")
@@ -58,7 +61,7 @@ class UserController {
 					userProfile.setShowProfile("ON")
 					userProfile.setShowProfileUpdated(new Date())
 					userProfile.setEmailId(json.emailId ?: "")
-					def userImageFile = request.getFile("userImage")
+					//def userImageFile = request.getFile("userImage")
 					def webRootDir = servletContext.getRealPath("/")
 					def userDir = new File(message(code:'userimage.path'))
 					userDir.mkdirs()
@@ -116,7 +119,6 @@ class UserController {
 						maxId = 100001
 					}
 					userProfileToSave.setBartsyId(maxId)
-					def userImageFile = request.getFile("userImage")
 					def webRootDir = servletContext.getRealPath("/")
 					def userDir = new File(message(code:'userimage.path'))
 					userDir.mkdirs()
@@ -135,6 +137,10 @@ class UserController {
 						response.put("errorMessage","Save not successful")
 					}
 				}
+			}
+		}else{
+				response.put("errorCode","1")
+				response.put("errorMessage","Please post your picture")
 			}
 			render(text:response as JSON ,  contentType:"application/json")
 		}catch(Exception e){
@@ -162,6 +168,9 @@ class UserController {
 		def json = JSON.parse(request)
 		def userProfile = UserProfile.findByBartsyId(json.bartsyId as long)
 		def venue = Venue.findByVenueId(json.venueId)
+		
+		println "json.bartsyId  "+json.bartsyId 
+		println "json.venueId   "+json.venueId
 		def response = [:]
 		CheckedInUsers userCheckedIn
 		if(userProfile && venue){
