@@ -21,4 +21,5 @@ class Orders {
 	long authTransactionId
 	long payTransactionId
 	Date lastUpdated
+	long recieverBartsyId
 }
