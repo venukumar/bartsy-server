@@ -112,6 +112,7 @@ class UserController {
 					userProfileToSave.setShowProfile("ON")
 					userProfileToSave.setShowProfileUpdated(new Date())
 					userProfileToSave.setEmailId(json.emailId ?: "")
+					userProfileToSave.setPassword(json.password?:"")
 					def maxId = UserProfile.createCriteria().get {
 						projections {
 							max "bartsyId"
@@ -505,18 +506,18 @@ class UserController {
 	 * 
 	 */
 	
-	def userBartsyLogin={
+	def bartsyUserLogin={
 		// to get client request body
 		def json = JSON.parse(request)
 		def response=[:]
-		def bartsyUserName = json.userName
+		def bartsyUserName = json.emailId
 		def bartsyPassword = json.password 
 		// checking username null or not
 		if(bartsyUserName){
 			// checking password is null or not
 			if(bartsyPassword){
 				
-			def userProfile = UserProfile.findByUserNameAndPassword(bartsyUserName, bartsyPassword)
+			def userProfile = UserProfile.findByEmailIdAndPassword(bartsyUserName, bartsyPassword)
 				if(userProfile){
 					response.put("bartsyId",userProfile.bartsyId)
 					response.put("errorCode","0")
