@@ -42,5 +42,8 @@ class UserProfile {
 		Date lastUpdated
 		String showProfile
 		Date showProfileUpdated
-		String emailId	
+		String emailId
+		String creditCardNumber
+		String expMonth
+		String expYear	
       }
