@@ -38,118 +38,120 @@ class UserController {
 			def userImageFile = request.getFile("userImage")
 			// checking user image is posted or not
 			if(userImageFile){
-			if(json.deviceToken.equals("") || json.deviceToken == null ){
-				response.put("errorCode","1")
-				response.put("errorMessage","GCM Registration ID is empty")
-			}else if(json.password && json.userName ){
-			
-			response.put("errorCode","1")
-			response.put("errorMessage","Please post username and password")
-			}
-			else{
-				def userProfile = UserProfile.findByUserName(json.userName)
-				if(userProfile) {
-					userProfile.setName(json.name ?: "")
-					userProfile.setFirstName(json.firstname ?: "")
-					userProfile.setLastName(json.lastname ?: "")
-					userProfile.setDateOfBirth(json.dateofbirth ?: "")
-					userProfile.setNickName(json.nickname ?: "")
-					userProfile.setDescription(json.description ?: "")
-					userProfile.setOrientation(json.orientation ?: "")
-					userProfile.setStatus(json.status ?: "")
-					userProfile.setLoginId(json.loginId.toString() ?: "")
-					userProfile.setLoginType(json.loginType ?: "")
-					userProfile.setGender(json.gender ?: "")
-					userProfile.setDeviceToken(json.deviceToken ?: "")
-					userProfile.setDeviceType(json.deviceType as int)
-					userProfile.setShowProfile("ON")
-					userProfile.setShowProfileUpdated(new Date())
-					userProfile.setEmailId(json.emailId ?: "")
-					userProfile.setPassword(json.password?:"")
-					//def userImageFile = request.getFile("userImage")
-					def webRootDir = servletContext.getRealPath("/")
-					def userDir = new File(message(code:'userimage.path'))
-					userDir.mkdirs()
-					String tmp = userProfile.bartsyId.toString()
-					userImageFile.transferTo( new File( userDir, tmp))
-					def userImagePath = message(code:'userimage.path.save')+tmp
-					userProfile.setUserImage(userImagePath)
-					if(userProfile.save()){
-						response.put("bartsyId",userProfile.bartsyId)
-						response.put("errorCode","0")
-						response.put("errorMessage","User Profile updated")
-						def userCheckedIn = CheckedInUsers.findByUserProfileAndStatus(userProfile,1)
-						if(userCheckedIn){
-							response.put("userCheckedIn","0")
-							response.put("venueId",userCheckedIn.venue.venueId)
-							response.put("venueName",userCheckedIn.venue.venueName)
-						}
-						else{
-							response.put("userCheckedIn","1")
-						}
-					}
-					else{
-						response.put("bartsyId",userProfile.bartsyId)
-						response.put("errorCode","1")
-						response.put("errorMessage","Save not successful")
-					}
+				if(json.deviceToken.equals("") || json.deviceToken == null ){
+					response.put("errorCode","1")
+					response.put("errorMessage","GCM Registration ID is empty")
+				}
+				else if(!json.password || !json.emailId ){
+					response.put("errorCode","1")
+					response.put("errorMessage","Please post emailId and password")
 				}
 				else{
-					userProfileToSave.setUserName(json.userName ?: "")
-					userProfileToSave.setFirstName(json.firstname ?: "")
-					userProfileToSave.setLastName(json.lastname ?: "")
-					userProfileToSave.setDateOfBirth(json.dateofbirth ?: "")
-					userProfileToSave.setNickName(json.nickname ?: "")
-					userProfileToSave.setDescription(json.description ?: "")
-					userProfileToSave.setOrientation(json.orientation ?: "")
-					userProfileToSave.setStatus(json.status ?: "")
-					userProfileToSave.setName(json.name ?: "")
-					userProfileToSave.setLoginId(json.loginId.toString() ?: "")
-					userProfileToSave.setLoginType(json.loginType ?: "")
-					userProfileToSave.setGender(json.gender ?: "")
-					userProfileToSave.setDeviceToken(json.deviceToken ?: "")
-					userProfileToSave.setDeviceType(json.deviceType as int)
-					userProfileToSave.setShowProfile("ON")
-					userProfileToSave.setShowProfileUpdated(new Date())
-					userProfileToSave.setEmailId(json.emailId ?: "")
-					userProfileToSave.setPassword(json.password?:"")
-					def maxId = UserProfile.createCriteria().get {
-						projections {
-							max "bartsyId"
+					def userProfile = UserProfile.findByUserName(json.userName)
+					if(userProfile) {
+						userProfile.setName(json.name ?: "")
+						userProfile.setFirstName(json.firstname ?: "")
+						userProfile.setLastName(json.lastname ?: "")
+						userProfile.setDateOfBirth(json.dateofbirth ?: "")
+						userProfile.setNickName(json.nickname ?: "")
+						userProfile.setDescription(json.description ?: "")
+						userProfile.setOrientation(json.orientation ?: "")
+						userProfile.setStatus(json.status ?: "")
+						userProfile.setLoginId(json.loginId.toString() ?: "")
+						userProfile.setLoginType(json.loginType ?: "")
+						userProfile.setGender(json.gender ?: "")
+						userProfile.setDeviceToken(json.deviceToken ?: "")
+						userProfile.setDeviceType(json.deviceType as int)
+						userProfile.setShowProfile(json.showProfile ?: "OFF")
+						userProfile.setShowProfileUpdated(new Date())
+						userProfile.setEmailId(json.emailId ?: "")
+						userProfile.setPassword(json.password?:"")
+						userProfile.setCreditCardNumber(json.creditCardNumber ?: "")
+						userProfile.setExpMonth(json.expMonth ?: "")
+						userProfile.setExpYear(json.expYear ?: "")
+						def webRootDir = servletContext.getRealPath("/")
+						def userDir = new File(message(code:'userimage.path'))
+						userDir.mkdirs()
+						String tmp = userProfile.bartsyId.toString()
+						userImageFile.transferTo( new File( userDir, tmp))
+						def userImagePath = message(code:'userimage.path.save')+tmp
+						userProfile.setUserImage(userImagePath)
+						if(userProfile.save()){
+							response.put("bartsyId",userProfile.bartsyId)
+							response.put("errorCode","0")
+							response.put("errorMessage","User Profile updated")
+							def userCheckedIn = CheckedInUsers.findByUserProfileAndStatus(userProfile,1)
+							if(userCheckedIn){
+								response.put("userCheckedIn","0")
+								response.put("venueId",userCheckedIn.venue.venueId)
+								response.put("venueName",userCheckedIn.venue.venueName)
+							}
+							else{
+								response.put("userCheckedIn","1")
+							}
 						}
-					} as Long
-					if(maxId){
-						maxId = maxId+1
+						else{
+							response.put("errorCode","1")
+							response.put("errorMessage","Save not successful")
+						}
 					}
 					else{
-						maxId = 100001
-					}
-					userProfileToSave.setBartsyId(maxId)
-					def webRootDir = servletContext.getRealPath("/")
-					def userDir = new File(message(code:'userimage.path'))
-					userDir.mkdirs()
-					String tmp = maxId.toString()
-					userImageFile.transferTo( new File( userDir, tmp))
-					def userImagePath = message(code:'userimage.path.save')+tmp
-					userProfileToSave.setUserImage(userImagePath)
-					if(userProfileToSave.save()){
-						response.put("bartsyId",maxId)
-						response.put("errorCode","0")
-						response.put("errorMessage","Save Successful")
-						response.put("userCheckedIn","1")
-					}
-					else{
-						response.put("errorCode","1")
-						response.put("errorMessage","Save not successful")
+						userProfileToSave.setUserName(json.userName ?: "")
+						userProfileToSave.setFirstName(json.firstname ?: "")
+						userProfileToSave.setLastName(json.lastname ?: "")
+						userProfileToSave.setDateOfBirth(json.dateofbirth ?: "")
+						userProfileToSave.setNickName(json.nickname ?: "")
+						userProfileToSave.setDescription(json.description ?: "")
+						userProfileToSave.setOrientation(json.orientation ?: "")
+						userProfileToSave.setStatus(json.status ?: "")
+						userProfileToSave.setName(json.name ?: "")
+						userProfileToSave.setLoginId(json.loginId.toString() ?: "")
+						userProfileToSave.setLoginType(json.loginType ?: "")
+						userProfileToSave.setGender(json.gender ?: "")
+						userProfileToSave.setDeviceToken(json.deviceToken ?: "")
+						userProfileToSave.setDeviceType(json.deviceType as int)
+						userProfileToSave.setShowProfile(json.showProfile ?: "OFF")
+						userProfileToSave.setShowProfileUpdated(new Date())
+						userProfileToSave.setEmailId(json.emailId ?: "")
+						userProfileToSave.setPassword(json.password?:"")
+						userProfileToSave.setCreditCardNumber(json.creditCardNumber.toString() ?: "")
+						userProfileToSave.setExpMonth(json.expMonth.toString() ?: "")
+						userProfileToSave.setExpYear(json.expYear.toString() ?: "")
+						def maxId = UserProfile.createCriteria().get { projections { max "bartsyId" } } as Long
+						if(maxId){
+							maxId = maxId+1
+						}
+						else{
+							maxId = 100001
+						}
+						userProfileToSave.setBartsyId(maxId)
+						def webRootDir = servletContext.getRealPath("/")
+						def userDir = new File(message(code:'userimage.path'))
+						userDir.mkdirs()
+						String tmp = maxId.toString()
+						userImageFile.transferTo( new File( userDir, tmp))
+						def userImagePath = message(code:'userimage.path.save')+tmp
+						userProfileToSave.setUserImage(userImagePath)
+						if(userProfileToSave.save()){
+							response.put("bartsyId",maxId)
+							response.put("errorCode","0")
+							response.put("errorMessage","Save Successful")
+							response.put("userCheckedIn","1")
+						}
+						else{
+							response.put("errorCode","1")
+							response.put("errorMessage","Save not successful")
+						}
 					}
 				}
 			}
-		}else{
+			else{
 				response.put("errorCode","1")
 				response.put("errorMessage","Please post your picture")
 			}
 			render(text:response as JSON ,  contentType:"application/json")
-		}catch(Exception e){
+		}
+		catch(Exception e){
 			println "Exception:"+e.getMessage()
 		}
 	}
@@ -174,9 +176,6 @@ class UserController {
 		def json = JSON.parse(request)
 		def userProfile = UserProfile.findByBartsyId(json.bartsyId as long)
 		def venue = Venue.findByVenueId(json.venueId)
-		
-		println "json.bartsyId  "+json.bartsyId 
-		println "json.venueId   "+json.venueId
 		def response = [:]
 		CheckedInUsers userCheckedIn
 		if(userProfile && venue){
@@ -222,7 +221,7 @@ class UserController {
 						Map pnMessage = new HashMap()
 						pnMessage.put("bartsyId",userProfile.getBartsyId())
 						pnMessage.put("gender",userProfile.getGender())
-						pnMessage.put("name",userProfile.getName())
+						pnMessage.put("name",userProfile.getNickName())
 						pnMessage.put("messageType","userCheckIn")
 						pnMessage.put("userImagePath",userProfile.getUserImage())
 						androidPNService.sendPN(pnMessage,venue.deviceToken)
@@ -388,13 +387,13 @@ class UserController {
 				response.put("errorCode", 0)
 				response.put("userExist", "YES")
 			}else{
-			response.put("errorCode", 0)
-			response.put("userExist", "NO")
+				response.put("errorCode", 0)
+				response.put("userExist", "NO")
 			}
 
 		}else{
-		// if username is null we are sending negative response
-		response=handleNegativeResponse(response,"UserName should not be empty")
+			// if username is null we are sending negative response
+			response=handleNegativeResponse(response,"UserName should not be empty")
 		}
 		// sending response to client
 		render(text:response as JSON ,  contentType:"application/json")
@@ -409,54 +408,54 @@ class UserController {
 		def json = JSON.parse(request)
 		// getting bartsy id from request
 		def bartsyId=json.bartsyId
-		
+
 		def response=[:]
 		println "bartsyId ::: "+bartsyId
-			// checking bartsy id
-			if(bartsyId){
-				def userProfile = UserProfile.findByBartsyId(bartsyId as long)
-				if(userProfile){
-					
-					def checkedInUserVenue= CheckedInUsers.findByUserProfileAndStatus(userProfile,1)
-					if(checkedInUserVenue){
-						response.put("errorCode", 0)
-						response.put("venueId", checkedInUserVenue.venue.venueId)
-						response.put("venueName", checkedInUserVenue.venue.venueName)
-					}else{
+		// checking bartsy id
+		if(bartsyId){
+			def userProfile = UserProfile.findByBartsyId(bartsyId as long)
+			if(userProfile){
+
+				def checkedInUserVenue= CheckedInUsers.findByUserProfileAndStatus(userProfile,1)
+				if(checkedInUserVenue){
+					response.put("errorCode", 0)
+					response.put("venueId", checkedInUserVenue.venue.venueId)
+					response.put("venueName", checkedInUserVenue.venue.venueName)
+				}else{
 					// if user does not checkedIn in any venue in DB. We are sending negative response
 					response=handleNegativeResponse(response,"User not checkedIn into any venue")
-					}
-				}else{
+				}
+			}else{
 				// if userProfile does not exists in DB. We are sending negative response
 				response=handleNegativeResponse(response,"userProfile does not exists")
-				}
-							
-			}else{
+			}
+
+		}else{
 			// if bartsy id is null we are sending negative response
 			response=handleNegativeResponse(response,"Bartsy ID should not be empty")
-			}
-			
+		}
 
-		
+
+
 		// sending response to client
 		render(text:response as JSON ,  contentType:"application/json")
 	}
-	
+
 	def syncUserDetails = {
 		def json = JSON.parse(request)
 		def response = [:]
 		def userProfile
 		if(json.type.equals("login")){
-			userProfile = UserProfile.findByUserName(json.userName)			
+			userProfile = UserProfile.findByUserName(json.userName)
 		}
 		else{
 			userProfile = UserProfile.findByBartsyId(json.bartsyId)
 		}
 		if(userProfile){
 			if(json.type.equals("login")){
-			userProfile.setDeviceToken(json.deviceToken)
-			userProfile.setDeviceType(json.deviceType as int)
-			userProfile.save()
+				userProfile.setDeviceToken(json.deviceToken)
+				userProfile.setDeviceType(json.deviceType as int)
+				userProfile.save()
 			}
 			response.put("errorCode", 0)
 			response.put("bartsyId",userProfile.bartsyId)
@@ -468,14 +467,12 @@ class UserController {
 				def openOrdersCriteria = Orders.createCriteria()
 				def openOrders = openOrdersCriteria.list {
 					eq("venue",checkedInUser.venue)
-					and{
-						eq("user",userProfile)
-					}
+					and{ eq("user",userProfile) }
 					and{
 						'in'("orderStatus",["0", "2", "3"])
 					}
 				}
-				if(openOrders){					
+				if(openOrders){
 					openOrders.each{
 						def order = it
 						openOrdersList.addAll(order.orderId)
@@ -505,19 +502,19 @@ class UserController {
 	 * To login with bartsy credentials
 	 * 
 	 */
-	
+
 	def bartsyUserLogin={
 		// to get client request body
 		def json = JSON.parse(request)
 		def response=[:]
-		def bartsyUserName = json.emailId
-		def bartsyPassword = json.password 
+		def bartsyEmailId = json.emailId
+		def bartsyPassword = json.password
 		// checking username null or not
-		if(bartsyUserName){
+		if(bartsyEmailId){
 			// checking password is null or not
 			if(bartsyPassword){
-				
-			def userProfile = UserProfile.findByEmailIdAndPassword(bartsyUserName, bartsyPassword)
+
+				def userProfile = UserProfile.findByEmailIdAndPassword(bartsyEmailId, bartsyPassword)
 				if(userProfile){
 					response.put("bartsyId",userProfile.bartsyId)
 					response.put("errorCode","0")
@@ -532,27 +529,27 @@ class UserController {
 						response.put("userCheckedIn","1")
 					}
 				}else{
-				response.put("errorCode","1")
-				response.put("errorMessage","Invalid username or password")
-				
+					response.put("errorCode","1")
+					response.put("errorMessage","Invalid username or password")
+
 				}
-				
+
 			}else{
-			
-			handleNegativeResponse(response,"Password should not be empty")
+
+				handleNegativeResponse(response,"Password should not be empty")
 			}
-			
+
 		}else{
-		
-		handleNegativeResponse(response,"UserName should not be empty")
-		
+
+			handleNegativeResponse(response,"UserName should not be empty")
+
 		}
-		
+
 		render(text:response as JSON ,  contentType:"application/json")
-		
+
 	}
-	
-	
+
+
 	/**
 	 * To return negative response
 	 *
