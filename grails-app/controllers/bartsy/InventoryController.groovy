@@ -152,6 +152,7 @@ class InventoryController {
 						else{
 								response.put("errorCode","1")
 								response.put("errorMessage","No Ingredients Available")
+								render(text:response as JSON ,  contentType:"application/json")
 							}
 						listOfCategories.add(categoryMap)
 						}
@@ -160,6 +161,7 @@ class InventoryController {
 					else{
 						response.put("errorCode","1")
 						response.put("errorMessage","No Categories Available")
+						render(text:response as JSON ,  contentType:"application/json")
 					}
 					listOfTypes.add(typeMap);
 				}
