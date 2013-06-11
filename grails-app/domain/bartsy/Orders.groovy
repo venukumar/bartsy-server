@@ -9,6 +9,8 @@ class Orders {
 		captureErrorMessage(nullable:true)
 		authCode(nullable:true)
 		authTransactionNumber(nullable:true)
+		lastState(nullable:true)
+		errorReason(nullable:true)
 		}
     
     static belongsTo = [user:UserProfile,venue:Venue]
@@ -31,4 +33,6 @@ class Orders {
 	String captureTransactionNumber
 	String authErrorMessage
 	String captureErrorMessage
+	String lastState
+	String errorReason
 }
