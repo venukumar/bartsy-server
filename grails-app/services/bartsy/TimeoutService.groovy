@@ -3,6 +3,7 @@ package bartsy
 class TimeoutService {
 	def androidPNService
 	def applePNService
+	def paymentService
 
 	def timeout(){
 		def timer = BartsyConfiguration.findByConfigName("timer")
@@ -17,6 +18,7 @@ class TimeoutService {
 
 	def orderTimeout(){
 		def ordersCancelled = []
+		def response = [:]
 		log.warn("order timeout")
 		def venueList = Venue.getAll()
 		if(venueList){
@@ -36,6 +38,7 @@ class TimeoutService {
 							def diff = new Date() - order.lastUpdated
 							//log.warn("difference in minutes"+diff.minutes)
 							if(diff.minutes >= venue.cancelOrderTime){
+								response = paymentService.makePayment(order,response)
 								order.setOrderStatus("7")
 								if(order.save()){
 									if(order.user.deviceType == 0){
