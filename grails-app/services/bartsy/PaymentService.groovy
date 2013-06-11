@@ -13,18 +13,18 @@ import net.authorize.data.creditcard.CardType
 class PaymentService {
 
 
-	def authorizePayment(){
+	def authorizePayment(UserProfile userprofile,def price){
 		def response = [:]
 		Merchant merchant = Merchant.createMerchant(Environment.SANDBOX,
 				"75x2yLLj", "5Lq4dG24m63qncQ4");
 		// create credit card
 		CreditCard creditCard = CreditCard.createCreditCard();
-		creditCard.setCreditCardNumber("4007000000027");
-		creditCard.setExpirationMonth("12");
-		creditCard.setExpirationYear("2015");
+		creditCard.setCreditCardNumber(userprofile.getCreditCardNumber());
+		creditCard.setExpirationMonth(userprofile.getExpMonth());
+		creditCard.setExpirationYear(userprofile.getExpYear());
 		// create transaction
 		Transaction authCaptureTransaction = merchant.createAIMTransaction(
-				TransactionType.AUTH_ONLY, new BigDecimal(1.99));
+				TransactionType.AUTH_ONLY, new BigDecimal(price));
 		authCaptureTransaction.setCreditCard(creditCard);
 		Result<Transaction> result = (Result<Transaction>) merchant.postTransaction(authCaptureTransaction);
 		if(result.isApproved()) {
@@ -39,18 +39,18 @@ class PaymentService {
 		println response
 		return response
 	}
-	def capturePayment(def authCode){
+	def capturePayment(def authCode,UserProfile userprofile,def price){
 		def response = [:]
 		Merchant merchant = Merchant.createMerchant(Environment.SANDBOX,
 				"75x2yLLj", "5Lq4dG24m63qncQ4");
 		// create credit card
 		CreditCard creditCard = CreditCard.createCreditCard();
-		creditCard.setCreditCardNumber("4007000000027");
-		creditCard.setExpirationMonth("12");
-		creditCard.setExpirationYear("2015");
+		creditCard.setCreditCardNumber(userprofile.getCreditCardNumber());
+		creditCard.setExpirationMonth(userprofile.getExpMonth());
+		creditCard.setExpirationYear(userprofile.getExpYear());
 		// create transaction
 		Transaction authCaptureTransaction = merchant.createAIMTransaction(
-				TransactionType.CAPTURE_ONLY, new BigDecimal(1.99));
+				TransactionType.CAPTURE_ONLY, new BigDecimal(price));
 		authCaptureTransaction.setAuthorizationCode(authCode)
 		authCaptureTransaction.setCreditCard(creditCard);
 		Result<Transaction> result = (Result<Transaction>) merchant.postTransaction(authCaptureTransaction);
@@ -66,11 +66,10 @@ class PaymentService {
 		return response
 	}
 	
-	def makePayment(order,status){
-		def captureResponse = capturePayment(order.getAuthCode())
-		if(captureResponse.get("captureApproved").toBoolean()){
+	def makePayment(Orders order){
+		def captureResponse = capturePayment(order.getAuthCode(),order.user,order.getTotalPrice())
+		if(captureResponse.get("captureApproved").toBoolean()){			
 			order.setCaptureApproved("true")
-			order.setOrderStatus(status)
 			order.setCaptureTransactionNumber(captureResponse.get("captureTransactionNumber"))
 		}
 		else{
@@ -78,8 +77,7 @@ class PaymentService {
 			order.setCaptureApproved("false")
 			order.setCaptureErrorMessage(captureResponse.get("captureErrorMessage"))
 		}
-		order.save()
-		return response
+		return order
 	}
 
 }
