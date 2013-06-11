@@ -38,7 +38,9 @@ class TimeoutService {
 							def diff = new Date() - order.lastUpdated
 							//log.warn("difference in minutes"+diff.minutes)
 							if(diff.minutes >= venue.cancelOrderTime){
-								response = paymentService.makePayment(order,response)
+								order = paymentService.makePayment(order)
+								order.setLastState(order.orderStatus.toString())
+								order.setErrorReason("Order timeout")
 								order.setOrderStatus("7")
 								if(order.save()){
 									if(order.user.deviceType == 0){
