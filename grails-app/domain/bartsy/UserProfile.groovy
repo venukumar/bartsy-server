@@ -20,6 +20,7 @@ class UserProfile {
 		String orientation
 		String status
 		String nickName
+		String password
 	//String location
 	//String emailAddress
 	//String mobileNumber
