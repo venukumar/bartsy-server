@@ -3,9 +3,13 @@ package bartsy
 class Orders {
 
     static constraints = {
-		authTransactionId(nullable:true)
-		payTransactionId(nullable:true)
-    }
+		captureApproved(nullable:true)
+		captureTransactionNumber(nullable:true)
+		authErrorMessage(nullable:true)
+		captureErrorMessage(nullable:true)
+		authCode(nullable:true)
+		authTransactionNumber(nullable:true)
+		}
     
     static belongsTo = [user:UserProfile,venue:Venue]
 	
@@ -18,8 +22,13 @@ class Orders {
 	String itemId
 	long orderId
 	String description
-	long authTransactionId
-	long payTransactionId
 	Date lastUpdated
 	long recieverBartsyId
+	String authCode
+	String authApproved
+	String authTransactionNumber
+	String captureApproved
+	String captureTransactionNumber
+	String authErrorMessage
+	String captureErrorMessage
 }
