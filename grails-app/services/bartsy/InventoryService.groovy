@@ -33,7 +33,7 @@ class InventoryService {
 					// stored every cocktailsMap into cocktailsList
 					cocktailsList.add(cocktailMap)
 					}
-				output.put("cocktails", cocktails)
+				output.put("cocktails", cocktailsList)
 				output.put("errorCode", 0)
 				output.put("errorMessage", "Cocktails are available")
 				return output
