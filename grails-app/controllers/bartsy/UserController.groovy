@@ -41,6 +41,10 @@ class UserController {
 			if(json.deviceToken.equals("") || json.deviceToken == null ){
 				response.put("errorCode","1")
 				response.put("errorMessage","GCM Registration ID is empty")
+			}else if(json.password && json.userName ){
+			
+			response.put("errorCode","1")
+			response.put("errorMessage","Please post username and password")
 			}
 			else{
 				def userProfile = UserProfile.findByUserName(json.userName)
@@ -61,6 +65,7 @@ class UserController {
 					userProfile.setShowProfile("ON")
 					userProfile.setShowProfileUpdated(new Date())
 					userProfile.setEmailId(json.emailId ?: "")
+					userProfile.setPassword(json.password?:"")
 					//def userImageFile = request.getFile("userImage")
 					def webRootDir = servletContext.getRealPath("/")
 					def userDir = new File(message(code:'userimage.path'))
@@ -495,6 +500,57 @@ class UserController {
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}
+	/*
+	 * To login with bartsy credentials
+	 * 
+	 */
+	
+	def userBartsyLogin={
+		// to get client request body
+		def json = JSON.parse(request)
+		def response=[:]
+		def bartsyUserName = json.userName
+		def bartsyPassword = json.password 
+		// checking username null or not
+		if(bartsyUserName){
+			// checking password is null or not
+			if(bartsyPassword){
+				
+			def userProfile = UserProfile.findByUserNameAndPassword(bartsyUserName, bartsyPassword)
+				if(userProfile){
+					response.put("bartsyId",userProfile.bartsyId)
+					response.put("errorCode","0")
+					response.put("errorMessage","User Profile Exists")
+					def userCheckedIn = CheckedInUsers.findByUserProfileAndStatus(userProfile,1)
+					if(userCheckedIn){
+						response.put("userCheckedIn","0")
+						response.put("venueId",userCheckedIn.venue.venueId)
+						response.put("venueName",userCheckedIn.venue.venueName)
+					}
+					else{
+						response.put("userCheckedIn","1")
+					}
+				}else{
+				response.put("errorCode","1")
+				response.put("errorMessage","Invalid username or password")
+				
+				}
+				
+			}else{
+			
+			handleNegativeResponse(response,"Password should not be empty")
+			}
+			
+		}else{
+		
+		handleNegativeResponse(response,"UserName should not be empty")
+		
+		}
+		
+		render(text:response as JSON ,  contentType:"application/json")
+		
+	}
+	
 	
 	/**
 	 * To return negative response
