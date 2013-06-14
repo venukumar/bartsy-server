@@ -3,6 +3,7 @@ package bartsy
 
 import grails.converters.JSON
 import net.authorize.Merchant
+import net.authorize.data.Order
 import net.authorize.data.creditcard.CreditCard
 import net.authorize.Environment
 import net.authorize.aim.Result
@@ -13,7 +14,7 @@ import net.authorize.data.creditcard.CardType
 class PaymentService {
 
 
-	def authorizePayment(UserProfile userprofile,def price){
+	def authorizePayment(UserProfile userprofile,def price,def orderId){
 		def response = [:]
 		Merchant merchant = Merchant.createMerchant(Environment.SANDBOX,
 				"75x2yLLj", "5Lq4dG24m63qncQ4");
@@ -25,7 +26,10 @@ class PaymentService {
 		// create transaction
 		Transaction authCaptureTransaction = merchant.createAIMTransaction(
 				TransactionType.AUTH_ONLY, new BigDecimal(price));
+		Order order = new Order()
+		order.setInvoiceNumber(orderId.toString())
 		authCaptureTransaction.setCreditCard(creditCard);
+		authCaptureTransaction.setOrder(order)
 		Result<Transaction> result = (Result<Transaction>) merchant.postTransaction(authCaptureTransaction);
 		if(result.isApproved()) {
 			response.put("authApproved","true")
@@ -56,6 +60,7 @@ class PaymentService {
 		Result<Transaction> result = (Result<Transaction>) merchant.postTransaction(authCaptureTransaction);
 		if(result.isApproved()) {
 			response.put("captureApproved","true")
+			response.put("authCode",result.getTarget().getAuthorizationCode())
 			response.put("captureTransactionNumber",result.getTarget().getTransactionId())
 		}
 		else{
@@ -66,7 +71,7 @@ class PaymentService {
 		return response
 	}
 	
-	def makePayment(Orders order){
+	def makePayment(order){
 		def captureResponse = capturePayment(order.getAuthCode(),order.user,order.getTotalPrice())
 		if(captureResponse.get("captureApproved").toBoolean()){			
 			order.setCaptureApproved("true")
