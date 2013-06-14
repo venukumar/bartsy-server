@@ -10,8 +10,8 @@ class AndroidPNService {
 	public void sendPN(Map pnMessage,String registrationId){
 		try {
 			log.info("Came into the android push")
-			//String apiKey = "AIzaSyD8HRgmmsbrAqBOFQGngf5MkHYG1qacj9Q" // development
-			String apiKey = "AIzaSyCg5JuXmUMUrdUjNXZFNOncozO3vuUaeak" // production
+			//String apiKey = "AIzaSyCg5JuXmUMUrdUjNXZFNOncozO3vuUaeak" // development
+			String apiKey = "AIzaSyCPwyGQ-jqqCki3-14COpZnixdCdYRNlV8" // production
 			Sender sender = new Sender(apiKey)
 			Message message
 			message = new Message.Builder()
