@@ -38,11 +38,14 @@ class TimeoutService {
 							def diff = new Date() - order.lastUpdated
 							//log.warn("difference in minutes"+diff.minutes)
 							if(diff.minutes >= venue.cancelOrderTime){
-								order = paymentService.makePayment(order)
-								order.setLastState(order.orderStatus.toString())
+								def orderStatus = order.orderStatus.toString()							
+								order.setLastState(orderStatus)
 								order.setErrorReason("Order timeout")
 								order.setOrderStatus("7")
-								if(order.save()){
+								if(!orderStatus.equals("0")){
+								order = paymentService.makePayment(order)
+								}
+								if(order.save()){									
 									if(order.user.deviceType == 0){
 										def pnMessage = [:]
 										pnMessage.put("orderStatus","7")
@@ -191,7 +194,8 @@ class TimeoutService {
 							pnMessage.put("messageType","heartBeat")
 							pnMessage.put("userCount",checkedInUsersList.size())
 							pnMessage.put("openOrders",ordersList)
-							pnMessage.put("oprderCount",ordersList.size())
+							pnMessage.put("orderCount",ordersList.size())
+							pnMessage.put("checkedInUsersList",checkedInUsersList)
 							androidPNService.sendPN(pnMessage,user.userProfile.deviceToken)
 						}
 						else{
@@ -203,6 +207,7 @@ class TimeoutService {
 							pnMessage.put("userCount",checkedInUsersList.size())
 							pnMessage.put("openOrders",ordersList)
 							pnMessage.put("orderCount",ordersList.size())
+							pnMessage.put("checkedInUsersList",checkedInUsersList)
 							applePNService.sendPNHeartBeat(pnMessage,user.userProfile.deviceToken, "1", "")
 						}
 					}
@@ -242,6 +247,8 @@ class TimeoutService {
 				pnMessage.put("messageType","heartBeat")
 				pnMessage.put("checkedInUsersList",checkedInUsersList)
 				pnMessage.put("ordersList",ordersList)
+				println "Sending venueHeartBeat"
+				log.warn("Sending venueHeartBeat")
 				androidPNService.sendPN(pnMessage,venue.deviceToken)
 			}
 		}
