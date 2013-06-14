@@ -20,7 +20,7 @@ class UserProfile {
 		String orientation
 		String status
 		String nickName
-		String password
+		String bartsyPassword
 	//String location
 	//String emailAddress
 	//String mobileNumber
@@ -31,10 +31,12 @@ class UserProfile {
        // String language1
         //String language2
         String userImage
-		String loginId
-		long bartsyId
-		String loginType
-		String userName
+		String googleId
+		String googleUserName
+		String email
+		String facebookId
+		String bartsyId
+		String facebookUserName
 		String gender
 		int deviceType
 		String deviceToken
@@ -42,7 +44,7 @@ class UserProfile {
 		Date lastUpdated
 		String showProfile
 		Date showProfileUpdated
-		String emailId
+		String bartsyLogin
 		String creditCardNumber
 		String expMonth
 		String expYear	
