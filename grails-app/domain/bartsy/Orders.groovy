@@ -11,6 +11,11 @@ class Orders {
 		authTransactionNumber(nullable:true)
 		lastState(nullable:true)
 		errorReason(nullable:true)
+		drinkOffered(nullable:true)
+		}
+	
+	static mapping = {
+		drinkOffered defaultValue: 'false'
 		}
     
     static belongsTo = [user:UserProfile,venue:Venue]
@@ -22,10 +27,11 @@ class Orders {
 	String tipPercentage
 	String itemName
 	String itemId
+	String specialInstructions
 	long orderId
 	String description
 	Date lastUpdated
-	long recieverBartsyId
+	String recieverBartsyId
 	String authCode
 	String authApproved
 	String authTransactionNumber
@@ -35,4 +41,5 @@ class Orders {
 	String captureErrorMessage
 	String lastState
 	String errorReason
+	boolean drinkOffered
 }
