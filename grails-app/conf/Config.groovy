@@ -79,7 +79,7 @@ log4j = {
         rollingFile name:"BartsyLog", 
         maxFileSize:"100MB", 
         maxBackupIndex: 10, 
-              // file:"/home/swethab/swetha/Bartsy_logs/Bartsy.log", 
+//        file:"/home/swethab/swetha/Bartsy_logs/Bartsy.log", 
 		file:"/usr/local/tomcat/Bartsy_logs/Bartsy.log", 
 		'append':true, 
         threshold:org.apache.log4j.Level.INFO
@@ -126,3 +126,15 @@ environments {
 	}
 }
 
+grails {
+	mail {
+	 host = "smtp.gmail.com"
+	 port = 465
+	 username = "techvedika007@gmail.com"
+	 password = "techvedika"
+	 props = ["mail.smtp.auth":"true",
+	  "mail.smtp.socketFactory.port":"465",
+	  "mail.smtp.socketFactory.class":"javax.net.ssl.SSLSocketFactory",
+	  "mail.smtp.socketFactory.fallback":"false"]
+	}
+ }
