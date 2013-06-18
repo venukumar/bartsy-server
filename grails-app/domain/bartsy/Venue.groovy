@@ -3,7 +3,7 @@ package bartsy
 class Venue {
 
     static constraints = {
-		//menu(size:0..65535)
+		menu(nullable:true)
     }
 	static mapping = {
 		menu type:"text"
