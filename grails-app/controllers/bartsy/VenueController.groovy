@@ -10,7 +10,7 @@ import org.json.simple.parser.JSONParser
  *
  **/
 class VenueController {
-	
+
 	def inventoryService
 
 	/**
@@ -54,7 +54,6 @@ class VenueController {
 							}
 						}
 					}
-
 					venue= new Venue()
 					venue.venueName = parsedData.objects[0].name
 					venue.lat = parsedData.objects[0].lat
@@ -85,7 +84,7 @@ class VenueController {
 						venue.typeOfAuthentication = "XYZ"
 					}
 					if(hasBarSection){
-					venue.menu = menu
+						venue.menu = menu
 					}
 					venue.deviceToken = json.deviceToken
 					venue.deviceType = json.deviceType
@@ -153,9 +152,9 @@ class VenueController {
 				}
 				//if not Finn McCool go to else part
 				else{
-				//get the locu response for that locuID into the parsedData varibale
+					//get the locu response for that locuID into the parsedData varibale
 					def url = message(code:'app.locu.url')+json.locuId+'/?api_key='+message(code:'app.locu.apikey')
-				parsedData = JSON.parse( new URL(url).text )
+					parsedData = JSON.parse( new URL(url).text )
 				}
 				def hasBarSection = 0
 				def menu
@@ -200,7 +199,7 @@ class VenueController {
 					venue.streetAddress = parsedData.objects[0].street_address
 					venue.websiteURL = parsedData.objects[0].website_url
 					venue.country = parsedData.objects[0].country
-					venue.hasLocuMenu = parsedData.objects[0].has_menu					
+					venue.hasLocuMenu = parsedData.objects[0].has_menu
 					venue.twitterId = parsedData.objects[0].twitter_id
 					venue.facebookURL = parsedData.objects[0].facebook_url
 					venue.openHours = parsedData.objects[0].open_hours
@@ -208,7 +207,7 @@ class VenueController {
 					venue.hasBarSection = hasBarSection
 					if(hasBarSection){
 						venue.menu = menu
-						}
+					}
 					//set the values received in the request to this syscall
 					venue.cancelOrderTime = json.cancelOrderTime as int
 					venue.wifiPresent = json.wifiPresent
@@ -221,7 +220,7 @@ class VenueController {
 						venue.wifiName = "XYZ"
 						venue.wifiPassword = "XYZ"
 						venue.typeOfAuthentication = "XYZ"
-					}										
+					}
 					venue.deviceToken = json.deviceToken
 					venue.deviceType = json.deviceType
 					venue.paypalId = json.paypalId
@@ -317,7 +316,7 @@ class VenueController {
 		}
 		render(text:response as JSON,contentType:"application/json")
 	}
-	
+
 	def getMenuOld = {
 		def response = [:]
 		try{
@@ -344,16 +343,16 @@ class VenueController {
 						cocktails.each{
 							def cocktail = it
 							if(cocktail.getAvailable().toBoolean()){
-							def cocktailMap=[:]
-							// added all cocktail details cocktailsMap
-							cocktailMap.put("photos", photos)
-							cocktailMap.put("name", cocktail.name)
-							cocktailMap.put("description", "")
-							cocktailMap.put("option_groups", option_groups)
-							cocktailMap.put("price", cocktail.price)
-							cocktailMap.put("type", "ITEM")
-							// stored every cocktailsMap into cocktailsList
-							contentsList.add(cocktailMap)
+								def cocktailMap=[:]
+								// added all cocktail details cocktailsMap
+								cocktailMap.put("photos", photos)
+								cocktailMap.put("name", cocktail.name)
+								cocktailMap.put("description", "")
+								cocktailMap.put("option_groups", option_groups)
+								cocktailMap.put("price", cocktail.price)
+								cocktailMap.put("type", "ITEM")
+								// stored every cocktailsMap into cocktailsList
+								contentsList.add(cocktailMap)
 							}
 						}
 						subSectionMap.put("contents",contentsList)
@@ -461,18 +460,18 @@ class VenueController {
 			response.put("errorMessage",e.getMessage())
 			render(text:response as JSON,contentType:"application/json")
 		}
-		
+
 	}
 
-//	def startTimer(){
-//		def timer = BartsyConfiguration.findByConfigName("timer")
-//		boolean flag = timer.value.toBoolean()
-//		if(!flag){ //value should be false initially
-//			timer.setValue("true")
-//			timer.save(flush:true)
-//
-//		}
-//	}
+	//	def startTimer(){
+	//		def timer = BartsyConfiguration.findByConfigName("timer")
+	//		boolean flag = timer.value.toBoolean()
+	//		if(!flag){ //value should be false initially
+	//			timer.setValue("true")
+	//			timer.save(flush:true)
+	//
+	//		}
+	//	}
 
 	/**
 	 * This is the webservice to be called by the bartender app when they receive a heartbeat PN.
@@ -519,7 +518,7 @@ class VenueController {
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}
-	
+
 	/**
 	 * This is the webservice to be called to change the status of a venue.
 	 *
