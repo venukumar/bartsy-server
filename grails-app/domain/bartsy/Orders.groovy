@@ -3,6 +3,7 @@ package bartsy
 class Orders {
 
     static constraints = {
+		orderId(unique:true)
 		captureApproved(nullable:true)
 		captureTransactionNumber(nullable:true)
 		authErrorMessage(nullable:true)
