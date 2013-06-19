@@ -434,6 +434,7 @@ class VenueController {
 						venueMap.put("typeOfAuthentication",venue.getTypeOfAuthentication())
 						def address = venue.getStreetAddress()+","+venue.getLocality()+","+venue.getCountry()+","+venue.getPostalCode()
 						venueMap.put("address",address)
+						venueMap.put("cancelOrderTime",venue.getCancelOrderTime())
 						//add the venue object to the list defined earlier
 						totalVenueList.add(venueMap)
 					}
