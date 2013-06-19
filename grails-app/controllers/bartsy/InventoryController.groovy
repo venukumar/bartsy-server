@@ -145,18 +145,16 @@ class InventoryController {
 						types.each{
 							def typeMap=[:]
 							def type = it
-
-							typeMap.put("typeName", type.type)
 							def categories =  IngredientCategory.findAllByType(type)
 							if(categories){
+								typeMap.put("typeName", type.type)
 								def listOfCategories=[]
 								categories.each{
 									def categoryMap=[:]
 									def categoryObject =  it
-									categoryMap.put("categoryName",categoryObject.category)
 									def ingredients = Ingredients.findAllByCategoryAndVenue(categoryObject,venue)
-
 									if(ingredients){
+										categoryMap.put("categoryName",categoryObject.category)
 										def ingredientsList=[]
 										ingredients.each{
 											def ingredient = it
@@ -172,21 +170,9 @@ class InventoryController {
 										categoryMap.put("ingredients", ingredientsList)
 									}
 
-									else{
-										response.put("errorCode","1")
-										response.put("errorMessage","No Ingredients Available")
-										render(text:response as JSON ,  contentType:"application/json")
-										return
-									}
 									listOfCategories.add(categoryMap)
 								}
 								typeMap.put("categories", listOfCategories)
-							}
-							else{
-								response.put("errorCode","1")
-								response.put("errorMessage","No Categories Available")
-								render(text:response as JSON ,  contentType:"application/json")
-								return
 							}
 							listOfTypes.add(typeMap);
 						}
