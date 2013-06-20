@@ -46,7 +46,7 @@ class InventoryService {
 		}
 		else{
 			// If venue id doesn't exist in db, just return the errror message to request
-			return returnNegativeResponse(output,"Vneue ID does not exist")
+			return returnNegativeResponse(output,"Venue ID does not exist")
 		}
 	}
 	/**
