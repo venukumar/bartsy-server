@@ -47,5 +47,6 @@ class UserProfile {
 		String bartsyLogin
 		String creditCardNumber
 		String expMonth
-		String expYear	
+		String expYear
+		String emailVerified
       }
