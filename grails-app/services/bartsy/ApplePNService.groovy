@@ -107,4 +107,23 @@ class ApplePNService {
 		println payload
 	}
 	
+	def sendPNMessage(Map pnMessage,String token,String bad,String body) {
+		ApnsService service = APNS.newService()
+//				.withCert("/home/swethab/swetha/Bartsy/Certificates.p12", "123456")
+				.withCert("/usr/local/Bartsy/Certificates.p12", "123456")
+				.withSandboxDestination()
+				.build();
+
+		String payload = APNS.newPayload().alertBody(body)
+				.badge(Integer.parseInt(bad))
+				.customField("senderId", pnMessage.get("senderId"))
+				.customField("messageType", pnMessage.get("messageType"))
+				.customField("message", pnMessage.get("message"))
+				.customField("receiverId", pnMessage.get("receiverId"))
+				.sound("default")
+				.build();
+		service.push(token, payload);
+		println payload
+	}
+	
 	}
