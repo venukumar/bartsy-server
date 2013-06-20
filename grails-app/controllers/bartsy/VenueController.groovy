@@ -503,6 +503,31 @@ class VenueController {
 					//send errorCode 0 as confirmation of request has been received
 					response.put("errorCode","0")
 					response.put("errorMessage","Request Received")
+					def checkedInUsersList = []
+					def ordersList = []
+					def userList = CheckedInUsers.findAllByVenueAndStatus(venue,1)
+					if(userList){
+						userList.each{
+							def user = it
+							checkedInUsersList.add(user.userProfile.bartsyId)
+						}
+					}
+					def openOrdersCriteria = Orders.createCriteria()
+					def openOrders = openOrdersCriteria.list {
+						eq("venue",venue)
+						and{
+							'in'("orderStatus",["0", "2", "3"])
+						}
+					}
+					if(openOrders){
+						openOrders.each{
+							def order=it
+							ordersList.add(order.orderId)
+						}
+					}
+					response.put("messageType","heartBeat")
+					response.put("checkedInUsersList",checkedInUsersList)
+					response.put("ordersList",ordersList)
 				}
 			}
 			else{
