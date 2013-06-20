@@ -9,7 +9,7 @@ class ApplePNService {
 	def sendPN(Map pnMessage,String token,String bad,String body) {
 		ApnsService service = APNS.newService()
 //				.withCert("/home/swethab/swetha/Bartsy/Certificates.p12", "123456")
-				withCert("/usr/local/Bartsy/Certificates.p12", "123456")
+				.withCert("/usr/local/Bartsy/Certificates.p12", "123456")
 				.withSandboxDestination()
 				.build();
 
