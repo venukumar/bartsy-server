@@ -3,7 +3,7 @@ package bartsy
 class UserProfile {
 
      static constraints = {
-         
+		 emailVerified(nullable:true)
     }
 	
 	static mapping = {
