@@ -57,7 +57,7 @@ class OrderController {
 						//order.setAuthTransactionId(authorizeResponse.transactionId as long)
 						order.setOrderId(maxId)
 						order.setBasePrice(json.basePrice)
-						order.setItemId(json.itemId.toString())
+						order.setItemId(json.itemId ? json.itemId.toString() : "")
 						order.setItemName(json.itemName)
 						order.setTipPercentage(json.tipPercentage)
 						//order.setOrderStatus("0")
@@ -65,7 +65,7 @@ class OrderController {
 						order.setDescription(json.description)
 						order.setSpecialInstructions(json.specialInstructions)
 						// Receiver bartsy id
-						order.setRecieverBartsyId(json.recieverBartsyId.toString())
+						order.setReceiverProfile(recieverUserprofile)
 						order.setUser(userprofile)
 						order.setVenue(venue)
 						if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
@@ -90,7 +90,13 @@ class OrderController {
 							return
 						}
 						if(order.save()){
-							if(json.type != null && json.type.equals("custom")){
+							//create the place order notification
+							def notification = new Notifications()
+							notification.setUser(userprofile)
+							notification.setVenue(venue)
+							notification.setOrder(order)	
+							notification.setType("placeOrder")
+							if(json.has("type") && json.type.equals("custom")){
 								addDrinkIngredients(json.ingredients,order)
 							}
 							def openOrdersCriteria = Orders.createCriteria()
@@ -125,18 +131,16 @@ class OrderController {
 								response.put("orderId",maxId)
 								response.put("errorCode","0")
 								response.put("errorMessage","Drink Sent")
+								//save the place order for others notification
+								notification.setOrderType("offer")
+								notification.setMessage("You offered a drink "+json.itemName+" to "+order.receiverProfile.nickName)
+								notification.save(flush:true)
 								response.put("orderTimeout",venue.cancelOrderTime)
 								if(recieverUserprofile.deviceType == 1 ){
-									try{
 										println recieverUserprofile.deviceToken
 										applePNService.sendPN(pnMessage,recieverUserprofile.deviceToken, "1",body)
-									}catch(Exception e){
-									println "came in exception"
-										println "Exception "+e.getMessage()
-									}
 								}
 								else{
-
 									androidPNService.sendPN(pnMessage,recieverUserprofile.deviceToken)
 								}
 							}else{
@@ -145,11 +149,15 @@ class OrderController {
 								response.put("orderCount",openOrders.size())
 								response.put("orderId",maxId)
 								response.put("errorCode","0")
+								response.put("orderStatus",order.getOrderStatus())
 								response.put("errorMessage","Order Placed")
 								response.put("orderTimeout",venue.cancelOrderTime)
 								androidPNService.sendPN(pnMessage, venue.deviceToken)
+								//save the place order for self notification
+								notification.setOrderType("self")
+								notification.setMessage("you ordered a drink "+ order.getItemName())
+								notification.save(flush:true)
 							}
-
 						}
 						else{
 							response.put("errorCode","1")
@@ -235,7 +243,6 @@ class OrderController {
 								body = "Order has been cancelled due to payment failure"
 							}
 							break
-
 						case "6" :
 							body = "order is cancelled due to NOSHOW"
 							order.setLastState("3")
@@ -243,6 +250,12 @@ class OrderController {
 							break
 					}
 					if(order.save()){
+						//create the place order notification
+						def notification = new Notifications()
+						notification.setUser(order.user)
+						notification.setVenue(order.venue)
+						notification.setOrder(order)
+						notification.setType("updateorder")
 						if(!json.orderStatus.toString().equals("5") || order.getCaptureApproved().toBoolean()){
 							response.put("errorCode","0")
 							response.put("errorMessage","Order Status Changed")
@@ -270,14 +283,24 @@ class OrderController {
 						pnMessage.put("updateTime",orderDate.toGMTString())
 						pnMessage.put("body",body)
 						pnMessage.put("orderTimeout",order.venue.cancelOrderTime)
-						if(order.recieverBartsyId && !order.recieverBartsyId.equals(order.user.bartsyId)){
-							def recieverUser = UserProfile.findByBartsyId(order.recieverBartsyId)
+						if(order.receiverProfile.bartsyId && !order.receiverProfile.bartsyId.equals(order.user.bartsyId)){
+							def recieverUser = UserProfile.findByBartsyId(order.receiverProfile.bartsyId)
 							if(recieverUser.deviceType == 1 ){
 								applePNService.sendPN(pnMessage, recieverUser.deviceToken, "1",body)
 							}
 							else{
 								androidPNService.sendPN(pnMessage,recieverUser.deviceToken)
 							}
+							//save the place order for others notification
+							notification.setOrderType("offer")
+							notification.setMessage(body)
+							notification.save(flush:true)
+						}
+						else{
+							//save the place order for self notification
+							notification.setOrderType("self")
+							notification.setMessage(body)
+							notification.save(flush:true)
 						}
 						if(order.user.deviceType == 1 ){
 							applePNService.sendPN(pnMessage, order.user.deviceToken, "1",body)
@@ -351,6 +374,15 @@ class OrderController {
 										// Sending push notification to the android device
 										androidPNService.sendPN(pnMessage,order.user.deviceToken)
 									}
+									//save the update order notification
+									def notification = new Notifications()
+									notification.setUser(order.user)
+									notification.setVenue(order.venue)
+									notification.setOrder(order)
+									notification.setType("updateorder")
+									notification.setOrderType("offer")
+									notification.setMessage(body)
+									notification.save(flush:true)
 								}
 								else{
 									response.put("errorCode","1")
@@ -366,7 +398,7 @@ class OrderController {
 									pnMessage.put("orderId",json.orderId.toString())
 									pnMessage.put("messageType","DrinkOfferAccepted")
 									pnMessage.put("updateTime",orderDate.toGMTString())
-									pnMessage.put("bartsyId",order.recieverBartsyId)
+									pnMessage.put("bartsyId",order.receiverProfile.getBartsyId())
 									pnMessage.put("messageType","placeOrder")
 									pnMessage.put("orderStatus","0")
 									pnMessage.put("orderId",order.orderId)
@@ -388,6 +420,15 @@ class OrderController {
 										//sending PN to android device
 										androidPNService.sendPN(pnMessage,order.user.deviceToken)
 									}
+									//save the update order notification
+									def notification = new Notifications()
+									notification.setUser(order.user)
+									notification.setVenue(order.venue)
+									notification.setOrder(order)
+									notification.setType("updateorder")
+									notification.setOrderType("offer")
+									notification.setMessage(body)
+									notification.save(flush:true)
 								}
 								else{
 									response.put("errorCode","1")
@@ -563,7 +604,7 @@ class OrderController {
 						between("dateCreated",startDate,endDate)
 						or{
 							eq("user",user)
-							eq("recieverBartsyId",user.bartsyId)
+							eq("receiverProfile",user)
 						}
 					}
 				}
@@ -578,7 +619,7 @@ class OrderController {
 						between("dateCreated",startDate,endDate)
 						or{
 						eq("user",user)
-						eq("recieverBartsyId",user.bartsyId)
+						eq("receiverProfile",user)
 						}						
 					}
 				}
@@ -587,7 +628,7 @@ class OrderController {
 						eq("venue",venue)
 						or{
 							eq("user",user)
-							eq("recieverBartsyId",user.bartsyId)
+							eq("receiverProfile",user)
 							}
 					}
 				}
@@ -600,7 +641,7 @@ class OrderController {
 					pastOrders = openOrdersCriteria.list {
 						or{
 						eq("user",user)
-						eq("recieverBartsyId",user.bartsyId)
+						eq("receiverProfile",user)
 						}
 					}
 				}
@@ -629,10 +670,11 @@ class OrderController {
 					pastOrdersMap.put("errorReason",order.getErrorReason())
 					pastOrdersMap.put("basePrice",order.getBasePrice())
 					pastOrdersMap.put("lastState",order.getLastState())
-					pastOrdersMap.put("recieverBartsyId",order.getRecieverBartsyId())
+					pastOrdersMap.put("recieverBartsyId",order.receiverProfile.getBartsyId())
 					pastOrdersMap.put("specialInstructions",order.getSpecialInstructions())
-					pastOrdersMap.put("dateCreated",order.getDateCreated())
+					pastOrdersMap.put("dateCreated",order.getLastUpdated())
 					pastOrdersMap.put("itemName",order.getItemName())
+					pastOrdersMap.put("nickName",order.user.getNickName())
 					pastOrdersList.add(pastOrdersMap)					
 				}
 				response.put("errorCode",0)
