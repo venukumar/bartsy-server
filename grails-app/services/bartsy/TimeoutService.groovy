@@ -42,7 +42,7 @@ class TimeoutService {
 								order.setLastState(orderStatus)
 								order.setErrorReason("Order timeout")
 								order.setOrderStatus("7")
-								if(!orderStatus.equals("0")){
+								if(orderStatus.equals("3")){
 								order = paymentService.makePayment(order)
 								}
 								if(order.save()){									
