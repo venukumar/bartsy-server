@@ -321,6 +321,7 @@ class DataController {
 						}
 						//Add the list to response
 						response.put("errorCode","0")
+						response.put("errorMessage","Notifications sent")
 						response.put("notifications",notificationsList)
 					}
 					else{
@@ -379,6 +380,7 @@ class DataController {
 						pnMessage.put("senderId",senderProfile.bartsyId)
 						pnMessage.put("messageType","message")
 						pnMessage.put("receiverId",receiverProfile.bartsyId)
+						pnMessage.put("body","You have recieved a new message")
 						//send PN to receiver device
 						if(receiverProfile.deviceType == 1){
 							applePNService.sendPN(pnMessage, receiverProfile.deviceToken, 1 , "You have recieved a new message")
@@ -415,19 +417,58 @@ class DataController {
 		}
 		render(text:response as JSON,contentType:"application/json")
 	}
-	// Alert for bartender when venue is offline
-	def sendMail(String emailId,String message,String subject){
-		
-		println "mailID" +emailId
-		println "message"+message
-		println "forget password !!!!!!!!!!! "
-		sendMail {
-			to emailId
-			subject subject
-			body message
-		}
-	}
 	
+	def getMessages = {
+		//defining a map to return as a response for this syscall
+		def response = [:]
+		try{
+			//parse the request sent as input to the syscall
+			def json = JSON.parse(request)
+			//check to make sure the apiVersion sent in the request matches the correct apiVersion
+			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
+				//retrieve the sender and receiver user profiles based on senderId and receiverId sent in the request to syscall
+				def senderProfile = UserProfile.findByBartsyId(json.senderId.toString())
+				def receiverProfile = UserProfile.findByBartsyId(json.receiverId.toString())
+				//retrieve the venue based on venueId sent in the request to syscall
+				def venue = Venue.findByVenueId(json.venueId)
+				//check if user profiles and venue both exists
+				if(senderProfile && receiverProfile && venue){
+					//if user profiles and venue both exists retrieve the messages
+					def messagesCriteria = Messages.createCriteria()
+					def messages = messagesCriteria.list {
+							eq("venue",order.venue)
+							and{
+								or{
+								'in'("sender",[senderProfile,receiverProfile])
+								'in'("receiver",[senderProfile,receiverProfile])
+								}
+							}
+						}
+					
+				}
+				else{
+					//Add errorcode 1 to response if users or venue does not exist
+					response.put("errorCode","1")
+					response.put("errorMessage","Sender, Receiver or Venue does not exists")
+				}
+			}
+			else{
+				//if apiVersion do not match send errorCode 100
+				response.put("errorCode","100")
+				response.put("errorMessage","API version do not match")
+			}
+		}
+		catch(Exception e){
+			//if an exception occurs send errorCode 200 along with the exception message
+			log.info("Exception is ===> "+e.getMessage())
+			response.put("errorCode",200)
+			response.put("errorMessage",e.getMessage())
+		}
+		render(text:response as JSON,contentType:"application/json")
+	}
+
+		
 	/**
 	 * This method used to change User bartsy password
 	 */
@@ -435,6 +476,8 @@ class DataController {
 		
 		def json = JSON.parse(request)
 		def response=[:]
+		def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+		if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
 		if(json){
 			if(json.has("bartsyLogin")){
 				def userProfile = UserProfile.findByBartsyLogin(json.bartsyLogin)
@@ -474,9 +517,17 @@ class DataController {
 				response.put("errorCode", 1)
 				response.put("errorMessage", "Please Enter Bartsy Login")
 			}
-		}else{
-			response.put("errorCode", 1)
+		}
+		else{
+			//if apiVersion do not match send errorCode 100
+			response.put("errorCode","100")
 			response.put("errorMessage", "Please Enter All Details")
+			
+		}
+		}
+		else{
+			response.put("errorCode", 1)			
+			response.put("errorMessage","API version do not match")
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}
@@ -508,47 +559,6 @@ class DataController {
 			println "Exception Found !!!! "+e.getMessage()
 		}
 		render(text:response as JSON ,  contentType:"application/json")
-	}
-	/**
-	 * This method used to send bartsy verification mail to user email
-	 */
-	def sendVerificationMailToUser(String emailId,String bartsyId){
-		try{
-			println"emailId :: "+emailId
-			def userId = bartsyId.bytes.encodeBase64().toString()
-			println"encoded String "+userId
-			String url =  request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+"/"+grailsApplication.getMetadata().getApplicationName()
-			println "url--------------------->>>>>>>"+url
-			sendMail {
-				to emailId.trim()
-				subject "Bartsy Verification"
-				html g.render(template:'/data/mailTemplate', model:[url:url,userId:userId])
-			}
-		}catch(Exception e){
-			println "Exception found !!!!! "+e.getMessage()
-			println "::: "+e.printStackTrace()
-		}
-	}
-	
-	def verifyEmailId={
-		println "emailVerification"
-		println"params ---------->>>>>> "+params
-		println "bartsy Id :: "+params.id
-		def decoded = new String(params.id.decodeBase64())
-			println"decoded String "+decoded
+	}	
 		
-		def userProfile = UserProfile.findByBartsyId(decoded)
-		if(userProfile.emailVerified.toString().equalsIgnoreCase("true")){
-			userProfile.emailVerified="true"
-			if(userProfile.save()){
-				flash.message="Your Bartsy Account is Verified"
-			}else{
-			flash.message="Please try again later"
-			}
-		}else{
-				flash.message="Your Bartsy Account was Already Verified"
-			}
-	}
-	
-
 }
