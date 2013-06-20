@@ -43,7 +43,8 @@ class PaymentService {
 		println response
 		return response
 	}
-	def capturePayment(def authCode,UserProfile userprofile,def price){
+	
+	def capturePayment(def authCode,UserProfile userprofile,def price,def orderId){
 		def response = [:]
 		Merchant merchant = Merchant.createMerchant(Environment.SANDBOX,
 				"75x2yLLj", "5Lq4dG24m63qncQ4");
@@ -55,8 +56,11 @@ class PaymentService {
 		// create transaction
 		Transaction authCaptureTransaction = merchant.createAIMTransaction(
 				TransactionType.CAPTURE_ONLY, new BigDecimal(price));
+		Order order = new Order()
+		order.setInvoiceNumber(orderId.toString())
 		authCaptureTransaction.setAuthorizationCode(authCode)
 		authCaptureTransaction.setCreditCard(creditCard);
+		authCaptureTransaction.setOrder(order)
 		Result<Transaction> result = (Result<Transaction>) merchant.postTransaction(authCaptureTransaction);
 		if(result.isApproved()) {
 			response.put("captureApproved","true")
@@ -72,7 +76,7 @@ class PaymentService {
 	}
 	
 	def makePayment(order){
-		def captureResponse = capturePayment(order.getAuthCode(),order.user,order.getTotalPrice())
+		def captureResponse = capturePayment(order.getAuthCode(),order.user,order.getTotalPrice(),order.getOrderId())
 		if(captureResponse.get("captureApproved").toBoolean()){			
 			order.setCaptureApproved("true")
 			order.setCaptureTransactionNumber(captureResponse.get("captureTransactionNumber"))
