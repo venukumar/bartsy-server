@@ -271,59 +271,7 @@ class DataController {
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}
-
-	def sendMail={
-		def json = JSON.parse(request)
-		def mailId=json.mailId
-		def message=json.message
-		println "mailID" +mailId
-		println "message"+message
-		println "forget password !!!!!!!!!!! "
-		sendMail {
-			to mailId
-			subject "Hello Friend"
-			body message
-		}
-	}
-	/**
-	 * This method is used to recover the bartsy-login password
-	 */
-	def forgotPassword={
-		def json = JSON.parse(request)
-		def response = [:]
-		def mailId=json.email
-		def message=json.message
-		println "mailID" +mailId
-		println "message"+message
-		try{
-			def userProfile=UserProfile.findByEmail(mailId)
-			println"email :::::::: "+userProfile
-			def password=userProfile.bartsyPassword
-			// Checking userProfile and password exists or not
-			if(userProfile&&password){
-				sendMail {
-					to mailId
-					subject "Recover bartsy password"
-					body "Your bartsy login password is : "+password
-				}
-				response.put("errorCode","0")
-				response.put("errorMessage","Password was sent your EmailId")
-			}else{
-				response.put("errorCode","1")
-				response.put("errorMessage","Email ID doesn't exists")
-			}
-		}catch(Exception e){
-
-			println "Exception Found !!!! "+e.getMessage()
-		}
-		render(text:response as JSON ,  contentType:"application/json")
-	}
-
-	/**
-	 * This method is used to verify the user email id
-	 */
-	def userEmailVerification={ println "userEmailVerification" }
-
+	
 	def getNotifications = {
 		//defining a map to return as a response for this syscall
 		def response = [:]
@@ -467,5 +415,140 @@ class DataController {
 		}
 		render(text:response as JSON,contentType:"application/json")
 	}
+	// Alert for bartender when venue is offline
+	def sendMail(String emailId,String message,String subject){
+		
+		println "mailID" +emailId
+		println "message"+message
+		println "forget password !!!!!!!!!!! "
+		sendMail {
+			to emailId
+			subject subject
+			body message
+		}
+	}
+	
+	/**
+	 * This method used to change User bartsy password
+	 */
+	def changeUserPassword={
+		
+		def json = JSON.parse(request)
+		def response=[:]
+		if(json){
+			if(json.has("bartsyLogin")){
+				def userProfile = UserProfile.findByBartsyLogin(json.bartsyLogin)
+				if(userProfile){
+					def oldPassword
+					def newPassword
+					def existingPassword = userProfile.bartsyPassword
+					if(json.has("oldPassword")){
+						oldPassword = json.oldPassword
+					}
+					if(json.has("newPassword")){
+							newPassword = json.newPassword
+						}
+					
+					if(oldPassword&&oldPassword.toString().equalsIgnoreCase(existingPassword)){
+						
+						if(newPassword){
+							userProfile.bartsyPassword=newPassword
+							if(userProfile.save(flush:true)){
+								response.put("errorCode", 0)
+								response.put("errorMessage", "Your password is changed")
+							}
+						}else{
+							response.put("errorCode", 1)
+							response.put("errorMessage", "Please Enter new password")
+						}
+					}else{
+						response.put("errorCode", 1)
+						response.put("errorMessage", "Your oldPassword is wrong")
+					}
+					
+				}else{
+					response.put("errorCode", 1)
+					response.put("errorMessage", "Your bartsy login doesn't exist")
+				}
+			}else{
+				response.put("errorCode", 1)
+				response.put("errorMessage", "Please Enter Bartsy Login")
+			}
+		}else{
+			response.put("errorCode", 1)
+			response.put("errorMessage", "Please Enter All Details")
+		}
+		render(text:response as JSON ,  contentType:"application/json")
+	}
+	/**
+	 * This method used to send the bartsy password to user email
+	 */
+	def forgotPassword={
+		def json = JSON.parse(request)
+		def response=[:]
+		def mailId=json.email
+		println "mailID" +mailId
+		try{
+			def email=UserProfile.findByEmail(mailId)
+			println"email :::::::: "+email
+			if(email){
+				sendMail {
+					to mailId
+					subject "Hello Friend"
+					body "Your bartsy password is : "+email.bartsyPassword
+				}
+				response.put("errorCode", 0)
+				response.put("errorMessage", "Your bartsy password was sent to Email")
+			}else{
+				response.put("errorCode", 1)
+				response.put("errorMessage", "Your email id doesn't exists")
+			}
+		}catch(Exception e){
+
+			println "Exception Found !!!! "+e.getMessage()
+		}
+		render(text:response as JSON ,  contentType:"application/json")
+	}
+	/**
+	 * This method used to send bartsy verification mail to user email
+	 */
+	def sendVerificationMailToUser(String emailId,String bartsyId){
+		try{
+			println"emailId :: "+emailId
+			def userId = bartsyId.bytes.encodeBase64().toString()
+			println"encoded String "+userId
+			String url =  request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+"/"+grailsApplication.getMetadata().getApplicationName()
+			println "url--------------------->>>>>>>"+url
+			sendMail {
+				to emailId.trim()
+				subject "Bartsy Verification"
+				html g.render(template:'/data/mailTemplate', model:[url:url,userId:userId])
+			}
+		}catch(Exception e){
+			println "Exception found !!!!! "+e.getMessage()
+			println "::: "+e.printStackTrace()
+		}
+	}
+	
+	def verifyEmailId={
+		println "emailVerification"
+		println"params ---------->>>>>> "+params
+		println "bartsy Id :: "+params.id
+		def decoded = new String(params.id.decodeBase64())
+			println"decoded String "+decoded
+		
+		def userProfile = UserProfile.findByBartsyId(decoded)
+		if(userProfile.emailVerified.toString().equalsIgnoreCase("true")){
+			userProfile.emailVerified="true"
+			if(userProfile.save()){
+				flash.message="Your Bartsy Account is Verified"
+			}else{
+			flash.message="Please try again later"
+			}
+		}else{
+				flash.message="Your Bartsy Account was Already Verified"
+			}
+	}
+	
 
 }
