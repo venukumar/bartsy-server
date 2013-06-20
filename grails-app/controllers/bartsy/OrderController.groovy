@@ -365,6 +365,7 @@ class OrderController {
 									pnMessage.put("messageType","DrinkOfferRejected")
 									pnMessage.put("updateTime",orderDate.toGMTString())
 									pnMessage.put("orderTimeout",venue.cancelOrderTime)
+									pnMessage.put("body",body)
 									// checking deviceType android is 0 and iphone is 1
 									if(order.user.deviceType == 1 ){
 										// Sending push notification to the iphone
@@ -395,8 +396,7 @@ class OrderController {
 									response.put("errorCode","0")
 									response.put("errorMessage","Success")
 									response.put("orderTimeout",venue.cancelOrderTime)
-									pnMessage.put("orderId",json.orderId.toString())
-									pnMessage.put("messageType","DrinkOfferAccepted")
+									pnMessage.put("orderId",json.orderId.toString())									
 									pnMessage.put("updateTime",orderDate.toGMTString())
 									pnMessage.put("bartsyId",order.receiverProfile.getBartsyId())
 									pnMessage.put("messageType","placeOrder")
@@ -409,15 +409,18 @@ class OrderController {
 									pnMessage.put("totalPrice", order.totalPrice)
 									pnMessage.put("description",order.description)
 									pnMessage.put("orderTimeout",venue.cancelOrderTime)
+									pnMessage.put("body",body)
 									//sending PN to Bartender
 									androidPNService.sendPN(pnMessage, venue.deviceToken)
 									// checking deviceType android is 0 and iphone is 1
 									if(order.user.deviceType == 1 ){
 										//sending PN to iphone device
+										pnMessage.put("messageType","DrinkOfferAccepted")
 										applePNService.sendPN(pnMessage, order.user.deviceToken, "1",body)
 									}
 									else{
 										//sending PN to android device
+										pnMessage.put("messageType","DrinkOfferAccepted")
 										androidPNService.sendPN(pnMessage,order.user.deviceToken)
 									}
 									//save the update order notification
