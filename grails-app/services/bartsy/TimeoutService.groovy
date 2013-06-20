@@ -270,6 +270,10 @@ class TimeoutService {
 						def diff = new Date() - venue.lastHBResponse
 						//log.warn("difference in minutes"+diff.minutes)
 						def venueTimeout = BartsyConfiguration.findByConfigName("venueTimeout")
+						if(diff.minutes >= 3){
+							log.warn("Alert the venue")
+							sendMailTemplate("srikanth.talasila@techvedika.com","The internet connection of your bartender tablet seems to be down. Please check the same.","Bartsy WIFI Alert")
+						}
 						if(diff.minutes >= (venueTimeout.value.toInteger())){
 							log.warn("Move venue to OFFLINE state")
 							venue.setStatus("OFFLINE")
@@ -278,6 +282,19 @@ class TimeoutService {
 					}
 				}
 			}
+		}
+	}
+	
+	// Alert for bartender when venue is offline
+	def sendMailTemplate(String emailId,String message,String subject){
+		
+		println "mailID" +emailId
+		println "message"+message
+		println "forget password !!!!!!!!!!! "
+		sendMail {
+			to emailId
+			subject subject
+			body message
 		}
 	}
 }
