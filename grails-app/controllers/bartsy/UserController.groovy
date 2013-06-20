@@ -243,6 +243,13 @@ class UserController {
 									pnMessage.put("bartsyId",userProfile.bartsyId)
 									pnMessage.put("messageType","userCheckOut")
 									androidPNService.sendPN(pnMessage,userCheckedIn.venue.deviceToken)
+									//save the user checkout notfication
+									def notification = new Notifications()
+									notification.setUser(userProfile)
+									notification.setVenue(userCheckedIn.venue)
+									notification.setType("checkout")
+									notification.setMessage("User checked out from the venue : "+userCheckedIn.venue.venueName)
+									notification.save(flush:true)
 								}
 							}
 							//check if an entry is there for that user profile for the venue sent in the syscall request
@@ -274,6 +281,13 @@ class UserController {
 								pnMessage.put("showProfile",userProfile.showProfile)
 								pnMessage.put("userImagePath",userProfile.getUserImage())
 								androidPNService.sendPN(pnMessage,venue.deviceToken)
+								//save the user checkin notification
+								def notification = new Notifications()
+								notification.setUser(userProfile)
+								notification.setVenue(checkedInUsers.venue)
+								notification.setType("checkin")
+								notification.setMessage("User checked into the venue : "+checkedInUsers.venue.venueName)
+								notification.save(flush:true)
 							}
 							else{
 								//if save not successful send error code 1 along with given message
@@ -354,6 +368,13 @@ class UserController {
 							pnMessage.put("bartsyId",userProfile.bartsyId)
 							pnMessage.put("messageType","userCheckOut")
 							androidPNService.sendPN(pnMessage,venue.deviceToken)
+							//save the user checkout notification
+							def notification = new Notifications()
+							notification.setUser(userProfile)
+							notification.setVenue(checkedInUsers.venue)
+							notification.setType("checkout")
+							notification.setMessage("User checked out from the venue : "+checkedInUsers.venue.venueName)
+							notification.save(flush:true)
 						}
 						else{
 							//if save not successful send error code 1 along with given message
@@ -449,11 +470,42 @@ class UserController {
 						checkedInUsers.setLastHBResponse(new Date())
 						//save the object
 						checkedInUsers.save(flush:true)
+						def checkedInUsersList = []
+						def userList = CheckedInUsers.findAllByVenueAndStatus(venue,1)
+						if(userList){
+							userList.each{
+								def user = it
+								checkedInUsersList.add(user.userProfile.bartsyId)
+							}
+							def openOrdersCriteria = Orders.createCriteria()
+							def openOrders = openOrdersCriteria.list {
+								eq("user",userProfile)
+								and{ eq("venue",venue) }
+								and{
+									'in'("orderStatus",["0", "2", "3"])
+								}
+							}
+							def ordersList = []
+							if(openOrders){
+								openOrders.each{
+									def order=it
+									ordersList.add(order.orderId)
+								}
+							}
+							response.put("bartsyId",userProfile.bartsyId)
+							response.put("venueId",venue.venueId)
+							response.put("venueName",venue.venueName)
+							response.put("messageType","heartBeat")
+							response.put("userCount",checkedInUsersList.size())
+							response.put("openOrders",ordersList)
+							response.put("orderCount",ordersList.size())
+							response.put("checkedInUsersList",checkedInUsersList)
+						}
 					}
+					//send the error code 0 acknowleding the request received
+					response.put("errorCode","0")
+					response.put("errorMessage","Request Received")
 				}
-				//send the error code 0 acknowleding the request received
-				response.put("errorCode","0")
-				response.put("errorMessage","Request Received")
 			}
 			else{
 				//if apiVersion do not match send errorCode 100
@@ -561,10 +613,7 @@ class UserController {
 				else if(json.type.equals("google")){
 					userProfile = UserProfile.findByGoogleId(json.googleId.toString())
 				}
-				else if(json.type.equals("checkin")){
-					userProfile = UserProfile.findByBartsyId(json.bartsyId)
-				}
-				else if(json.type.equals("login")){
+				else if(json.type.equals("checkin") || json.type.equals("login")){
 					userProfile = UserProfile.findByBartsyId(json.bartsyId)
 				}
 				//check if user profile exists
