@@ -135,6 +135,7 @@ class UserController {
 							userProfileToSave.setCreditCardNumber(json.creditCardNumber.toString() ?: "")
 							userProfileToSave.setExpMonth(json.expMonth.toString() ?: "")
 							userProfileToSave.setExpYear(json.expYear.toString() ?: "")
+							userProfileToSave.setEmailVerified("false")
 							//retrieve the max bartsyId from DB and increment it by 1
 							def maxId = UserProfile.createCriteria().get { projections { max "bartsyId" } } as Long
 							if(maxId){
@@ -161,6 +162,8 @@ class UserController {
 								response.put("errorCode","0")
 								response.put("errorMessage","Save Successful")
 								response.put("userCheckedIn","1")
+								//send Email for email address verification
+								sendVerificationMailToUser(userProfileToSave.getEmail(),userProfileToSave.getBartsyId())
 							}
 							else{
 								//if user profile save was not successful send the errorCode as 1 along with the message given below
@@ -248,7 +251,7 @@ class UserController {
 									notification.setUser(userProfile)
 									notification.setVenue(userCheckedIn.venue)
 									notification.setType("checkout")
-									notification.setMessage("User checked out from the venue : "+userCheckedIn.venue.venueName)
+									notification.setMessage("You checked out from the venue : "+userCheckedIn.venue.venueName)
 									notification.save(flush:true)
 								}
 							}
@@ -286,7 +289,7 @@ class UserController {
 								notification.setUser(userProfile)
 								notification.setVenue(checkedInUsers.venue)
 								notification.setType("checkin")
-								notification.setMessage("User checked into the venue : "+checkedInUsers.venue.venueName)
+								notification.setMessage("You checked into the venue : "+checkedInUsers.venue.venueName)
 								notification.save(flush:true)
 							}
 							else{
@@ -850,5 +853,46 @@ class UserController {
 			response.put("errorMessage",e.getMessage())
 		}
 		render(text:response as JSON ,  contentType:"application/json")
+	}
+	
+	/**
+	 * This method used to send bartsy verification mail to user email
+	 */
+	def sendVerificationMailToUser(String emailId,String bartsyId){
+		try{
+			println"emailId :: "+emailId
+			def userId = bartsyId.bytes.encodeBase64().toString()
+			println"encoded String "+userId
+			String url =  request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+"/"+grailsApplication.getMetadata().getApplicationName()
+			println "url--------------------->>>>>>>"+url
+			sendMail {
+				to emailId.trim()
+				subject "Bartsy Verification"
+				html g.render(template:'/user/mailTemplate', model:[url:url,userId:userId])
+			}
+		}catch(Exception e){
+			println "Exception found !!!!! "+e.getMessage()
+			println "::: "+e.printStackTrace()
+		}
+	}
+	
+	def verifyEmailId={
+		println "emailVerification"
+		println"params ---------->>>>>> "+params
+		println "bartsy Id :: "+params.id
+		def decoded = new String(params.id.decodeBase64())
+			println"decoded String "+decoded
+		
+		def userProfile = UserProfile.findByBartsyId(decoded)
+		if(userProfile.emailVerified.toString().equalsIgnoreCase("false")){
+			userProfile.emailVerified="true"
+			if(userProfile.save()){
+				flash.message="Your Bartsy Account is Verified"
+			}else{
+			flash.message="Please try again later"
+			}
+		}else{
+				flash.message="Your Bartsy Account was Already Verified"
+			}
 	}
 }
