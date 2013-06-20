@@ -13,13 +13,14 @@ class Orders {
 		lastState(nullable:true)
 		errorReason(nullable:true)
 		drinkOffered(nullable:true)
+		specialInstructions(nullable:true)
 		}
 	
 	static mapping = {
 		drinkOffered defaultValue: 'false'
 		}
     
-    static belongsTo = [user:UserProfile,venue:Venue]
+    static belongsTo = [user:UserProfile,venue:Venue,receiverProfile:UserProfile]
 	
     Date dateCreated
     String orderStatus 
@@ -32,7 +33,6 @@ class Orders {
 	long orderId
 	String description
 	Date lastUpdated
-	String recieverBartsyId
 	String authCode
 	String authApproved
 	String authTransactionNumber
