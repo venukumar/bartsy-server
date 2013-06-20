@@ -39,7 +39,7 @@ class DataController {
 						'in'("orderStatus",["0", "2", "3"])
 						or{
 							eq("user",userProfile)
-							eq("recieverBartsyId",userProfile.bartsyId)
+							eq("receiverProfile",userProfile)
 						}
 					}
 					if(openOrders){
@@ -48,7 +48,7 @@ class DataController {
 							def orderMap = [:]
 							orderMap.put("orderId",order.orderId)
 							orderMap.put("senderBartsyId",order.user.bartsyId)
-							orderMap.put("recieverBartsyId",order.recieverBartsyId)
+							orderMap.put("recieverBartsyId",order.receiverProfile.bartsyId)
 							orderMap.put("drinkOffered",order.drinkOffered)
 							orderMap.put("orderTime",order.dateCreated.toGMTString())
 							orderMap.put("orderStatus",order.orderStatus)
@@ -112,18 +112,18 @@ class DataController {
 					def checkedInUsers = CheckedInUsers.findAllByVenueAndStatus(venue,1)
 					if(checkedInUsers){
 						checkedInUsers.each{
-							def checkedInUser = it							
-								def checkedInUsersMap = [:]
-								checkedInUsersMap.put("bartsyId",checkedInUser.userProfile.bartsyId.toString())
-								checkedInUsersMap.put("nickName",checkedInUser.userProfile.nickName)
-								checkedInUsersMap.put("userImagePath",checkedInUser.userProfile.userImage)
-								checkedInUsersMap.put("gender",checkedInUser.userProfile.gender)
-								checkedInUsersMap.put("orientation",checkedInUser.userProfile.orientation)
-								checkedInUsersMap.put("status",checkedInUser.userProfile.status)
-								checkedInUsersMap.put("description",checkedInUser.userProfile.description)
-								checkedInUsersMap.put("dateOfBirth",checkedInUser.userProfile.dateOfBirth)
-								checkedInUsersMap.put("showProfile",checkedInUser.userProfile.showProfile)
-								checkedInUsersList.add(checkedInUsersMap)						
+							def checkedInUser = it
+							def checkedInUsersMap = [:]
+							checkedInUsersMap.put("bartsyId",checkedInUser.userProfile.bartsyId.toString())
+							checkedInUsersMap.put("nickName",checkedInUser.userProfile.nickName)
+							checkedInUsersMap.put("userImagePath",checkedInUser.userProfile.userImage)
+							checkedInUsersMap.put("gender",checkedInUser.userProfile.gender)
+							checkedInUsersMap.put("orientation",checkedInUser.userProfile.orientation)
+							checkedInUsersMap.put("status",checkedInUser.userProfile.status)
+							checkedInUsersMap.put("description",checkedInUser.userProfile.description)
+							checkedInUsersMap.put("dateOfBirth",checkedInUser.userProfile.dateOfBirth)
+							checkedInUsersMap.put("showProfile",checkedInUser.userProfile.showProfile)
+							checkedInUsersList.add(checkedInUsersMap)
 						}
 						response.put("checkedInUsers",checkedInUsersList)
 					}
@@ -267,18 +267,57 @@ class DataController {
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}
-	
+
 	def sendMail={
 		def json = JSON.parse(request)
 		def mailId=json.mailId
 		def message=json.message
 		println "mailID" +mailId
 		println "message"+message
-		println "forget password !!!!!!!!!!! "		
+		println "forget password !!!!!!!!!!! "
 		sendMail {
 			to mailId
 			subject "Hello Friend"
 			body message
-		 }
+		}
 	}
+	/**
+	 * This method is used to recover the bartsy-login password
+	 */
+	def forgotPassword={
+		def json = JSON.parse(request)
+		def response = [:]
+		def mailId=json.email
+		def message=json.message
+		println "mailID" +mailId
+		println "message"+message
+		try{
+			def userProfile=UserProfile.findByEmail(mailId)
+			println"email :::::::: "+userProfile
+			def password=userProfile.bartsyPassword
+			// Checking userProfile and password exists or not
+			if(userProfile&&password){
+				sendMail {
+					to mailId
+					subject "Recover bartsy password"
+					body "Your bartsy login password is : "+password
+				}
+				response.put("errorCode","0")
+				response.put("errorMessage","Password was sent your EmailId")
+			}else{
+				response.put("errorCode","1")
+				response.put("errorMessage","Email ID doesn't exists")
+			}
+		}catch(Exception e){
+
+			println "Exception Found !!!! "+e.getMessage()
+		}
+		render(text:response as JSON ,  contentType:"application/json")
+	}
+	
+	/**
+	 * This method is used to verify the user email id
+	 */
+	def userEmailVerification={ println "userEmailVerification" }
+
 }
