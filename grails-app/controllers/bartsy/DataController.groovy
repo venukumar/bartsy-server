@@ -271,7 +271,7 @@ class DataController {
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}
-	
+
 	def getNotifications = {
 		//defining a map to return as a response for this syscall
 		def response = [:]
@@ -383,7 +383,7 @@ class DataController {
 						pnMessage.put("body","You have recieved a new message")
 						//send PN to receiver device
 						if(receiverProfile.deviceType == 1){
-							applePNService.sendPN(pnMessage, receiverProfile.deviceToken, 1 , "You have recieved a new message")
+							applePNService.sendPN(pnMessage, receiverProfile.deviceToken, "1" , "You have recieved a new message")
 						}
 						else{
 							androidPNService.sendPN(pnMessage, receiverProfile.deviceToken)
@@ -417,7 +417,7 @@ class DataController {
 		}
 		render(text:response as JSON,contentType:"application/json")
 	}
-	
+
 	def getMessages = {
 		//defining a map to return as a response for this syscall
 		def response = [:]
@@ -437,15 +437,38 @@ class DataController {
 					//if user profiles and venue both exists retrieve the messages
 					def messagesCriteria = Messages.createCriteria()
 					def messages = messagesCriteria.list {
-							eq("venue",order.venue)
-							and{
-								or{
-								'in'("sender",[senderProfile,receiverProfile])
-								'in'("receiver",[senderProfile,receiverProfile])
-								}
+						eq("venue",order.venue)
+						and{
+							or{
+								'in'("sender",[
+									senderProfile,
+									receiverProfile
+								])
+								'in'("receiver",[
+									senderProfile,
+									receiverProfile
+								])
 							}
 						}
-					
+					}
+					if(messages){
+						response.put("errorCode",0)
+						response.put("errorMessages","Messages sent")
+						messages.each{
+							def message = it
+							response.put("id",message.id)
+							response.put("message",message.message)
+							response.put("senderId",message.sender.bartsyId)
+							response.put("receiverId",message.receiver.bartsyId)
+							response.put("date",message.dateCreated)
+						}
+
+					}
+					else{
+						//Add errorcode 1 to response if messages do not exist
+						response.put("errorCode","1")
+						response.put("errorMessage","No Messages to be displayed")
+					}
 				}
 				else{
 					//Add errorcode 1 to response if users or venue does not exist
@@ -468,65 +491,65 @@ class DataController {
 		render(text:response as JSON,contentType:"application/json")
 	}
 
-		
+
 	/**
 	 * This method used to change User bartsy password
 	 */
 	def changeUserPassword={
-		
+
 		def json = JSON.parse(request)
 		def response=[:]
 		def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 		if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
-		if(json){
-			if(json.has("bartsyLogin")){
-				def userProfile = UserProfile.findByBartsyLogin(json.bartsyLogin)
-				if(userProfile){
-					def oldPassword
-					def newPassword
-					def existingPassword = userProfile.bartsyPassword
-					if(json.has("oldPassword")){
-						oldPassword = json.oldPassword
-					}
-					if(json.has("newPassword")){
+			if(json){
+				if(json.has("bartsyLogin")){
+					def userProfile = UserProfile.findByBartsyLogin(json.bartsyLogin)
+					if(userProfile){
+						def oldPassword
+						def newPassword
+						def existingPassword = userProfile.bartsyPassword
+						if(json.has("oldPassword")){
+							oldPassword = json.oldPassword
+						}
+						if(json.has("newPassword")){
 							newPassword = json.newPassword
 						}
-					
-					if(oldPassword&&oldPassword.toString().equalsIgnoreCase(existingPassword)){
-						
-						if(newPassword){
-							userProfile.bartsyPassword=newPassword
-							if(userProfile.save(flush:true)){
-								response.put("errorCode", 0)
-								response.put("errorMessage", "Your password is changed")
+
+						if(oldPassword&&oldPassword.toString().equalsIgnoreCase(existingPassword)){
+
+							if(newPassword){
+								userProfile.bartsyPassword=newPassword
+								if(userProfile.save(flush:true)){
+									response.put("errorCode", 0)
+									response.put("errorMessage", "Your password is changed")
+								}
+							}else{
+								response.put("errorCode", 1)
+								response.put("errorMessage", "Please Enter new password")
 							}
 						}else{
 							response.put("errorCode", 1)
-							response.put("errorMessage", "Please Enter new password")
+							response.put("errorMessage", "Your oldPassword is wrong")
 						}
+
 					}else{
 						response.put("errorCode", 1)
-						response.put("errorMessage", "Your oldPassword is wrong")
+						response.put("errorMessage", "Your bartsy login doesn't exist")
 					}
-					
 				}else{
 					response.put("errorCode", 1)
-					response.put("errorMessage", "Your bartsy login doesn't exist")
+					response.put("errorMessage", "Please Enter Bartsy Login")
 				}
-			}else{
-				response.put("errorCode", 1)
-				response.put("errorMessage", "Please Enter Bartsy Login")
+			}
+			else{
+				//if apiVersion do not match send errorCode 100
+				response.put("errorCode","100")
+				response.put("errorMessage", "Please Enter All Details")
+
 			}
 		}
 		else{
-			//if apiVersion do not match send errorCode 100
-			response.put("errorCode","100")
-			response.put("errorMessage", "Please Enter All Details")
-			
-		}
-		}
-		else{
-			response.put("errorCode", 1)			
+			response.put("errorCode", 1)
 			response.put("errorMessage","API version do not match")
 		}
 		render(text:response as JSON ,  contentType:"application/json")
@@ -559,6 +582,6 @@ class DataController {
 			println "Exception Found !!!! "+e.getMessage()
 		}
 		render(text:response as JSON ,  contentType:"application/json")
-	}	
-		
+	}
+
 }
