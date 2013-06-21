@@ -27,7 +27,9 @@ environments {
     production {
         dataSource {
             dbCreate = "create-drop"
-            url = "jdbc:mysql://localhost/bartsy"
+			username = "bartsy"
+			password = "peter#786"
+            url = "jdbc:mysql://bartsyprod.ck3j29bx6zbb.us-east-1.rds.amazonaws.com:3306/bartsy"
             pooled = true
             properties {
                maxActive = -1
