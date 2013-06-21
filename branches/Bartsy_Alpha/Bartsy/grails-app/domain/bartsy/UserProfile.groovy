@@ -3,7 +3,7 @@ package bartsy
 class UserProfile {
 
      static constraints = {
-         
+		 emailVerified(nullable:true)
     }
 	
 	static mapping = {
@@ -47,5 +47,6 @@ class UserProfile {
 		String bartsyLogin
 		String creditCardNumber
 		String expMonth
-		String expYear	
+		String expYear
+		String emailVerified
       }
