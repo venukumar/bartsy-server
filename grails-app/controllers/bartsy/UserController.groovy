@@ -70,6 +70,8 @@ class UserController {
 							userProfile.setFacebookId(json.facebookId?json.facebookId.trim() : "")
 							userProfile.setFacebookUserName(json.facebookUserName ?: "")
 							userProfile.setGoogleUserName(json.googleUserName ?: "")
+							userProfile.setBartsyPassword(json.bartsyPassword.toString() ?: "")
+							userProfile.setBartsyLogin(json.bartsyLogin ?: "")
 							if(json.has("email") && !json.email.equals(userProfile.email)){
 								userProfile.setEmail(json.email ?: "")
 								emailUpdated = true
