@@ -437,7 +437,7 @@ class DataController {
 					//if user profiles and venue both exists retrieve the messages
 					def messagesCriteria = Messages.createCriteria()
 					def messages = messagesCriteria.list {
-						eq("venue",order.venue)
+						eq("venue",venue)
 						and{
 							or{
 								'in'("sender",[
@@ -452,17 +452,20 @@ class DataController {
 						}
 					}
 					if(messages){
+						def messagesList = []
 						response.put("errorCode",0)
-						response.put("errorMessages","Messages sent")
+						response.put("errorMessage","Messages sent")
 						messages.each{
 							def message = it
-							response.put("id",message.id)
-							response.put("message",message.message)
-							response.put("senderId",message.sender.bartsyId)
-							response.put("receiverId",message.receiver.bartsyId)
-							response.put("date",message.dateCreated)
+							def messageMap = [:]
+							messageMap.put("id",message.id)
+							messageMap.put("message",message.message)
+							messageMap.put("senderId",message.sender.bartsyId)
+							messageMap.put("receiverId",message.receiver.bartsyId)
+							messageMap.put("date",message.dateCreated)
+							messagesList.add(messageMap)
 						}
-
+						response.put("messages",messagesList)
 					}
 					else{
 						//Add errorcode 1 to response if messages do not exist
