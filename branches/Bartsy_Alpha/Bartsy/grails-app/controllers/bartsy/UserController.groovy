@@ -20,6 +20,8 @@ class UserController {
 		try{
 			//parse the request sent as input to the syscall
 			def json = JSON.parse(params.details)
+			//varibale to check if email is updated
+			def emailUpdated = false
 			//check to make sure the apiVersion sent in the request matches the correct apiVersion
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
@@ -68,7 +70,10 @@ class UserController {
 							userProfile.setFacebookId(json.facebookId?json.facebookId.trim() : "")
 							userProfile.setFacebookUserName(json.facebookUserName ?: "")
 							userProfile.setGoogleUserName(json.googleUserName ?: "")
-							userProfile.setEmail(json.email ?: "")
+							if(json.has("email") && !json.email.equals(userProfile.email)){
+								userProfile.setEmail(json.email ?: "")
+								emailUpdated = true
+							}
 							userProfile.setGender(json.gender ?: "")
 							userProfile.setDeviceToken(json.deviceToken ?: "")
 							userProfile.setDeviceType(json.deviceType as int)
@@ -86,6 +91,10 @@ class UserController {
 							userProfile.setUserImage(userImagePath)
 							//save the user profile
 							if(userProfile.save()){
+								if(emailUpdated){
+									//send Email for email address verification
+									sendVerificationMailToUser(userProfileToSave.getEmail(),userProfileToSave.getBartsyId())
+								}
 								//if save successful return the bartsy ID along with errorCode 1 and the message given below
 								response.put("bartsyId",userProfile.bartsyId)
 								response.put("errorCode","0")
