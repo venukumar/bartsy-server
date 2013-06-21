@@ -401,6 +401,8 @@ class VenueController {
 			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
 				//get the list of venue Objects from DB
 				def venueList = Venue.getAll()
+				//get the user profile object based on bartsyId sent in the request to the syscall
+				def userProfile = UserProfile.findByBartsyId(json.bartsyId.toString())
 				//define a list to add venue Objects
 				def totalVenueList = []
 				//check if atleast one venue exists
@@ -419,8 +421,17 @@ class VenueController {
 								privateUsers = privateUsers+1
 							}
 						}
+						//check if the user placed an order in that venue
+						def orders = Orders.findAllByUser(userProfile)
 						//defining a map to store the venue object details
 						def venueMap = [:]
+						//if order placed mark the venue as unlocked else locked
+						if(orders){
+							venueMap.put("unlocked","true")
+						}
+						else{
+							venueMap.put("unlocked","false")
+						}
 						venueMap.put("checkedInUsers",checkedInUsers.size())
 						venueMap.put("privateUsers",privateUsers)
 						venueMap.put("venueName",venue.getVenueName())
