@@ -5,6 +5,9 @@ import grails.converters.JSON
 
 class DataController {
 
+	def applePNService
+	def androidPNService
+
 	/**
 	 * This is the webservice to sync the data upon customer app start up
 	 *
@@ -62,6 +65,7 @@ class DataController {
 							orderMap.put("specialInstructions",order.specialInstructions)
 							totalOrders.add(orderMap)
 						}
+						response.put("errorCode","0")
 						response.put("orders",totalOrders)
 					}
 				}
@@ -268,45 +272,169 @@ class DataController {
 		render(text:response as JSON ,  contentType:"application/json")
 	}
 
-	def sendMail={
-		def json = JSON.parse(request)
-		def mailId=json.mailId
-		def message=json.message
-		println "mailID" +mailId
-		println "message"+message
-		println "forget password !!!!!!!!!!! "
-		sendMail {
-			to mailId
-			subject "Hello Friend"
-			body message
+	def getNotifications = {
+		//defining a map to return as a response for this syscall
+		def response = [:]
+		try{
+			//parse the request sent as input to the syscall
+			def json = JSON.parse(request)
+			//check to make sure the apiVersion sent in the request matches the correct apiVersion
+			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
+				//retrieve the user profile based on bartsyId sent in the request to syscall
+				def userProfile = UserProfile.findByBartsyId(json.bartsyId.toString())
+				//retrieve the venue based on venueId sent in the request to syscall
+				def venue = Venue.findByVenueId(json.venueId)
+				//check if user profile and venue both exists
+				if(userProfile && venue){
+					//if user profile and venue both exists retrieve the notifications
+					def notifications = Notifications.findAllByUserAndVenue(userProfile,venue)
+					if(notifications){
+						def notificationsList = []
+						notifications.each{
+							def notification = it
+							def notificationMap = [:]
+							//Add common details of all notifications
+							notificationMap.put("id",notification.getId())
+							notificationMap.put("message",notification.getMessage())
+							notificationMap.put("type",notification.getType())
+							notificationMap.put("userImage",notification.user.getUserImage())
+							//add venueName for check in and check out notifications
+							if(notification.getType().equals("checkin") || notification.getType().equals("checkout")){
+								notificationMap.put("venueName",notification.venue.venueName)
+							}
+							//add order specific details for notifications like place order or update order
+							if(notification.getType().equals("placeOrder") || notification.getType().equals("updateorder")){
+								notificationMap.put("orderId",notification.order.orderId)
+								notificationMap.put("orderStatus",notification.order.orderStatus)
+								notificationMap.put("itemName",notification.order.itemName)
+								notificationMap.put("totalPrice",notification.order.totalPrice)
+								notificationMap.put("orderType",notification.getOrderType())
+								//add receiver specific details if orderType is offer
+								if(notification.getOrderType().equals("offer")){
+									notificationMap.put("recieverName",notification.order.receiverProfile.nickName)
+									notificationMap.put("recieverImage",notification.order.receiverProfile.userImage)
+								}
+							}
+							//Add every notification to the list
+							notificationsList.add(notificationMap)
+						}
+						//Add the list to response
+						response.put("errorCode","0")
+						response.put("errorMessage","Notifications sent")
+						response.put("notifications",notificationsList)
+					}
+					else{
+						//Add errorcode 1 to response if notificatios are not available
+						response.put("errorCode","1")
+						response.put("errorMessage","No Notifications Available")
+					}
+				}
+				else{
+					//Add errorcode 1 to response if user or venue does not exist
+					response.put("errorCode","1")
+					response.put("errorMessage","User or Venue does not exists")
+				}
+			}
+			else{
+				//if apiVersion do not match send errorCode 100
+				response.put("errorCode","100")
+				response.put("errorMessage","API version do not match")
+			}
 		}
+		catch(Exception e){
+			//if an exception occurs send errorCode 200 along with the exception message
+			log.info("Exception is ===> "+e.getMessage())
+			response.put("errorCode",200)
+			response.put("errorMessage",e.getMessage())
+		}
+		render(text:response as JSON,contentType:"application/json")
+	}
+
+	/**
+	 * This method used to change User bartsy password
+	 */
+	def changeUserPassword={
+
+		def json = JSON.parse(request)
+		def response=[:]
+		def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+		if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
+			if(json){
+				if(json.has("bartsyLogin")){
+					def userProfile = UserProfile.findByBartsyLogin(json.bartsyLogin)
+					if(userProfile){
+						def oldPassword
+						def newPassword
+						def existingPassword = userProfile.bartsyPassword
+						if(json.has("oldPassword")){
+							oldPassword = json.oldPassword
+						}
+						if(json.has("newPassword")){
+							newPassword = json.newPassword
+						}
+
+						if(oldPassword&&oldPassword.toString().equalsIgnoreCase(existingPassword)){
+
+							if(newPassword){
+								userProfile.bartsyPassword=newPassword
+								if(userProfile.save(flush:true)){
+									response.put("errorCode", 0)
+									response.put("errorMessage", "Your password is changed")
+								}
+							}else{
+								response.put("errorCode", 1)
+								response.put("errorMessage", "Please Enter new password")
+							}
+						}else{
+							response.put("errorCode", 1)
+							response.put("errorMessage", "Your oldPassword is wrong")
+						}
+
+					}else{
+						response.put("errorCode", 1)
+						response.put("errorMessage", "Your bartsy login doesn't exist")
+					}
+				}else{
+					response.put("errorCode", 1)
+					response.put("errorMessage", "Please Enter Bartsy Login")
+				}
+			}
+			else{
+				//if apiVersion do not match send errorCode 100
+				response.put("errorCode","100")
+				response.put("errorMessage", "Please Enter All Details")
+
+			}
+		}
+		else{
+			response.put("errorCode", 1)
+			response.put("errorMessage","API version do not match")
+		}
+		render(text:response as JSON ,  contentType:"application/json")
 	}
 	/**
-	 * This method is used to recover the bartsy-login password
+	 * This method used to send the bartsy password to user email
 	 */
 	def forgotPassword={
 		def json = JSON.parse(request)
-		def response = [:]
+		def response=[:]
 		def mailId=json.email
-		def message=json.message
 		println "mailID" +mailId
-		println "message"+message
 		try{
-			def userProfile=UserProfile.findByEmail(mailId)
-			println"email :::::::: "+userProfile
-			def password=userProfile.bartsyPassword
-			// Checking userProfile and password exists or not
-			if(userProfile&&password){
+			def email=UserProfile.findByEmail(mailId)
+			println"email :::::::: "+email
+			if(email){
 				sendMail {
 					to mailId
-					subject "Recover bartsy password"
-					body "Your bartsy login password is : "+password
+					subject "Hello Friend"
+					body "Your bartsy password is : "+email.bartsyPassword
 				}
-				response.put("errorCode","0")
-				response.put("errorMessage","Password was sent your EmailId")
+				response.put("errorCode", 0)
+				response.put("errorMessage", "Your bartsy password was sent to Email")
 			}else{
-				response.put("errorCode","1")
-				response.put("errorMessage","Email ID doesn't exists")
+				response.put("errorCode", 1)
+				response.put("errorMessage", "Your email id doesn't exists")
 			}
 		}catch(Exception e){
 
@@ -314,10 +442,5 @@ class DataController {
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}
-	
-	/**
-	 * This method is used to verify the user email id
-	 */
-	def userEmailVerification={ println "userEmailVerification" }
 
 }
