@@ -790,8 +790,11 @@ class UserController {
 		try{
 			def json = JSON.parse(request)
 			def response=[:]
+			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+			def apiVersionNumber=json.apiVersion
 			
 			if(json){
+				if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
 				if(json.has("bartsyId")){
 					def bartsyId = json.bartsyId
 					def userProfile = UserProfile.findByBartsyId(bartsyId)
@@ -811,6 +814,12 @@ class UserController {
 				else{
 					handleNegativeResponse(response,"BartsyId should not be empty or null")
 				}
+			}
+			else{
+				//if apiVersion do not match send errorCode 100
+				response.put("errorCode","100")
+				response.put("errorMessage","API version do not match")
+			}
 			}else{
 			handleNegativeResponse(response,"Please post json details")
 			}
