@@ -53,14 +53,12 @@ class OrderController {
 						else{
 							maxId = 100001
 						}
-						def authorizeResponse = paymentService.authorizePayment(userprofile,json.totalPrice,maxId)
-						//order.setAuthTransactionId(authorizeResponse.transactionId as long)
 						order.setOrderId(maxId)
 						order.setBasePrice(json.basePrice)
 						order.setItemId(json.itemId ? json.itemId.toString() : "")
 						order.setItemName(json.itemName)
 						order.setTipPercentage(json.tipPercentage)
-						//order.setOrderStatus("0")
+						order.setOrderStatus("0")
 						order.setTotalPrice(json.totalPrice)
 						order.setDescription(json.description)
 						order.setSpecialInstructions(json.specialInstructions)
@@ -71,33 +69,39 @@ class OrderController {
 						if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
 							order.setDrinkOffered(true)
 						}
+						order.setAuthApproved("false")
+											
+						order.save(flush:true)
+						Orders orderUpdate = Orders.findByOrderId(order.orderId)
+						def authorizeResponse = paymentService.authorizePayment(userprofile,json.totalPrice,orderUpdate?.orderId)
+						//order.setAuthTransactionId(authorizeResponse.transactionId as long)
 						if(authorizeResponse.get("authApproved").toBoolean()){
-							order.setOrderStatus("0")
-							order.setAuthApproved("true")
-							order.setAuthCode(authorizeResponse.get("authCode"))
-							order.setAuthTransactionNumber(authorizeResponse.get("authTransactionNumber"))
+							orderUpdate.setOrderStatus("0")
+							orderUpdate.setAuthApproved("true")
+							orderUpdate.setAuthCode(authorizeResponse.get("authCode"))
+							orderUpdate.setAuthTransactionNumber(authorizeResponse.get("authTransactionNumber"))
 						}
 						else{
-							order.setOrderStatus("7")
-							order.setAuthApproved("false")
-							order.setAuthErrorMessage(authorizeResponse.get("authErrorMessage"))
-							order.setLastState("0")
-							order.setErrorReason("Payment Auth Failed")
-							order.save()
+							orderUpdate.setOrderStatus("7")
+							orderUpdate.setAuthApproved("false")
+							orderUpdate.setAuthErrorMessage(authorizeResponse.get("authErrorMessage"))
+							orderUpdate.setLastState("0")
+							orderUpdate.setErrorReason("Payment Auth Failed")
+							orderUpdate.save(flush:true)
 							response.put("errorCode",1)
 							response.put("errorMessage",authorizeResponse.get("authErrorMessage"))
 							render(text:response as JSON,contentType:"application/json")
 							return
 						}
-						if(order.save()){
+						if(orderUpdate.save(flush:true)){
 							//create the place order notification
 							def notification = new Notifications()
 							notification.setUser(userprofile)
 							notification.setVenue(venue)
-							notification.setOrder(order)	
+							notification.setOrder(orderUpdate)	
 							notification.setType("placeOrder")
 							if(json.has("type") && json.type.equals("custom")){
-								addDrinkIngredients(json.ingredients,order)
+								addDrinkIngredients(json.ingredients,orderUpdate)
 							}
 							def openOrdersCriteria = Orders.createCriteria()
 							def openOrders = openOrdersCriteria.list {
@@ -109,7 +113,7 @@ class OrderController {
 							}
 							Map pnMessage = new HashMap()
 							pnMessage.put("orderStatus","0")
-							pnMessage.put("orderId",maxId.toString())
+							pnMessage.put("orderId",orderUpdate?.orderId?.toString())
 							pnMessage.put("itemName",json.itemName)
 							pnMessage.put("orderTime",orderDate.toGMTString())
 							pnMessage.put("basePrice",json.basePrice)
@@ -121,7 +125,7 @@ class OrderController {
 							pnMessage.put("specialInstructions",json.specialInstructions ?: "")
 							if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
 								println "userprofiles are not same"
-								def body="You have been offered a drink "+json.itemName+" by "+order.user.nickName
+								def body="You have been offered a drink "+json.itemName+" by "+orderUpdate?.user.nickName
 								pnMessage.put("messageType","DrinkOffered")
 								pnMessage.put("bartsyId",json.recieverBartsyId)
 								pnMessage.put("senderBartsyId",json.bartsyId)
@@ -133,7 +137,7 @@ class OrderController {
 								response.put("errorMessage","Drink Sent")
 								//save the place order for others notification
 								notification.setOrderType("offer")
-								notification.setMessage("You offered a drink "+json.itemName+" to "+order.receiverProfile.nickName)
+								notification.setMessage("You offered a drink "+json.itemName+" to "+orderUpdate?.receiverProfile.nickName)
 								notification.save(flush:true)
 								response.put("orderTimeout",venue.cancelOrderTime)
 								if(recieverUserprofile.deviceType == 1 ){
@@ -149,13 +153,13 @@ class OrderController {
 								response.put("orderCount",openOrders.size())
 								response.put("orderId",maxId)
 								response.put("errorCode","0")
-								response.put("orderStatus",order.getOrderStatus())
+								response.put("orderStatus",orderUpdate.getOrderStatus())
 								response.put("errorMessage","Order Placed")
 								response.put("orderTimeout",venue.cancelOrderTime)
 								androidPNService.sendPN(pnMessage, venue.deviceToken)
 								//save the place order for self notification
 								notification.setOrderType("self")
-								notification.setMessage("you ordered a drink "+ order.getItemName())
+								notification.setMessage("you ordered a drink "+ orderUpdate.getItemName())
 								notification.save(flush:true)
 							}
 						}
