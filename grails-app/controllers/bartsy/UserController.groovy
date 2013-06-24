@@ -783,7 +783,46 @@ class UserController {
 		response.put("errorMessage", message)
 		return response
 	}
-
+	/**
+	* To get user public details
+	*/
+	def getUserPublicDetails={
+		try{
+			def json = JSON.parse(request)
+			def response=[:]
+			
+			if(json){
+				if(json.has("bartsyId")){
+					def bartsyId = json.bartsyId
+					def userProfile = UserProfile.findByBartsyId(bartsyId)
+					if(userProfile){
+						CommonMethods commonMethods = new CommonMethods()
+						def age= commonMethods.getAge(userProfile.getDateOfBirth())
+						response.put("bartsyId", bartsyId)
+						response.put("gender", userProfile.getGender())
+						response.put("age", age)
+						response.put("orientation", userProfile.getOrientation())
+						response.put("showProfile", userProfile.getShowProfile())
+						response.put("userImagePath", userProfile.getUserImage())
+					}else{
+					handleNegativeResponse(response,"Userprofile does not exists")
+					}
+				}
+				else{
+					handleNegativeResponse(response,"BartsyId should not be empty or null")
+				}
+			}else{
+			handleNegativeResponse(response,"Please post json details")
+			}
+			render(text:response as JSON ,  contentType:"application/json")
+		}catch (Exception e) {
+			println "Exception Found !!!! "+e.getMessage()
+		}	
+		
+	}
+	
+	
+	
 	/**
 	 * This is the webservice to be called to get the profile of a user
 	 *
