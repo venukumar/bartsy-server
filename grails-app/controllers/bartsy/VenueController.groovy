@@ -144,18 +144,19 @@ class VenueController {
 			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
 				def parsedData
 				//check for the hardCoded locu Id for Finn McCool
-				if(json.locuId.equals("beec9320f3921035e4d7")){
+				/*if(json.locuId.equals("beec9320f3921035e4d7")){
 					//get the locu response into parsedData varibale for this venue from the harcoded locu response file
 					def resources = grailsApplication.mainContext.getResource("response.txt").file
 					def fileContents = resources.text
 					parsedData = JSON.parse(fileContents)
 				}
 				//if not Finn McCool go to else part
-				else{
+				else{*/
 					//get the locu response for that locuID into the parsedData varibale
 					def url = message(code:'app.locu.url')+json.locuId+'/?api_key='+message(code:'app.locu.apikey')
 					parsedData = JSON.parse( new URL(url).text )
-				}
+					
+				//}
 				def hasBarSection = 0
 				def menu
 				//Get the venue based on the locu Id sent in the request
@@ -172,6 +173,12 @@ class VenueController {
 				}
 				//If venue does not exist go to else part
 				else{
+					// if menu not found then reading menu from file
+					if(!parsedData.objects?.menus){
+						def resources = grailsApplication.mainContext.getResource("response.txt").file
+						def fileContents = resources.text
+						parsedData = JSON.parse(fileContents)
+					}
 					//The following group of code is to parse the locu response and identify if it has a BAR section in its menu
 					parsedData.objects.menus.each {
 						def parsedData1 = it
