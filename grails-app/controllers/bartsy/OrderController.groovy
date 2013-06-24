@@ -45,7 +45,7 @@ class OrderController {
 				UserProfile	recieverUserprofile = UserProfile.findByBartsyId(json.recieverBartsyId)
 				Venue venue = Venue.findByVenueId(json.venueId)
 				if(userprofile && venue){
-					if(venue.status.equals("OPEN")){						
+					if(venue.status.equals("OPEN")){
 						def maxId = Orders.createCriteria().get { projections { max "orderId" } } as Long
 						if(maxId){
 							maxId = maxId+1
@@ -53,9 +53,10 @@ class OrderController {
 						else{
 							maxId = 100001
 						}
+
 						order.setOrderId(maxId)
 						order.setBasePrice(json.basePrice)
-						order.setItemId(json.itemId ? json.itemId.toString() : "")
+						order.setItemId(json.itemId.toString())
 						order.setItemName(json.itemName)
 						order.setTipPercentage(json.tipPercentage)
 						order.setOrderStatus("0")
@@ -63,19 +64,20 @@ class OrderController {
 						order.setDescription(json.description)
 						order.setSpecialInstructions(json.specialInstructions)
 						// Receiver bartsy id
-						order.setReceiverProfile(recieverUserprofile)
+						order.setRecieverProfile(recieverUserprofile)
 						order.setUser(userprofile)
 						order.setVenue(venue)
 						if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
 							order.setDrinkOffered(true)
 						}
+
 						order.setAuthApproved("false")
 											
 						order.save(flush:true)
 						Orders orderUpdate = Orders.findByOrderId(order.orderId)
 						def authorizeResponse = paymentService.authorizePayment(userprofile,json.totalPrice,orderUpdate?.orderId)
 						//order.setAuthTransactionId(authorizeResponse.transactionId as long)
-						
+
 						if(authorizeResponse.get("authApproved").toBoolean()){
 							orderUpdate.setOrderStatus("0")
 							orderUpdate.setAuthApproved("true")
@@ -94,6 +96,7 @@ class OrderController {
 							render(text:response as JSON,contentType:"application/json")
 							return
 						}
+
 						if(orderUpdate.save(flush:true)){
 							//create the place order notification
 							def notification = new Notifications()
@@ -136,16 +139,18 @@ class OrderController {
 								response.put("orderId",maxId)
 								response.put("errorCode","0")
 								response.put("errorMessage","Drink Sent")
-								//save the place order for others notification
-								notification.setOrderType("offer")
-								notification.setMessage("You offered a drink "+json.itemName+" to "+order.receiverProfile.nickName)
-								notification.save(flush:true)
 								response.put("orderTimeout",venue.cancelOrderTime)
 								if(recieverUserprofile.deviceType == 1 ){
+									try{
 										println recieverUserprofile.deviceToken
 										applePNService.sendPN(pnMessage,recieverUserprofile.deviceToken, "1",body)
+									}catch(Exception e){
+									println "came in exception"
+										println "Exception "+e.getMessage()
+									}
 								}
 								else{
+
 									androidPNService.sendPN(pnMessage,recieverUserprofile.deviceToken)
 								}
 							}else{
@@ -154,15 +159,19 @@ class OrderController {
 								response.put("orderCount",openOrders.size())
 								response.put("orderId",orderUpdate?.orderId)
 								response.put("errorCode","0")
+
 								response.put("orderStatus",orderUpdate.getOrderStatus())
-								response.put("errorMessage","Order Placed")
+							response.put("errorMessage","Order Placed")
 								response.put("orderTimeout",venue.cancelOrderTime)
 								androidPNService.sendPN(pnMessage, venue.deviceToken)
+
 								//save the place order for self notification
 								notification.setOrderType("self")
 								notification.setMessage("you ordered a drink "+ orderUpdate.getItemName())
 								notification.save(flush:true)
+
 							}
+
 						}
 						else{
 							response.put("errorCode","1")
@@ -193,7 +202,6 @@ class OrderController {
 		}
 		render(text:response as JSON,contentType:"application/json")
 	}
-
 	/**
 	 * This is the webservice to be called to update the status of the order
 	 *
