@@ -142,6 +142,8 @@ class VenueController {
 			//check to make sure the apiVersion sent in the request matches the correct apiVersion
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
+				def venueImageFile = request.getFile("venueImage")
+
 				def parsedData
 				//check for the hardCoded locu Id for Finn McCool
 				/*if(json.locuId.equals("beec9320f3921035e4d7")){
@@ -163,6 +165,11 @@ class VenueController {
 				Venue venue = Venue.findByLocuId(json.locuId)
 				//if venue exists as of now updating the deviceToken and cancelOrderTime. To be changed later
 				if(venue){
+					if(venueImageFile){
+						def venueImagePath = saveVenueImage(venueImageFile, venue.venueId)
+						venue.setVenueImagePath(venueImagePath)
+					}
+					//venue.venueImagePath=venueImagePath
 					venue.deviceToken = json.deviceToken
 					venue.cancelOrderTime = json.cancelOrderTime as int
 					venue.save()
@@ -245,6 +252,10 @@ class VenueController {
 						maxId = 100001
 					}
 					venue.venueId = maxId
+					if(venueImageFile){
+						def venueImagePath = saveVenueImage(venueImageFile, maxId)
+						venue.setVenueImagePath(venueImagePath)
+					}
 					//save the venue object to the DB
 					if(venue.save()){
 						//if save successful send the following details as response with errorCode 0
@@ -275,6 +286,26 @@ class VenueController {
 		render(text:response as JSON ,  contentType:"application/json")
 	}
 
+	/**
+	 * 
+	 * To save venue image
+	 * 
+	 * @param venueImageFile
+	 * @param venueImageName
+	 * @return
+	 */
+	def saveVenueImage(venueImageFile,venueImageName){
+		def venueImagePath
+		if(venueImageFile){
+			def webRootDir = servletContext.getRealPath("/")
+			def venueDir = new File(message(code:'venueimage.path'))
+			venueDir.mkdirs()
+			String tmp = venueImageName.toString()
+			venueImageFile.transferTo( new File( venueDir, tmp))
+			venueImagePath = message(code:'venueimage.path.save')+tmp
+		}
+		return venueImagePath
+	}
 
 	/**
 	 * This is the webservice to return the menu received from locu for a venue.
@@ -446,7 +477,7 @@ class VenueController {
 						venueMap.put("latitude",venue.getLat())
 						venueMap.put("longitude",venue.getLongtd())
 						venueMap.put("venueStatus",venue.getStatus())
-						venueMap.put("wifiPresent",venue.getWifiPresent())
+						venueMap.put("wifiPresent",venue.getWifiPresent().toString())
 						venueMap.put("wifiName",venue.getWifiName())
 						venueMap.put("wifiPassword",venue.getWifiPassword())
 						venueMap.put("typeOfAuthentication",venue.getTypeOfAuthentication())
