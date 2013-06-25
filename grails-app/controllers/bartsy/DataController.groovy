@@ -112,12 +112,15 @@ class DataController {
 				def venueId = json.venueId
 				def checkedInUsersList = []
 				def venue = Venue.findByVenueId(venueId.toString())
-				if(venue){
+				def bartsyId=json.bartsyId
+				def userProfile = UserProfile.findByBartsyId(bartsyId)
+				if(venue && userProfile){
 					def checkedInUsers = CheckedInUsers.findAllByVenueAndStatus(venue,1)
 					if(checkedInUsers){
 						checkedInUsers.each{
 							def checkedInUser = it
 							def checkedInUsersMap = [:]
+							def userFavorite = UserFavoritePeople.findByUserBartsyIdAndFavoriteBartsyId(json.bartsyId, checkedInUser.userProfile.bartsyId)
 							checkedInUsersMap.put("bartsyId",checkedInUser.userProfile.bartsyId.toString())
 							checkedInUsersMap.put("nickName",checkedInUser.userProfile.nickName)
 							checkedInUsersMap.put("userImagePath",checkedInUser.userProfile.userImage)
@@ -127,6 +130,10 @@ class DataController {
 							checkedInUsersMap.put("description",checkedInUser.userProfile.description)
 							checkedInUsersMap.put("dateOfBirth",checkedInUser.userProfile.dateOfBirth)
 							checkedInUsersMap.put("showProfile",checkedInUser.userProfile.showProfile)
+							if(userFavorite)
+								checkedInUsersMap.put("like",userFavorite.getStaus())
+							else
+								checkedInUsersMap.put("like","1")
 							checkedInUsersList.add(checkedInUsersMap)
 						}
 						response.put("checkedInUsers",checkedInUsersList)
@@ -138,7 +145,7 @@ class DataController {
 				}
 				else{
 					response.put("errorCode","1")
-					response.put("errorMessage","Venue Does not exist")
+					response.put("errorMessage","Venue or Bartsy Id Does not exist")
 				}
 			}
 			else{
@@ -302,7 +309,7 @@ class DataController {
 							notificationMap.put("venueImage",notification.venue.getVenueImagePath())
 							notificationMap.put("createdTime",notification.getDateCreated())
 							notificationMap.put("venueName",notification.venue.getVenueName())
-							
+
 							//add venueName for check in and check out notifications
 							if(notification.getType().equals("checkin") || notification.getType().equals("checkout")){
 								notificationMap.put("venueName",notification.venue.venueName)
