@@ -39,4 +39,5 @@ class Venue {
 	String status
 	Date lastHBResponse
 	Date lastActivity
+	String venueImagePath
 }
