@@ -576,8 +576,10 @@ class OrderController {
 				def venueId,bartsyId,startDate,endDate
 				def dateReceived
 				def user,venue
+				int index,noOfResults
 				def pastOrders
 				def pastOrdersList=[]
+				def criteriaParams = [:]				
 				def openOrdersCriteria = Orders.createCriteria()
 				if(json.has("date")){
 					SimpleDateFormat fromUser = new SimpleDateFormat("MM/dd/yyyy");
@@ -598,64 +600,85 @@ class OrderController {
 				}
 				if(json.has("index")){
 					index =  json.index
+					params.offset = index
 				}
 				if(json.has("noOfResults")){
 					noOfResults =  json.noOfResults
-				}				
+					params.max = noOfResults
+				}
+				criteriaParams.putAll(params)
+				
 				if(dateReceived && venueId && bartsyId){					
-					pastOrders = openOrdersCriteria.list {
+					pastOrders = openOrdersCriteria.list(criteriaParams) {
 						eq("venue",venue)
 						between("dateCreated",startDate,endDate)
 						or{
 							eq("user",user)
 							eq("receiverProfile",user)
 						}
+						
+						order "id","desc"
 					}
 				}
 				else if(dateReceived && venueId){
-					pastOrders = openOrdersCriteria.list {
+					pastOrders = openOrdersCriteria.list(criteriaParams) {
 						eq("venue",venue)
 						between("dateCreated",startDate,endDate)
+						
+						order "id","desc"
 					}
 				}
 				else if(dateReceived && bartsyId){
-					pastOrders = openOrdersCriteria.list {
+					pastOrders = openOrdersCriteria.list(criteriaParams) {
 						between("dateCreated",startDate,endDate)
 						or{
 						eq("user",user)
 						eq("receiverProfile",user)
-						}						
+						}
+						
+						order "id","desc"
 					}
 				}
 				else if(venueId && bartsyId){
-					pastOrders = openOrdersCriteria.list {						
+					pastOrders = openOrdersCriteria.list(criteriaParams) {						
 						eq("venue",venue)
 						or{
 							eq("user",user)
 							eq("receiverProfile",user)
 							}
+
+						order "id","desc"
 					}
 				}
 				else if(venueId){
-					pastOrders = openOrdersCriteria.list {						
-						eq("venue",venue)						
+					pastOrders = openOrdersCriteria.list(criteriaParams) {						
+						eq("venue",venue)	
+						
+						order "id","desc"
 					}
 				}
 				else if(bartsyId){
-					pastOrders = openOrdersCriteria.list {
+					pastOrders = openOrdersCriteria.list(criteriaParams) {
 						or{
 						eq("user",user)
 						eq("receiverProfile",user)
 						}
+						
+						order "id","desc"
 					}
 				}
 				else if(dateReceived){
-					pastOrders = openOrdersCriteria.list {
+					pastOrders = openOrdersCriteria.list(criteriaParams) {
 						between("dateCreated",startDate,endDate)
+						
+						order "id","desc"
 					}
 				}
 				else{
-					pastOrders = Orders.list()
+					pastOrders = openOrdersCriteria.list(criteriaParams){
+						
+						order "id","desc"
+					}
 				}
 				pastOrders.each{
 					def order=it
