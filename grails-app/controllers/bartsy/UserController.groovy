@@ -801,6 +801,7 @@ class UserController {
 					if(userProfile){
 						CommonMethods commonMethods = new CommonMethods()
 						def age= commonMethods.getAge(userProfile.getDateOfBirth())
+						response.put("errorCode", 0)
 						response.put("bartsyId", bartsyId)
 						response.put("gender", userProfile.getGender())
 						response.put("age", age)
@@ -821,7 +822,7 @@ class UserController {
 				response.put("errorMessage","API version do not match")
 			}
 			}else{
-			handleNegativeResponse(response,"Please post json details")
+			handleNegativeResponse(response,"Your post data is empty")
 			}
 			render(text:response as JSON ,  contentType:"application/json")
 		}catch (Exception e) {
