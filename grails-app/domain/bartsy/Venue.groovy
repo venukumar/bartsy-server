@@ -4,6 +4,7 @@ class Venue {
 
     static constraints = {
 		menu(nullable:true)
+		venueImagePath(nullable:true)
     }
 	static mapping = {
 		menu type:"text"
