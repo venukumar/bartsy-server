@@ -591,8 +591,8 @@ class OrderController {
 				int index,noOfResults
 				def pastOrders
 				def pastOrdersList=[]
-				def openOrdersCriteria = Orders.createCriteria()
 				def criteriaParams = [:]
+				def openOrdersCriteria = Orders.createCriteria()
 				if(json.has("date")){
 					SimpleDateFormat fromUser = new SimpleDateFormat("MM/dd/yyyy");
 					SimpleDateFormat myFormat = new SimpleDateFormat("yyyy-MM-dd");
