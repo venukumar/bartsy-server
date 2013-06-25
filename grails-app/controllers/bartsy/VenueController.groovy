@@ -41,7 +41,6 @@ class VenueController {
 				}
 				else{
 					parsedData.objects.menus.each {
-						// println "iterator "+it
 						def parsedData1 = it
 						parsedData1.each{
 							def parsedData2 = it
@@ -49,7 +48,6 @@ class VenueController {
 							{
 								hasBarSection = 1
 								menu = URLEncoder.encode(parsedData2.sections.toString(),"UTF-8")
-								//println menu
 								//saveDrinks(menu.toString())
 							}
 						}
@@ -138,13 +136,20 @@ class VenueController {
 		def response = [:]
 		try{
 			//parse the request sent as input to the syscall
-			def json = JSON.parse(request.details)
+			def json
+			if(params.details)
+			 json = JSON.parse(params.details)
+			 else
+			 json = JSON.parse(request)
 			//check to make sure the apiVersion sent in the request matches the correct apiVersion
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
-				def venueImageFile = request.getFile("venueImage")
-
+				def venueImageFile
+				if(params.venueImage){
+					 venueImageFile = request.getFile("venueImage")
+				}
 				def parsedData
+				
 				//check for the hardCoded locu Id for Finn McCool
 				/*if(json.locuId.equals("beec9320f3921035e4d7")){
 					//get the locu response into parsedData varibale for this venue from the harcoded locu response file
@@ -175,7 +180,7 @@ class VenueController {
 					venue.save()
 					response.put("venueId",venue.getVenueId())
 					response.put("venueName",venue.getVenueName())
-					response.put("errorCode","1")
+					response.put("errorCode","0")
 					response.put("errorMessage","Venue Details Updated")
 				}
 				//If venue does not exist go to else part
@@ -283,7 +288,9 @@ class VenueController {
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
 		}
-		render(text:response as JSON ,  contentType:"application/json")
+		finally{
+			render(text:response as JSON ,  contentType:"application/json")
+		}
 	}
 
 	/**
