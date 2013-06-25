@@ -138,7 +138,7 @@ class VenueController {
 		def response = [:]
 		try{
 			//parse the request sent as input to the syscall
-			def json = JSON.parse(request)
+			def json = JSON.parse(request.details)
 			//check to make sure the apiVersion sent in the request matches the correct apiVersion
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
