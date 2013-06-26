@@ -33,19 +33,22 @@ class TimeoutService {
 				}
 				if(openOrders){
 					openOrders.each{
-						def order=it
+						//def order = ""
+						def order = it
 						use(groovy.time.TimeCategory){
 							def diff = new Date() - order.lastUpdated
-							//log.warn("difference in minutes"+diff.minutes)
+							log.warn("difference in minutes"+diff.minutes)
 							if(diff.minutes >= venue.cancelOrderTime){
 								def orderStatus = order.orderStatus.toString()							
 								order.setLastState(orderStatus)
 								order.setErrorReason("Order timeout")
 								order.setOrderStatus("7")
 								if(orderStatus.equals("3")){
-								order = paymentService.makePayment(order)
+									order = paymentService.makePayment(order)
 								}
-								if(order.save()){									
+								if(!order.save(flush:true)){
+									println "order timeout error"
+								}else{
 									if(order.user.deviceType == 0){
 										def pnMessage = [:]
 										pnMessage.put("orderStatus","7")
@@ -62,7 +65,7 @@ class TimeoutService {
 										applePNService.sendPNOrderTimeout(pnMessage, order.user.deviceToken, "1","Your Order "+order.orderId+" has been cancelled due to timeout")
 										ordersCancelled.add(order.orderId)
 									}
-								}
+								}				
 							}
 						}
 					}
@@ -72,7 +75,9 @@ class TimeoutService {
 						pnMessage.put("messageType","orderTimeout")
 						androidPNService.sendPN(pnMessage,venue.deviceToken)
 					}
+				
 				}
+				
 			}
 		}
 	}
@@ -109,8 +114,11 @@ class TimeoutService {
 								if(diff.minutes >= (userTimeout.value.toInteger())){
 									log.warn("Check out the user")
 									user.setStatus(0)
-									user.save(flush:true)
-									usersCheckedOut.add(user.userProfile.bartsyId)
+									if(!user.save(flush:true)){
+										println "User timeout save error"
+									}else{
+										usersCheckedOut.add(user.userProfile.bartsyId)
+									}
 //									def openOrdersCriteria = Orders.createCriteria()
 //									def openOrders = openOrdersCriteria.list {
 //										eq("user",user.userProfile)
