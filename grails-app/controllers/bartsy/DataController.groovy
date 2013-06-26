@@ -306,6 +306,7 @@ class DataController {
 							notificationMap.put("message",notification.getMessage())
 							notificationMap.put("type",notification.getType())
 							notificationMap.put("userImage",notification.user.getUserImage())
+
 							notificationMap.put("venueImage",notification.venue.getVenueImagePath())
 							notificationMap.put("createdTime",notification.getDateCreated())
 							notificationMap.put("venueName",notification.venue.getVenueName())
@@ -446,27 +447,30 @@ class DataController {
 				//check if user profiles and venue both exists
 				if(senderProfile && receiverProfile && venue){
 					//if user profiles and venue both exists retrieve the messages
-					def messagesCriteria = Messages.createCriteria()
-					def messages = messagesCriteria.list {
+					def query = {
 						eq("venue",venue)
-						and{
-							or{
-								'in'("sender",[
-									senderProfile,
-									receiverProfile
-								])
-								'in'("receiver",[
-									senderProfile,
-									receiverProfile
-								])
-							}
-						}
+						eq("sender",senderProfile)
+						eq("receiver",receiverProfile)						
 					}
-					if(messages){
+					def queryRec = {
+						eq("venue",venue)
+						eq("sender",receiverProfile)
+						eq("receiver",senderProfile)						
+					}
+					def messages = Messages.createCriteria().list(query)
+					def messagesRec = Messages.createCriteria().list(queryRec)
+					def compList = []
+					
+					if(messages)
+						compList.addAll(messages.toList())
+					if(messagesRec)
+						compList.addAll(messagesRec.toList())
+					
+					if(compList){
 						def messagesList = []
 						response.put("errorCode",0)
 						response.put("errorMessage","Messages sent")
-						messages.each{
+						compList.each{
 							def message = it
 							def messageMap = [:]
 							messageMap.put("id",message.id)
