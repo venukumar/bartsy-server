@@ -95,13 +95,14 @@ class TimeoutService {
 	}
 
 	def userTimeout(){
-		def usersCheckedOut = []
-		def ordersCancelled = []
+		
 		log.warn("userTimeout")
 		def venueList = Venue.getAll()
 		if(venueList){
 			venueList.each{
 				def venue = it
+				def usersCheckedOut = []
+				def ordersCancelled = []
 				def userList = CheckedInUsers.findAllByVenueAndStatus(venue,1)
 				if(userList){
 					userList.each{
