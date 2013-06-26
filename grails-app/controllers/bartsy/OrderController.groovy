@@ -64,7 +64,7 @@ class OrderController {
 						order.setDescription(json.description)
 						order.setSpecialInstructions(json.specialInstructions)
 						// Receiver bartsy id
-						order.setRecieverProfile(recieverUserprofile)
+						order.setReceiverProfile(recieverUserprofile)
 						order.setUser(userprofile)
 						order.setVenue(venue)
 						if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
