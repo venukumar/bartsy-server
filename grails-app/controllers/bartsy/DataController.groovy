@@ -114,6 +114,7 @@ class DataController {
 				def venue = Venue.findByVenueId(venueId.toString())
 				def bartsyId=json.bartsyId
 				def userProfile = UserProfile.findByBartsyId(bartsyId)
+
 				if(venue && userProfile){
 					def checkedInUsers = CheckedInUsers.findAllByVenueAndStatus(venue,1)
 					if(checkedInUsers){
@@ -121,6 +122,12 @@ class DataController {
 							def checkedInUser = it
 							def checkedInUsersMap = [:]
 							def userFavorite = UserFavoritePeople.findByUserBartsyIdAndFavoriteBartsyId(json.bartsyId, checkedInUser.userProfile.bartsyId)
+
+							if(json.has("getUserDetails")&&json.getUserDetails&&json.getUserDetails.toString().equalsIgnoreCase("venue")){
+
+								getUserOrderAndChekedInDetails(venue,checkedInUser,checkedInUsersMap)
+							}
+
 							checkedInUsersMap.put("bartsyId",checkedInUser.userProfile.bartsyId.toString())
 							checkedInUsersMap.put("nickName",checkedInUser.userProfile.nickName)
 							checkedInUsersMap.put("userImagePath",checkedInUser.userProfile.userImage)
@@ -160,6 +167,30 @@ class DataController {
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}
+
+
+	def getUserOrderAndChekedInDetails(Venue venue,UserProfile checkedInUser,checkedInUsersMap){
+		def totalOrdersOrderedByUser = Orders.findByVenueAndUser(venue,checkedInUser)
+
+		def date = new Date()
+		def last30thdate = date-30
+
+		//def last30DaysOrdersOrderedByuser = Orders.findByDateCreated()
+
+		def last30DaysOrdersOrderedByuser = Orders.createCriteria()
+		def results = last30DaysOrdersOrderedByuser.list(){
+			eq("venue",venue)
+			gt("dateCreated",last30thdate)
+			order("dateCreated", "desc")
+		}
+		checkedInUsersMap.put("firstOrderDate",results.get(0).getDateCreated())
+		checkedInUsersMap.put("orderCount",totalOrdersOrderedByUser.size())
+		checkedInUsersMap.put("last30DaysOrderCount",results.size())
+		checkedInUsersMap.put("firstCheckInDate","")
+		checkedInUsersMap.put("checkInCount","")
+		checkedInUsersMap.put("last30DaysCheckInCount","")
+	}
+
 
 	/**
 	 * This is the webservice to sync the data upon bartender app start up
@@ -230,6 +261,7 @@ class DataController {
 						}
 						response.put("orders",ordersList)
 					}
+					response.put("cancelOrederTime",venue.cancelOrderTime)
 				}
 				else{
 					response.put("errorCode","1")
@@ -450,22 +482,22 @@ class DataController {
 					def query = {
 						eq("venue",venue)
 						eq("sender",senderProfile)
-						eq("receiver",receiverProfile)						
+						eq("receiver",receiverProfile)
 					}
 					def queryRec = {
 						eq("venue",venue)
 						eq("sender",receiverProfile)
-						eq("receiver",senderProfile)						
+						eq("receiver",senderProfile)
 					}
 					def messages = Messages.createCriteria().list(query)
 					def messagesRec = Messages.createCriteria().list(queryRec)
 					def compList = []
-					
+
 					if(messages)
 						compList.addAll(messages.toList())
 					if(messagesRec)
 						compList.addAll(messagesRec.toList())
-					
+
 					if(compList){
 						def messagesList = []
 						response.put("errorCode",0)
