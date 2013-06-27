@@ -221,6 +221,7 @@ class DataController {
 				def ordersList = []
 				if(venue){
 					response.put("venueStatus",venue.status)
+					response.put("orderTimeout",venue.cancelOrderTime)
 					def checkedInUsers = CheckedInUsers.findAllByVenueAndStatus(venue,1)
 					if(checkedInUsers){
 						checkedInUsers.each{
@@ -261,7 +262,7 @@ class DataController {
 						}
 						response.put("orders",ordersList)
 					}
-					response.put("cancelOrederTime",venue.cancelOrderTime)
+					
 				}
 				else{
 					response.put("errorCode","1")
