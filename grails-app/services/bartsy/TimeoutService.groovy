@@ -17,13 +17,13 @@ class TimeoutService {
 	}
 
 	def orderTimeout(){
-		def ordersCancelled = []
 		def response = [:]
 		log.warn("order timeout")
 		def venueList = Venue.getAll()
 		if(venueList){
 			venueList.each{
 				def venue = it
+				def ordersCancelled = []
 				def openOrdersCriteria = Orders.createCriteria()
 				def openOrders = openOrdersCriteria.list {
 					eq("venue",venue)
