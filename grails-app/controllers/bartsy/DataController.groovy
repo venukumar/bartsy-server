@@ -42,7 +42,7 @@ class DataController {
 						'in'("orderStatus",["0", "2", "3"])
 						or{
 							eq("user",userProfile)
-							eq("receiverProfile",userProfile)
+							or{ eq("receiverProfile",userProfile)}
 						}
 					}
 					if(openOrders){
