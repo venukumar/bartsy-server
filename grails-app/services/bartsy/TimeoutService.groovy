@@ -65,7 +65,7 @@ class TimeoutService {
 									}
 									if(order.getDrinkOffered()){
 										if(order.receiverProfile.deviceType == 0){
-											androidPNService.sendPN(pnMessage,order.user.deviceToken)
+											androidPNService.sendPN(pnMessage,order.receiverProfile.deviceToken)
 											ordersCancelled.add(order.orderId)
 										}
 										else{
