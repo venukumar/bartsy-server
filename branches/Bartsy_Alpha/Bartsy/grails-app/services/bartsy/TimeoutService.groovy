@@ -17,13 +17,13 @@ class TimeoutService {
 	}
 
 	def orderTimeout(){
-		def ordersCancelled = []
 		def response = [:]
 		log.warn("order timeout")
 		def venueList = Venue.getAll()
 		if(venueList){
 			venueList.each{
 				def venue = it
+				def ordersCancelled = []
 				def openOrdersCriteria = Orders.createCriteria()
 				def openOrders = openOrdersCriteria.list {
 					eq("venue",venue)
@@ -45,7 +45,9 @@ class TimeoutService {
 								if(orderStatus.equals("3")){
 								order = paymentService.makePayment(order)
 								}
-								if(order.save()){									
+								if(!order.save(flush:true)){
+									println "order timeout error"
+								}else{								
 									if(order.user.deviceType == 0){
 										def pnMessage = [:]
 										pnMessage.put("orderStatus","7")
@@ -90,13 +92,13 @@ class TimeoutService {
 	}
 
 	def userTimeout(){
-		def usersCheckedOut = []
-		def ordersCancelled = []
 		log.warn("userTimeout")
 		def venueList = Venue.getAll()
 		if(venueList){
 			venueList.each{
 				def venue = it
+				def usersCheckedOut = []
+				def ordersCancelled = []
 				def userList = CheckedInUsers.findAllByVenueAndStatus(venue,1)
 				if(userList){
 					userList.each{
@@ -109,8 +111,11 @@ class TimeoutService {
 								if(diff.minutes >= (userTimeout.value.toInteger())){
 									log.warn("Check out the user")
 									user.setStatus(0)
-									user.save(flush:true)
-									usersCheckedOut.add(user.userProfile.bartsyId)
+									if(!user.save(flush:true)){
+										println "User timeout save error"
+									}else{
+										usersCheckedOut.add(user.userProfile.bartsyId)
+									}
 //									def openOrdersCriteria = Orders.createCriteria()
 //									def openOrders = openOrdersCriteria.list {
 //										eq("user",user.userProfile)
