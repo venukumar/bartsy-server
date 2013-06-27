@@ -39,7 +39,7 @@ class TimeoutService {
 							def diff = new Date() - order.lastUpdated
 							log.warn("difference in minutes"+diff.minutes)
 							if(diff.minutes >= venue.cancelOrderTime){
-								def orderStatus = order.orderStatus.toString()							
+								def orderStatus = order.orderStatus.toString()
 								order.setLastState(orderStatus)
 								order.setErrorReason("Order timeout")
 								order.setOrderStatus("7")
@@ -49,23 +49,31 @@ class TimeoutService {
 								if(!order.save(flush:true)){
 									println "order timeout error"
 								}else{
+									def pnMessage = [:]
+									pnMessage.put("orderStatus","7")
+									pnMessage.put("cancelledOrder",order.orderId)
+									pnMessage.put("messageType","orderTimeout")
+
+
 									if(order.user.deviceType == 0){
-										def pnMessage = [:]
-										pnMessage.put("orderStatus","7")
-										pnMessage.put("cancelledOrder",order.orderId)
-										pnMessage.put("messageType","orderTimeout")
 										androidPNService.sendPN(pnMessage,order.user.deviceToken)
 										ordersCancelled.add(order.orderId)
 									}
 									else{
-										def pnMessage = [:]
-										pnMessage.put("orderStatus","7")
-										pnMessage.put("cancelledOrder",order.orderId)
-										pnMessage.put("messageType","orderTimeout")
 										applePNService.sendPNOrderTimeout(pnMessage, order.user.deviceToken, "1","Your Order "+order.orderId+" has been cancelled due to timeout")
 										ordersCancelled.add(order.orderId)
 									}
-								}				
+									if(order.getDrinkOffered()){
+										if(order.receiverProfile.deviceType == 0){
+											androidPNService.sendPN(pnMessage,order.user.deviceToken)
+											ordersCancelled.add(order.orderId)
+										}
+										else{
+											applePNService.sendPNOrderTimeout(pnMessage, order.receiverProfile.deviceToken, "1","Your Order "+order.orderId+" has been cancelled due to timeout")
+											ordersCancelled.add(order.orderId)
+										}
+									}
+								}
 							}
 						}
 					}
@@ -75,9 +83,9 @@ class TimeoutService {
 						pnMessage.put("messageType","orderTimeout")
 						androidPNService.sendPN(pnMessage,venue.deviceToken)
 					}
-				
+
 				}
-				
+
 			}
 		}
 	}
@@ -95,7 +103,7 @@ class TimeoutService {
 	}
 
 	def userTimeout(){
-		
+
 		log.warn("userTimeout")
 		def venueList = Venue.getAll()
 		if(venueList){
@@ -120,22 +128,22 @@ class TimeoutService {
 									}else{
 										usersCheckedOut.add(user.userProfile.bartsyId)
 									}
-//									def openOrdersCriteria = Orders.createCriteria()
-//									def openOrders = openOrdersCriteria.list {
-//										eq("user",user.userProfile)
-//										and{
-//											'in'("orderStatus",["0", "2", "3"])
-//										}
-//									}
-//									if(openOrders){
-//										openOrders.each{
-//											def order = it
-//											order.setOrderStatus("7")
-//											if(order.save()){
-//												ordersCancelled.add(order.orderId)
-//											}
-//										}
-//									}
+									//									def openOrdersCriteria = Orders.createCriteria()
+									//									def openOrders = openOrdersCriteria.list {
+									//										eq("user",user.userProfile)
+									//										and{
+									//											'in'("orderStatus",["0", "2", "3"])
+									//										}
+									//									}
+									//									if(openOrders){
+									//										openOrders.each{
+									//											def order = it
+									//											order.setOrderStatus("7")
+									//											if(order.save()){
+									//												ordersCancelled.add(order.orderId)
+									//											}
+									//										}
+									//									}
 									//									if(user.userProfile.deviceType == 0){
 									//										def pnMessage = [:]
 									//										pnMessage.put("messageType","userTimeout")
@@ -182,9 +190,7 @@ class TimeoutService {
 						def openOrdersCriteria = Orders.createCriteria()
 						def openOrders = openOrdersCriteria.list {
 							eq("user",user)
-							and{
-								eq("venue",venue)
-							}
+							and{ eq("venue",venue) }
 							and{
 								'in'("orderStatus",["0", "2", "3"])
 							}
@@ -265,12 +271,12 @@ class TimeoutService {
 
 	def venueTimeout(){
 		def usersCheckedOut = []
-		log.warn("userTimeout")
+		log.warn("Venue Timeout")
 		def venueCriteria = Venue.createCriteria()
 		def venueList = venueCriteria.list {
-				'in'("status",["OPEN", "IDLE"])
-				}
-		
+			'in'("status",["OPEN", "IDLE"])
+		}
+
 		//def venueList = Venue.findAllByStatus("OPEN")
 		if(venueList){
 			venueList.each{
@@ -283,7 +289,7 @@ class TimeoutService {
 						if(diff.minutes >= 3){
 							if(!venue.status.equals("OFFLINE")){
 								log.warn("Alert the venue")
-								sendMailTemplate("srikanth.talasila@techvedika.com","The internet connection of your bartender tablet seems to be down. Please check the same.","Bartsy WIFI Alert")
+								sendMailTemplate("srikanth.talasila@techva.com","The internet connection of your bartender tablet seems to be down. Please check the same.","Bartsy WIFI Alert")
 							}
 						}
 						if(diff.minutes >= (venueTimeout.value.toInteger())){
@@ -296,13 +302,12 @@ class TimeoutService {
 			}
 		}
 	}
-	
-	// Alert for bartender when venue is offline
+
+	// Alert for bartender when venue. If venue is offline
 	def sendMailTemplate(String emailId,String message,String subjectSent){
-		
+
 		println "mailID" +emailId
 		println "message"+message
-		println "forget password !!!!!!!!!!! "
 		sendMail {
 			to emailId
 			subject subjectSent
