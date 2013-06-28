@@ -808,6 +808,8 @@ class UserController {
 						response.put("orientation", userProfile.getOrientation())
 						response.put("showProfile", userProfile.getShowProfile())
 						response.put("userImagePath", userProfile.getUserImage())
+						response.put("status",userProfile.status)
+						response.put("description",userProfile.description)
 					}else{
 					handleNegativeResponse(response,"Userprofile does not exists")
 					}
@@ -955,4 +957,18 @@ class UserController {
 				flash.message="Your Bartsy Account was Already Verified"
 			}
 	}
+	
+	def getServerPublicKey(){
+		try{
+			String cryptoPath = message(code:'userimage.path')
+			String publicKey ="bartsy_publicKey.pem"
+			def pubKeyFileStream= new FileInputStream(cryptoPath+publicKey)
+			response.setHeader("Content-disposition", "filename=bartsyPublicKey.pem")
+			response.outputStream << pubKeyFileStream
+			response.outputStream.flush()
+		}catch(Exception e){
+			log.error(e.getMessage())
+		}
+	}
+	
 }
