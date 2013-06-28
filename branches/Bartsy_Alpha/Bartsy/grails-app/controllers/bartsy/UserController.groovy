@@ -451,7 +451,57 @@ class UserController {
 		//return the cancelled orders list
 		return cancelledOrders
 	}
-
+	
+	/**
+	 * To get user public details
+	 */
+	 def getUserPublicDetails={
+		 try{
+			 def json = JSON.parse(request)
+			 def response=[:]
+			 def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+			 def apiVersionNumber=json.apiVersion
+			 
+			 if(json){
+				 if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
+				 if(json.has("bartsyId")){
+					 def bartsyId = json.bartsyId
+					 def userProfile = UserProfile.findByBartsyId(bartsyId)
+					 if(userProfile){
+						 CommonMethods commonMethods = new CommonMethods()
+						 def age= commonMethods.getAge(userProfile.getDateOfBirth())
+						 response.put("errorCode", 0)
+						 response.put("bartsyId", bartsyId)
+						 response.put("gender", userProfile.getGender())
+						 response.put("age", age)
+						 response.put("orientation", userProfile.getOrientation())
+						 response.put("showProfile", userProfile.getShowProfile())
+						 response.put("userImagePath", userProfile.getUserImage())
+						 response.put("status",userProfile.status)
+						 response.put("description",userProfile.description)
+					 }else{
+					 handleNegativeResponse(response,"Userprofile does not exists")
+					 }
+				 }
+				 else{
+					 handleNegativeResponse(response,"BartsyId should not be empty or null")
+				 }
+			 }
+			 else{
+				 //if apiVersion do not match send errorCode 100
+				 response.put("errorCode","100")
+				 response.put("errorMessage","API version do not match")
+			 }
+			 }else{
+			 handleNegativeResponse(response,"Your post data is empty")
+			 }
+			 render(text:response as JSON ,  contentType:"application/json")
+		 }catch (Exception e) {
+			 println "Exception Found !!!! "+e.getMessage()
+		 }
+		 
+	 }
+	 
 	/**
 	 * This is the webservice to be called by the customer app when heartbeat PN is received
 	 *
