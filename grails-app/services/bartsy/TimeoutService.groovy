@@ -53,24 +53,20 @@ class TimeoutService {
 									pnMessage.put("orderStatus","7")
 									pnMessage.put("cancelledOrder",order.orderId)
 									pnMessage.put("messageType","orderTimeout")
-
-
+									ordersCancelled.add(order.orderId)
+									
 									if(order.user.deviceType == 0){
 										androidPNService.sendPN(pnMessage,order.user.deviceToken)
-										ordersCancelled.add(order.orderId)
 									}
 									else{
 										applePNService.sendPNOrderTimeout(pnMessage, order.user.deviceToken, "1","Your Order "+order.orderId+" has been cancelled due to timeout")
-										ordersCancelled.add(order.orderId)
 									}
 									if(order.getDrinkOffered()){
 										if(order.receiverProfile.deviceType == 0){
 											androidPNService.sendPN(pnMessage,order.receiverProfile.deviceToken)
-											ordersCancelled.add(order.orderId)
 										}
 										else{
 											applePNService.sendPNOrderTimeout(pnMessage, order.receiverProfile.deviceToken, "1","Your Order "+order.orderId+" has been cancelled due to timeout")
-											ordersCancelled.add(order.orderId)
 										}
 									}
 								}
@@ -308,10 +304,10 @@ class TimeoutService {
 
 		println "mailID" +emailId
 		println "message"+message
-		sendMail {
+		/*sendMail {
 			to emailId
 			subject subjectSent
 			body message
-		}
+		}*/
 	}
 }
