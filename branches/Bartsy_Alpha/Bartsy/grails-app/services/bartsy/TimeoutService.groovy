@@ -47,22 +47,28 @@ class TimeoutService {
 								}
 								if(!order.save(flush:true)){
 									println "order timeout error"
-								}else{								
+								}else{	
+								def pnMessage = [:]
+								pnMessage.put("orderStatus","7")
+								pnMessage.put("cancelledOrder",order.orderId)
+								pnMessage.put("messageType","orderTimeout")
+								ordersCancelled.add(order.orderId)
+								
 									if(order.user.deviceType == 0){
-										def pnMessage = [:]
-										pnMessage.put("orderStatus","7")
-										pnMessage.put("cancelledOrder",order.orderId)
-										pnMessage.put("messageType","orderTimeout")
 										androidPNService.sendPN(pnMessage,order.user.deviceToken)
-										ordersCancelled.add(order.orderId)
 									}
 									else{
-										def pnMessage = [:]
-										pnMessage.put("orderStatus","7")
-										pnMessage.put("cancelledOrder",order.orderId)
-										pnMessage.put("messageType","orderTimeout")
 										applePNService.sendPNOrderTimeout(pnMessage, order.user.deviceToken, "1","Your Order "+order.orderId+" has been cancelled due to timeout")
-										ordersCancelled.add(order.orderId)
+									}
+									
+									/* receiver PN */
+									if(order.getDrinkOffered()){
+										if(order.receiverProfile.deviceType == 0){
+											androidPNService.sendPN(pnMessage,order.receiverProfile.deviceToken)
+										}
+										else{
+											applePNService.sendPNOrderTimeout(pnMessage, order.receiverProfile.deviceToken, "1","Your Order "+order.orderId+" has been cancelled due to timeout")
+										}
 									}
 								}
 							}
@@ -279,7 +285,7 @@ class TimeoutService {
 						if(diff.minutes >= 3){
 							if(!venue.status.equals("OFFLINE")){
 								log.warn("Alert the venue")
-								sendMailTemplate("srikanth.talasila@techvedika.com","The internet connection of your bartender tablet seems to be down. Please check the same.","Bartsy WIFI Alert")
+								sendMailTemplate("srikant.talasila@techvedika.com","The internet connection of your bartender tablet seems to be down. Please check the same.","Bartsy WIFI Alert")
 							}
 						}
 						if(diff.minutes >= (venueTimeout.value.toInteger())){
