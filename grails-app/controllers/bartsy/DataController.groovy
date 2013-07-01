@@ -39,7 +39,7 @@ class DataController {
 					//def openOrders = Orders.findAllByUserAndOrderStatusNotEqual(userProfile,"0")
 					def openOrdersCriteria = Orders.createCriteria()
 					def openOrders = openOrdersCriteria.list {
-						'in'("orderStatus",["0", "2", "3"])
+						'in'("orderStatus",["0", "2", "3", "9"])
 						or{
 							eq("user",userProfile)
 							or{ eq("receiverProfile",userProfile)}
@@ -63,6 +63,7 @@ class DataController {
 							orderMap.put("description",order.description)
 							orderMap.put("updateTime",order.lastUpdated.toGMTString())
 							orderMap.put("specialInstructions",order.specialInstructions)
+							orderMap.put("cancelOrderTime",order.venue.getCancelOrderTime())
 							totalOrders.add(orderMap)
 						}
 						response.put("errorCode","0")
@@ -241,7 +242,7 @@ class DataController {
 					def orders = ordersCriteria.list{
 						eq("venue",venue)
 						and{
-							'in'("orderStatus",["0", "2", "3"])
+							'in'("orderStatus",["0", "2", "3", "9"])
 						}
 					}
 					if(orders){
