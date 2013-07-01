@@ -59,7 +59,6 @@ class OrderController {
 						order.setItemId(json.itemId.toString())
 						order.setItemName(json.itemName)
 						order.setTipPercentage(json.tipPercentage)
-						order.setOrderStatus("0")
 						order.setTotalPrice(json.totalPrice)
 						order.setDescription(json.description)
 						order.setSpecialInstructions(json.specialInstructions)
@@ -69,8 +68,10 @@ class OrderController {
 						order.setVenue(venue)
 						if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
 							order.setDrinkOffered(true)
+							order.setOrderStatus("9")
+						}else {
+							order.setOrderStatus("0")
 						}
-
 						order.setAuthApproved("false")
 											
 						order.save(flush:true)
@@ -79,7 +80,11 @@ class OrderController {
 						//order.setAuthTransactionId(authorizeResponse.transactionId as long)
 
 						if(authorizeResponse.get("authApproved").toBoolean()){
-							orderUpdate.setOrderStatus("0")
+							if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
+								orderUpdate.setOrderStatus("9")								
+							}else{
+								orderUpdate.setOrderStatus("0")
+							}
 							orderUpdate.setAuthApproved("true")
 							orderUpdate.setAuthCode(authorizeResponse.get("authCode"))
 							orderUpdate.setAuthTransactionNumber(authorizeResponse.get("authTransactionNumber"))
@@ -96,7 +101,6 @@ class OrderController {
 							render(text:response as JSON,contentType:"application/json")
 							return
 						}
-
 						if(orderUpdate.save(flush:true)){
 							//create the place order notification
 							def notification = new Notifications()
@@ -112,11 +116,15 @@ class OrderController {
 								eq("venue",venue)
 								and{ eq("user",userprofile) }
 								and{
-									'in'("orderStatus",["0", "2", "3"])
+									'in'("orderStatus",["0", "2", "3", "9"])
 								}
 							}
 							Map pnMessage = new HashMap()
-							pnMessage.put("orderStatus","0")
+							if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
+								pnMessage.put("orderStatus","9")
+							}else{
+								pnMessage.put("orderStatus","0")
+							}
 							pnMessage.put("orderId",orderUpdate?.orderId?.toString())
 							pnMessage.put("itemName",json.itemName)
 							pnMessage.put("orderTime",orderDate.toGMTString())
@@ -126,6 +134,8 @@ class OrderController {
 							pnMessage.put("description",json.description)
 							pnMessage.put("updateTime",orderDate.toGMTString())
 							pnMessage.put("orderTimeout",venue.cancelOrderTime)
+							pnMessage.put("senderName",orderUpdate.user.nickName)
+							pnMessage.put("senderImg",orderUpdate.user.userImage)
 							pnMessage.put("specialInstructions",json.specialInstructions ?: "")
 							if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
 								println "userprofiles are not same"
@@ -133,6 +143,8 @@ class OrderController {
 								pnMessage.put("messageType","DrinkOffered")
 								pnMessage.put("bartsyId",json.recieverBartsyId)
 								pnMessage.put("senderBartsyId",json.bartsyId)
+								pnMessage.put("receiverName",orderUpdate.receiverProfile.nickName)
+								pnMessage.put("receiverImg",orderUpdate.receiverProfile.userImage)
 								pnMessage.put("orderTimeout",venue.cancelOrderTime)
 								pnMessage.put("body",body)
 								response.put("orderCount",openOrders.size())
@@ -142,15 +154,13 @@ class OrderController {
 								response.put("orderTimeout",venue.cancelOrderTime)
 								if(recieverUserprofile.deviceType == 1 ){
 									try{
-										println recieverUserprofile.deviceToken
 										applePNService.sendPN(pnMessage,recieverUserprofile.deviceToken, "1",body)
 									}catch(Exception e){
-									println "came in exception"
+										println "came in exception"
 										println "Exception "+e.getMessage()
 									}
 								}
 								else{
-
 									androidPNService.sendPN(pnMessage,recieverUserprofile.deviceToken)
 								}
 							}else{
@@ -159,24 +169,19 @@ class OrderController {
 								response.put("orderCount",openOrders.size())
 								response.put("orderId",orderUpdate?.orderId)
 								response.put("errorCode","0")
-
 								response.put("orderStatus",orderUpdate.getOrderStatus())
-							response.put("errorMessage","Order Placed")
+								response.put("errorMessage","Order Placed")
 								response.put("orderTimeout",venue.cancelOrderTime)
 								androidPNService.sendPN(pnMessage, venue.deviceToken)
-
 								//save the place order for self notification
 								notification.setOrderType("self")
 								notification.setMessage("you ordered a drink "+ orderUpdate.getItemName())
 								notification.save(flush:true)
-
 							}
-
 						}
 						else{
 							response.put("errorCode","1")
 							response.put("errorMessage","Order placing Failed")
-
 						}
 					}
 
@@ -286,7 +291,7 @@ class OrderController {
 								eq("user",order.user)
 							}
 							and{
-								'in'("orderStatus",["0", "2", "3"])
+								'in'("orderStatus",["0", "2", "3", "9"])
 							}
 						}
 						pnMessage.put("orderCount",openOrders.size())
@@ -368,7 +373,7 @@ class OrderController {
 						switch(json.orderStatus.toString()){
 							case "8" :
 								body = "Your offer is rejected by "+recieveUser.nickName
-								order.setLastState("0")
+								order.setLastState("9")
 								order.setErrorReason("Offer rejected")
 								if(order.save()){
 									response.put("errorCode","0")
@@ -405,7 +410,8 @@ class OrderController {
 								break
 							case "0" :
 								body = "Your offer is accepted by "+recieveUser.nickName
-								if(order.save()){
+								order.setOrderStatus("0")
+								if(order.save(flush:true)){
 									response.put("errorCode","0")
 									response.put("errorMessage","Success")
 									response.put("orderTimeout",venue.cancelOrderTime)
@@ -518,7 +524,7 @@ class OrderController {
 								eq("venue",venue)
 								and{ eq("user",userprofile) }
 								and{
-									'in'("orderStatus",["0", "2", "3"])
+									'in'("orderStatus",["0", "2", "3", "9"])
 								}
 							}
 							response.put("orderCount",openOrders.size())

@@ -12,6 +12,8 @@ import org.json.simple.parser.JSONParser
 class VenueController {
 
 	def inventoryService
+	def androidPNService
+	def applePNService
 
 	/**
 	 * This is a test webservice to save venue details from a hardcoded locu response. To be removed later. 
@@ -177,7 +179,7 @@ class VenueController {
 					//venue.venueImagePath=venueImagePath
 					venue.deviceToken = json.deviceToken
 					venue.cancelOrderTime = json.cancelOrderTime as int
-					venue.save()
+					venue.save(flush:true)
 					response.put("venueId",venue.getVenueId())
 					response.put("venueName",venue.getVenueName())
 					response.put("errorCode","0")
@@ -623,6 +625,80 @@ class VenueController {
 					venue.setStatus(json.status)
 					//save the venue object
 					venue.save(flush:true)
+					def usersCheckedOut = []
+					def ordersCancelled = []
+					if(json.status.toString().equals("CLOSED")){
+						def userList = CheckedInUsers.findAllByVenueAndStatus(venue,1)
+						if(userList){
+							userList.each{
+								def user = it
+								log.warn("Check out the user as the Venue is closed")
+								user.setStatus(0)
+								if(!user.save(flush:true)){
+									println "User checkout save error"
+								}else{
+									usersCheckedOut.add(user.userProfile.bartsyId)
+								}
+							}
+							
+							if(usersCheckedOut.size()){
+								def pnMessage = [:]
+								//pnMessage.put("ordersCancelled",ordersCancelled)
+								pnMessage.put("usersCheckedOut",usersCheckedOut)
+								pnMessage.put("messageType","userTimeout")
+								androidPNService.sendPN(pnMessage,venue.deviceToken)
+							}
+						}
+						
+						def openOrdersCriteria = Orders.createCriteria()
+						def openOrders = openOrdersCriteria.list {
+							eq("venue",venue)
+							and{
+								'in'("orderStatus",["0", "2", "3"])
+							}
+						}
+						if(openOrders){
+							openOrders.each{
+								def order = it
+								def orderStatus = order.orderStatus.toString()
+								order.setLastState(orderStatus)
+								order.setErrorReason("Venue Closed")
+								order.setOrderStatus("7")
+								if(!order.save(flush:true)){
+									println "order cancel error"
+								}else{
+									def pnMessage = [:]
+									pnMessage.put("orderStatus","7")
+									pnMessage.put("cancelledOrder",order.orderId)
+									pnMessage.put("messageType","orderTimeout")
+									ordersCancelled.add(order.orderId)
+									
+									if(order.user.deviceType == 0){
+										androidPNService.sendPN(pnMessage,order.user.deviceToken)
+									}
+									else{
+										applePNService.sendPNOrderTimeout(pnMessage, order.user.deviceToken, "1","Your Order "+order.orderId+" has been cancelled as the Venue is closed")
+									}
+									if(order.getDrinkOffered()){
+										if(order.receiverProfile.deviceType == 0){
+											androidPNService.sendPN(pnMessage,order.receiverProfile.deviceToken)
+										}
+										else{
+											applePNService.sendPNOrderTimeout(pnMessage, order.receiverProfile.deviceToken, "1","Your Order "+order.orderId+" has been cancelled as the Venue is closed")
+										}
+									}
+								}
+							}
+							if(ordersCancelled.size()){
+								def pnMessage = [:]
+								pnMessage.put("ordersCancelled",ordersCancelled)
+								pnMessage.put("messageType","orderTimeout")
+								androidPNService.sendPN(pnMessage,venue.deviceToken)
+							}
+						}
+					}
+					
+					
 					//send the errorCode 0 as acknowledgement of the status save
 					response.put("errorCode","0")
 					response.put("errorMessage","Save Successful")

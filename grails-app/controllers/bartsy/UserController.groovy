@@ -646,6 +646,7 @@ class UserController {
 						//if checked into a venue send venueId and venuename of that venue
 						response.put("venueId",checkedInUser.venue.venueId)
 						response.put("venueName",checkedInUser.venue.venueName)
+						response.put("cancelOrderTime",checkedInUser.venue.getCancelOrderTime())
 						//retrieve any open orders for that user in that venue
 						def openOrdersCriteria = Orders.createCriteria()
 						def openOrders = openOrdersCriteria.list {
