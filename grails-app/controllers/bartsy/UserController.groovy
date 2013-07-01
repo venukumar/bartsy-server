@@ -432,7 +432,7 @@ class UserController {
 		def openOrders = openOrdersCriteria.list {
 			eq("user",userProfile)
 			and{
-				'in'("orderStatus",["0", "2", "3"])
+				'in'("orderStatus",["0", "2", "3", "9"])
 			}
 		}
 		//check if any open orders are present
@@ -496,7 +496,7 @@ class UserController {
 								eq("user",userProfile)
 								and{ eq("venue",venue) }
 								and{
-									'in'("orderStatus",["0", "2", "3"])
+									'in'("orderStatus",["0", "2", "3", "9"])
 								}
 							}
 							def ordersList = []
@@ -653,7 +653,7 @@ class UserController {
 							eq("venue",checkedInUser.venue)
 							and{ eq("user",userProfile) }
 							and{
-								'in'("orderStatus",["0", "2", "3"])
+								'in'("orderStatus",["0", "2", "3", "9"])
 							}
 						}
 						//retrieve the order Ids and add it to list
