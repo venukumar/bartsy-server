@@ -28,7 +28,7 @@ class TimeoutService {
 				def openOrders = openOrdersCriteria.list {
 					eq("venue",venue)
 					and{
-						'in'("orderStatus",["0", "2", "3"])
+						'in'("orderStatus",["0", "2", "3", "9"])
 					}
 				}
 				if(openOrders){
@@ -188,7 +188,7 @@ class TimeoutService {
 							eq("user",user)
 							and{ eq("venue",venue) }
 							and{
-								'in'("orderStatus",["0", "2", "3"])
+								'in'("orderStatus",["0", "2", "3", "9"])
 							}
 						}
 						if(openOrders){
@@ -245,7 +245,7 @@ class TimeoutService {
 				def openOrders = openOrdersCriteria.list {
 					eq("venue",venue)
 					and{
-						'in'("orderStatus",["0", "2", "3"])
+						'in'("orderStatus",["0", "2", "3", "9"])
 					}
 				}
 				if(openOrders){
