@@ -712,6 +712,10 @@ class OrderController {
 					pastOrdersMap.put("dateCreated",order.getLastUpdated())
 					pastOrdersMap.put("itemName",order.getItemName())
 					pastOrdersMap.put("nickName",order.user.getNickName())
+					pastOrdersMap.put("senderBartsyId",order.user.getBartsyId())
+					pastOrdersMap.put("receiverName",order.receiverProfile.getNickName())
+					pastOrdersMap.put("senderImg",order.user.getUserImage())
+					pastOrdersMap.put("receiverImg",order.receiverProfile.getUserImage())
 					pastOrdersList.add(pastOrdersMap)					
 				}
 				response.put("errorCode",0)
