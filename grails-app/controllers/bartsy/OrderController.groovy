@@ -134,8 +134,6 @@ class OrderController {
 							pnMessage.put("description",json.description)
 							pnMessage.put("updateTime",orderDate.toGMTString())
 							pnMessage.put("orderTimeout",venue.cancelOrderTime)
-							pnMessage.put("senderName",orderUpdate.user.nickName)
-							pnMessage.put("senderImg",orderUpdate.user.userImage)
 							pnMessage.put("specialInstructions",json.specialInstructions ?: "")
 							if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
 								println "userprofiles are not same"
@@ -143,8 +141,6 @@ class OrderController {
 								pnMessage.put("messageType","DrinkOffered")
 								pnMessage.put("bartsyId",json.recieverBartsyId)
 								pnMessage.put("senderBartsyId",json.bartsyId)
-								pnMessage.put("receiverName",orderUpdate.receiverProfile.nickName)
-								pnMessage.put("receiverImg",orderUpdate.receiverProfile.userImage)
 								pnMessage.put("orderTimeout",venue.cancelOrderTime)
 								pnMessage.put("body",body)
 								response.put("orderCount",openOrders.size())
