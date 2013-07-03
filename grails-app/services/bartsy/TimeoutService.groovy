@@ -92,8 +92,9 @@ class TimeoutService {
 		def timer = BartsyConfiguration.findByConfigName("heartbeat")
 		if(timer){
 			if(timer.value.toBoolean()){
-				heartBeatCustomer()
-				heartBeatVenue()
+				
+				//heartBeatCustomer()
+				//heartBeatVenue()
 			}
 		}
 	}
@@ -285,7 +286,7 @@ class TimeoutService {
 						if(diff.minutes >= 3){
 							if(!venue.status.equals("OFFLINE")){
 								log.warn("Alert the venue")
-								sendMailTemplate("srikanth.talasila@techva.com","The internet connection of your bartender tablet seems to be down. Please check the same.","Bartsy WIFI Alert")
+								sendMailTemplate("srikanth.asila@techva.com","The internet connection of your bartender tablet seems to be down. Please check the same.","Bartsy WIFI Alert")
 							}
 						}
 						if(diff.minutes >= (venueTimeout.value.toInteger())){
