@@ -2,25 +2,28 @@ package bartsy
 
 class Venue {
 
-    static constraints = {
+	static constraints = {
 		menu(nullable:true)
 		venueImagePath(nullable:true)
-    }
-	static mapping = {
-		menu type:"text"
 	}
-    String venueName
-    String country
-    String hasLocuMenu
-    String locuId
-    String lat
-    String locality
-    String longtd
-    String phone
-    String postalCode
-    String region
-    String streetAddress
-    String websiteURL
+	static mapping = { menu type:"text" }
+	String venueName
+	String country
+	String hasLocuMenu
+	String locuId
+	String locuSection
+	String totalTaxRate
+	String routingNumber
+	String accountNumber
+	String lat
+	String locality
+	String longtd
+	String phone
+	String postalCode
+	String region
+	String address
+	String streetAddress
+	String websiteURL
 	int hasBarSection
 	String facebookURL
 	String openHours
@@ -31,14 +34,19 @@ class Venue {
 	String wifiPassword
 	String typeOfAuthentication
 	String deviceToken
-	String deviceType 
-	String paypalId
+	String deviceType
 	int wifiPresent
 	Date dateCreated
 	Date lastUpdated
-	int cancelOrderTime 
+	int cancelOrderTime
 	String status
 	Date lastHBResponse
+	String vendsyRepName
+	String vendsyRepEmail
+	String vendsyRepPhone
+	String managerName
+	String venueLogin
+	String venuePassword
 	Date lastActivity
 	String venueImagePath
 }
