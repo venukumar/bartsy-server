@@ -42,7 +42,7 @@ class DataController {
 						'in'("orderStatus",["0", "2", "3", "9"])
 						or{
 							eq("user",userProfile)
-							or{ eq("receiverProfile",userProfile)}
+							eq("receiverProfile",userProfile)
 						}
 					}
 					if(openOrders){
@@ -52,10 +52,10 @@ class DataController {
 							orderMap.put("orderId",order.orderId)
 							orderMap.put("senderBartsyId",order.user.bartsyId)
 							orderMap.put("recieverBartsyId",order.receiverProfile.bartsyId)
-							orderMap.put("senderName",order.user.nickName)
-							orderMap.put("receiverName",order.receiverProfile.nickName)
-							orderMap.put("senderImg",order.user.userImage)
-							orderMap.put("receiverImg",order.receiverProfile.userImage)
+							orderMap.put("senderNickname",order.user.nickName)
+							orderMap.put("recipientNickname",order.receiverProfile.nickName)
+							orderMap.put("SenderImagePath",order.user.userImage)
+							orderMap.put("recipientImagePath",order.receiverProfile.userImage)
 							orderMap.put("drinkOffered",order.drinkOffered)
 							orderMap.put("orderTime",order.dateCreated.toGMTString())
 							orderMap.put("orderStatus",order.orderStatus)
@@ -67,7 +67,8 @@ class DataController {
 							orderMap.put("description",order.description)
 							orderMap.put("updateTime",order.lastUpdated.toGMTString())
 							orderMap.put("specialInstructions",order.specialInstructions)
-							orderMap.put("cancelOrderTime",order.venue.getCancelOrderTime())
+							orderMap.put("orderTimeout",order.venue.getCancelOrderTime())
+							orderMap.put("currentTime",new Date().toGMTString())
 							totalOrders.add(orderMap)
 						}
 						response.put("errorCode","0")
@@ -253,7 +254,15 @@ class DataController {
 						orders.each{
 							def order = it
 							def ordersMap = [:]
-							ordersMap.put("bartsyId",order.user.bartsyId)
+							ordersMap.put("senderBartsyId",order.user.bartsyId)
+							ordersMap.put("recipientBartsyId",order.receiverProfile.bartsyId)
+
+							ordersMap.put("senderNickname",order.user.nickName)
+							ordersMap.put("recipientNickname",order.receiverProfile.nickName)
+
+							ordersMap.put("SenderImagePath",order.user.userImage)
+							ordersMap.put("recipientImagePath",order.receiverProfile.userImage)
+
 							ordersMap.put("orderStatus",order.orderStatus)
 							ordersMap.put("orderId",order.orderId)
 							ordersMap.put("itemName",order.itemName)
@@ -267,7 +276,7 @@ class DataController {
 						}
 						response.put("orders",ordersList)
 					}
-					
+
 				}
 				else{
 					response.put("errorCode","1")
