@@ -88,7 +88,6 @@ class VenueController {
 					}
 					venue.deviceToken = json.deviceToken
 					venue.deviceType = json.deviceType
-					venue.paypalId = json.paypalId
 					venue.status = "OPEN"
 					venue.lastHBResponse = new Date()
 					venue.lastActivity =  new Date()
@@ -137,34 +136,36 @@ class VenueController {
 		//defining a map to return as a response for this syscall
 		def response = [:]
 		try{
+			println "save venue details"
 			//parse the request sent as input to the syscall
 			def json
 			if(params.details)
-			 json = JSON.parse(params.details)
-			 else
-			 json = JSON.parse(request)
+				json = JSON.parse(params.details)
+			else
+				json = JSON.parse(request)
+			println"json "+json
 			//check to make sure the apiVersion sent in the request matches the correct apiVersion
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
 				def venueImageFile
 				if(params.venueImage){
-					 venueImageFile = request.getFile("venueImage")
+					venueImageFile = request.getFile("venueImage")
 				}
 				def parsedData
-				
+
 				//check for the hardCoded locu Id for Finn McCool
 				/*if(json.locuId.equals("beec9320f3921035e4d7")){
-					//get the locu response into parsedData varibale for this venue from the harcoded locu response file
-					def resources = grailsApplication.mainContext.getResource("response.txt").file
-					def fileContents = resources.text
-					parsedData = JSON.parse(fileContents)
-				}
-				//if not Finn McCool go to else part
-				else{*/
-					//get the locu response for that locuID into the parsedData varibale
-					def url = message(code:'app.locu.url')+json.locuId+'/?api_key='+message(code:'app.locu.apikey')
-					parsedData = JSON.parse( new URL(url).text )
-					
+				 //get the locu response into parsedData varibale for this venue from the harcoded locu response file
+				 def resources = grailsApplication.mainContext.getResource("response.txt").file
+				 def fileContents = resources.text
+				 parsedData = JSON.parse(fileContents)
+				 }
+				 //if not Finn McCool go to else part
+				 else{*/
+				//get the locu response for that locuID into the parsedData varibale
+				def url = message(code:'app.locu.url')+json.locuId+'/?api_key='+message(code:'app.locu.apikey')
+				parsedData = JSON.parse( new URL(url).text )
+
 				//}
 				def hasBarSection = 0
 				def menu
@@ -172,18 +173,34 @@ class VenueController {
 				Venue venue = Venue.findByLocuId(json.locuId)
 				//if venue exists as of now updating the deviceToken and cancelOrderTime. To be changed later
 				if(venue){
+					venue.deviceToken = json.deviceToken
+					venue.cancelOrderTime = json.cancelOrderTime as int
+					venue.venueName = json.has("venueName")?json.venueName:""
+					venue.lat = json.has("latitude")?json.latitude:""
+					venue.longtd = json.has("longitude")?json.longitude:""
+					venue.phone = json.has("phone")?json.phone:""
+					venue.locuId = json.has("locuId")?json.locuId:""
+					setValuesToVenue(venue,json)
 					if(venueImageFile){
 						def venueImagePath = saveVenueImage(venueImageFile, venue.venueId)
 						venue.setVenueImagePath(venueImagePath)
 					}
+					else{
+						venue.setVenueImagePath(null)
+					}
 					//venue.venueImagePath=venueImagePath
-					venue.deviceToken = json.deviceToken
-					venue.cancelOrderTime = json.cancelOrderTime as int
-					venue.save(flush:true)
-					response.put("venueId",venue.getVenueId())
-					response.put("venueName",venue.getVenueName())
-					response.put("errorCode","0")
-					response.put("errorMessage","Venue Details Updated")
+
+					if(venue.save(flush:true)){
+						response.put("venueId",venue.getVenueId())
+						response.put("venueName",venue.getVenueName())
+						response.put("errorCode","0")
+						response.put("errorMessage","Venue Details Updated")
+					}else{
+						response.put("venueId",venue.getVenueId())
+						response.put("venueName",venue.getVenueName())
+						response.put("errorCode","1")
+						response.put("errorMessage","Venue exists but details are not updated")
+					}
 				}
 				//If venue does not exist go to else part
 				else{
@@ -193,60 +210,119 @@ class VenueController {
 						def fileContents = resources.text
 						parsedData = JSON.parse(fileContents)
 					}
-					//The following group of code is to parse the locu response and identify if it has a BAR section in its menu
-					parsedData.objects.menus.each {
-						def parsedData1 = it
-						parsedData1.each{
-							def parsedData2 = it
-							if(message(code:'bar').equals(parsedData2.menu_name.toString()))
-							{
-								//set this varibale to 1 if BAR section is there and encode the BAR menu JSON
-								hasBarSection = 1
-								menu = URLEncoder.encode(parsedData2.sections.toString(),"UTF-8")
+					if(parsedData){
+						//The following group of code is to parse the locu response and identify if it has a BAR section in its menu
+						parsedData.objects.menus.each {
+							def parsedData1 = it
+							parsedData1.each{
+								def parsedData2 = it
+								if(message(code:'bar').equals(parsedData2.menu_name.toString()))
+								{
+									//set this varibale to 1 if BAR section is there and encode the BAR menu JSON
+									hasBarSection = 1
+									menu = URLEncoder.encode(parsedData2.sections.toString(),"UTF-8")
+								}
 							}
 						}
 					}
 					//As venue does not exist create a new venue object
 					venue= new Venue()
 					//set the values to venue object from the locu response
-					venue.venueName = parsedData.objects[0].name
-					venue.lat = parsedData.objects[0].lat
-					venue.longtd = parsedData.objects[0].long
-					venue.phone = parsedData.objects[0].phone
-					venue.region = parsedData.objects[0].region
-					venue.locuId = parsedData.objects[0].id
-					venue.postalCode = parsedData.objects[0].postal_code
-					venue.locality = parsedData.objects[0].locality
-					venue.streetAddress = parsedData.objects[0].street_address
-					venue.websiteURL = parsedData.objects[0].website_url
-					venue.country = parsedData.objects[0].country
-					venue.hasLocuMenu = parsedData.objects[0].has_menu
-					venue.twitterId = parsedData.objects[0].twitter_id
-					venue.facebookURL = parsedData.objects[0].facebook_url
-					venue.openHours = parsedData.objects[0].open_hours
+
+					setValuesToVenue(venue,json)
+
+					//set the values to venue object from the locu response
+
+					if(json.has("venueName")&&json.venueName.trim())
+						venue.venueName =json.venueName
+					else
+						venue.venueName=parsedData?parsedData.objects[0].name:""
+					if(json.has("latitude")&&json.latitude)
+						venue.lat =json.latitude
+					else
+						venue.lat =parsedData?parsedData.objects[0].lat:""
+					if(json.has("longitude")&&json.longitude)
+						venue.longtd = json.longitude
+					else
+						venue.longtd =parsedData?parsedData.objects[0].long:""
+					if(json.has("phone")&&json.phone)
+						venue.phone =json.phone
+					else
+						venue.phone =parsedData?parsedData.objects[0].phone:""
+					if(json.has("locuId")&&json.locuId)
+						venue.locuId =json.locuId
+					else
+						venue.locuId =parsedData?parsedData.objects[0].id:""
+					if(json.has("openHours")&&json.openHours)
+						venue.openHours =json.openHours
+					else
+						venue.openHours =parsedData?parsedData.objects[0].open_hours:""
+
+					/*	venue.venueName = json.has("venueName")?(json.venueName?json.venueName:parsedData?parsedData.objects[0].name:""):(parsedData?parsedData.objects[0].name:"")
+					 venue.venueName = json.has("venueName")?json.venueName:(parsedData?parsedData.objects[0].name:"")
+					 venue.lat = json.has("latitude")?json.latitude:(parsedData?parsedData.objects[0].lat:"")
+					 venue.longtd = json.has("longitude")?json.longitude:(parsedData?parsedData.objects[0].long:"")
+					 venue.phone = json.has("phone")?json.phone:(parsedData?parsedData.objects[0].phone:"")
+					 venue.region = parsedData?parsedData.objects[0].region:""
+					 venue.locuId = json.has("locuId")?json.locuId:(parsedData?parsedData.objects[0].id:"")
+					 venue.openHours =json.has("openHours")?json.openHours:(parsedData?parsedData.objects[0].open_hours:"")*/
+
+					venue.region = parsedData?parsedData.objects[0].region:""
+					venue.postalCode = parsedData?parsedData.objects[0].postal_code:""
+					venue.locality = parsedData?parsedData.objects[0].locality:""
+					venue.streetAddress = parsedData?parsedData.objects[0].street_address:""
+					venue.websiteURL =parsedData?parsedData.objects[0].website_url:""
+					venue.country = parsedData?parsedData.objects[0].country:""
+					venue.hasLocuMenu = parsedData?parsedData.objects[0].has_menu:""
+					venue.twitterId = parsedData?parsedData.objects[0].twitter_id:""
+					venue.facebookURL = parsedData?parsedData.objects[0].facebook_url:""
+
+					def address
+					if(json.has("address")){
+						address=json.address
+					}
+					else{
+						address = venue.getStreetAddress()+","+venue.getLocality()+","+venue.getCountry()+","+venue.getPostalCode()
+					}
+					venue.address=json.address
+					/*venue.venueName = parsedData.objects[0].name
+					 venue.lat = parsedData.objects[0].lat
+					 venue.longtd = parsedData.objects[0].long
+					 venue.phone = parsedData.objects[0].phone
+					 venue.region = parsedData.objects[0].region
+					 venue.locuId = parsedData.objects[0].id
+					 venue.postalCode = parsedData.objects[0].postal_code
+					 venue.locality = parsedData.objects[0].locality
+					 venue.streetAddress = parsedData.objects[0].street_address
+					 venue.websiteURL = parsedData.objects[0].website_url
+					 venue.country = parsedData.objects[0].country
+					 venue.hasLocuMenu = parsedData.objects[0].has_menu
+					 venue.twitterId = parsedData.objects[0].twitter_id
+					 venue.facebookURL = parsedData.objects[0].facebook_url
+					 venue.openHours = parsedData.objects[0].open_hours*/
 					//set the values of menu and hasBarSection based on the value set earlier
 					venue.hasBarSection = hasBarSection
 					if(hasBarSection){
 						venue.menu = menu
 					}
-					//set the values received in the request to this syscall
 					venue.cancelOrderTime = json.cancelOrderTime as int
-					venue.wifiPresent = json.wifiPresent
-					if(json.wifiPresent == 1){
-						venue.wifiName = json.wifiName
-						venue.wifiPassword = json.wifiPassword
-						venue.typeOfAuthentication = json.typeOfAuthentication
-					}
-					else{
-						venue.wifiName = "XYZ"
-						venue.wifiPassword = "XYZ"
-						venue.typeOfAuthentication = "XYZ"
-					}
-					venue.deviceToken = json.deviceToken
-					venue.deviceType = json.deviceType
-					venue.paypalId = json.paypalId
-					//set the value of status as OPEN by default while registration
-					venue.status = "OPEN"
+					//set the values received in the request to this syscall
+					/*	venue.cancelOrderTime = json.cancelOrderTime as int
+					 venue.wifiPresent = json.wifiPresent
+					 if(json.wifiPresent == 1){
+					 venue.wifiName = json.wifiName
+					 venue.wifiPassword = json.wifiPassword
+					 venue.typeOfAuthentication = json.typeOfAuthentication
+					 }
+					 else{
+					 venue.wifiName = "XYZ"
+					 venue.wifiPassword = "XYZ"
+					 venue.typeOfAuthentication = "XYZ"
+					 }
+					 venue.deviceToken = json.deviceToken
+					 venue.deviceType = json.deviceType
+					 //set the value of status as OPEN by default while registration
+					 venue.status = "OPEN"*/
 					//inititally we set these values as current time...Later they get updated accordingly
 					venue.lastHBResponse = new Date()
 					venue.lastActivity =  new Date()
@@ -273,6 +349,7 @@ class VenueController {
 					}
 					else{
 						//if save not successful send the following details as response with errorCode 1
+						println "error "+venue.errors
 						response.put("errorCode","1")
 						response.put("errorMessage",message(code:'venue.save.failed'))
 					}
@@ -291,9 +368,47 @@ class VenueController {
 			response.put("errorMessage",e.getMessage())
 		}
 		finally{
+			println"response "+response
 			render(text:response as JSON ,  contentType:"application/json")
 		}
 	}
+
+
+	def setValuesToVenue(Venue venue,json){
+
+		venue.locuSection = json.has("locuSection")?json.locuSection:""
+		venue.totalTaxRate = json.has("totalTaxRate")?json.totalTaxRate:""
+		venue.routingNumber= json.has("routingNumber")?json.routingNumber:""
+		venue.accountNumber= json.has("accountNumber")?json.accountNumber:""
+		venue.managerName=json.has("managerName")?json.managerName:""
+		venue.venueLogin=json.has("venueLogin")?json.venueLogin:""
+		venue.venuePassword=json.has("venuePassword")?json.venuePassword:""
+		venue.vendsyRepName=json.has("vendsyRepName")?json.vendsyRepName:""
+		venue.vendsyRepEmail=json.has("vendsyRepEmail")?json.vendsyRepEmail:""
+		venue.vendsyRepPhone=json.has("vendsyRepPhone")?json.vendsyRepPhone:""
+		venue.openHours =json.has("openHours")?json.openHours:""
+
+		venue.wifiPresent = json.wifiPresent
+		if(json.wifiPresent == 1){
+			venue.wifiName = json.wifiName
+			venue.wifiPassword = json.wifiPassword
+			venue.typeOfAuthentication = json.typeOfAuthentication
+		}
+		else{
+			venue.wifiName = "XYZ"
+			venue.wifiPassword = "XYZ"
+			venue.typeOfAuthentication = "XYZ"
+		}
+
+		venue.deviceToken = json.deviceToken
+		venue.deviceType = json.deviceType
+
+		//set the value of status as OPEN by default while registration
+		venue.status = "OPEN"
+
+	}
+
+
 
 	/**
 	 * 
@@ -586,6 +701,7 @@ class VenueController {
 					response.put("messageType","heartBeat")
 					response.put("checkedInUsersList",checkedInUsersList)
 					response.put("ordersList",ordersList)
+					response.put("currentTime",new Date().toGMTString())
 				}
 			}
 			else{
@@ -640,7 +756,7 @@ class VenueController {
 									usersCheckedOut.add(user.userProfile.bartsyId)
 								}
 							}
-							
+
 							if(usersCheckedOut.size()){
 								def pnMessage = [:]
 								//pnMessage.put("ordersCancelled",ordersCancelled)
@@ -649,7 +765,7 @@ class VenueController {
 								androidPNService.sendPN(pnMessage,venue.deviceToken)
 							}
 						}
-						
+
 						def openOrdersCriteria = Orders.createCriteria()
 						def openOrders = openOrdersCriteria.list {
 							eq("venue",venue)
@@ -672,7 +788,7 @@ class VenueController {
 									pnMessage.put("cancelledOrder",order.orderId)
 									pnMessage.put("messageType","orderTimeout")
 									ordersCancelled.add(order.orderId)
-									
+
 									if(order.user.deviceType == 0){
 										androidPNService.sendPN(pnMessage,order.user.deviceToken)
 									}
@@ -697,8 +813,8 @@ class VenueController {
 							}
 						}
 					}
-					
-					
+
+
 					//send the errorCode 0 as acknowledgement of the status save
 					response.put("errorCode","0")
 					response.put("errorMessage","Save Successful")
