@@ -39,7 +39,7 @@ class DataController {
 					//def openOrders = Orders.findAllByUserAndOrderStatusNotEqual(userProfile,"0")
 					def openOrdersCriteria = Orders.createCriteria()
 					def openOrders = openOrdersCriteria.list {
-						'in'("orderStatus",["0", "2", "3", "9"])
+						'in'("orderStatus",["0","1", "2", "3","4","5","6","7","8","9"])
 						or{
 							eq("user",userProfile)
 							eq("receiverProfile",userProfile)
@@ -247,7 +247,7 @@ class DataController {
 					def orders = ordersCriteria.list{
 						eq("venue",venue)
 						and{
-							'in'("orderStatus",["0", "2", "3", "9"])
+							'in'("orderStatus",["0", "2", "3"])
 						}
 					}
 					if(orders){
