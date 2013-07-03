@@ -46,7 +46,8 @@ class OrderController {
 				Venue venue = Venue.findByVenueId(json.venueId)
 				if(userprofile && venue){
 					if(venue.status.equals("OPEN")){
-						def maxId = Orders.createCriteria().get { projections { max "orderId" } } as Long
+						def maxId = Orders.createCriteria().get { projections { max "orderId"
+							} } as Long
 						if(maxId){
 							maxId = maxId+1
 						}
@@ -73,7 +74,7 @@ class OrderController {
 							order.setOrderStatus("0")
 						}
 						order.setAuthApproved("false")
-											
+
 						order.save(flush:true)
 						Orders orderUpdate = Orders.findByOrderId(order.orderId)
 						def authorizeResponse = paymentService.authorizePayment(userprofile,json.totalPrice,orderUpdate?.orderId)
@@ -81,7 +82,7 @@ class OrderController {
 
 						if(authorizeResponse.get("authApproved").toBoolean()){
 							if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
-								orderUpdate.setOrderStatus("9")								
+								orderUpdate.setOrderStatus("9")
 							}else{
 								orderUpdate.setOrderStatus("0")
 							}
@@ -106,7 +107,7 @@ class OrderController {
 							def notification = new Notifications()
 							notification.setUser(userprofile)
 							notification.setVenue(venue)
-							notification.setOrder(orderUpdate)	
+							notification.setOrder(orderUpdate)
 							notification.setType("placeOrder")
 							if(json.has("type") && json.type.equals("custom")){
 								addDrinkIngredients(json.ingredients,orderUpdate)
@@ -116,7 +117,18 @@ class OrderController {
 								eq("venue",venue)
 								and{ eq("user",userprofile) }
 								and{
-									'in'("orderStatus",["0", "2", "3", "9"])
+									'in'("orderStatus",[
+										"0",
+										"1",
+										"2",
+										"3",
+										"4",
+										"5",
+										"6",
+										"7",
+										"8",
+										"9"
+									])
 								}
 							}
 							Map pnMessage = new HashMap()
@@ -229,7 +241,6 @@ class OrderController {
 				Date orderDate = new Date()
 				Orders order = Orders.findByOrderId(json.orderId)
 				if(order) {
-					order.setOrderStatus(json.orderStatus.toString())
 					def body
 					switch(json.orderStatus.toString()){
 						case "1" :
@@ -259,10 +270,15 @@ class OrderController {
 							break
 						case "6" :
 							body = "order is cancelled due to NOSHOW"
+							order.setLastState(order.orderStatus)
+							order.setErrorReason("Past Order")
+							break
+						case "10" :
 							order.setLastState("3")
 							order.setErrorReason("NOSHOW")
-							break
+							break;
 					}
+					order.setOrderStatus(json.orderStatus.toString())
 					if(order.save()){
 						//create the place order notification
 						def notification = new Notifications()
@@ -270,57 +286,74 @@ class OrderController {
 						notification.setVenue(order.venue)
 						notification.setOrder(order)
 						notification.setType("updateorder")
-						if(!json.orderStatus.toString().equals("5") || order.getCaptureApproved().toBoolean()){
-							response.put("errorCode","0")
-							response.put("errorMessage","Order Status Changed")
-							response.put("orderTimeout",order.venue.cancelOrderTime)
-						}
-						else{
-							response.put("errorCode","1")
-							response.put("errorMessage","Order has been cancelled due to payment failure")
-						}
-
-						def openOrdersCriteria = Orders.createCriteria()
-						def openOrders = openOrdersCriteria.list {
-							eq("venue",order.venue)
-							and{
-								eq("user",order.user)
-							}
-							and{
-								'in'("orderStatus",["0", "2", "3", "9"])
-							}
-						}
-						pnMessage.put("orderCount",openOrders.size())
-						pnMessage.put("orderStatus",json.orderStatus.toString())
-						pnMessage.put("orderId",json.orderId.toString())
-						pnMessage.put("messageType","updateOrderStatus")
-						pnMessage.put("updateTime",orderDate.toGMTString())
-						pnMessage.put("body",body)
-						pnMessage.put("orderTimeout",order.venue.cancelOrderTime)
-						if(order.receiverProfile.bartsyId && !order.receiverProfile.bartsyId.equals(order.user.bartsyId)){
-							def recieverUser = UserProfile.findByBartsyId(order.receiverProfile.bartsyId)
-							if(recieverUser.deviceType == 1 ){
-								applePNService.sendPN(pnMessage, recieverUser.deviceToken, "1",body)
+						if(!json.orderStatus.toString().equals("10")){
+							if(!json.orderStatus.toString().equals("5") || order.getCaptureApproved().toBoolean()){
+								response.put("errorCode","0")
+								response.put("errorMessage","Order Status Changed")
+								response.put("orderTimeout",order.venue.cancelOrderTime)
 							}
 							else{
-								androidPNService.sendPN(pnMessage,recieverUser.deviceToken)
+								response.put("errorCode","1")
+								response.put("errorMessage","Order has been cancelled due to payment failure")
 							}
-							//save the place order for others notification
-							notification.setOrderType("offer")
-							notification.setMessage(body)
-							notification.save(flush:true)
-						}
-						else{
-							//save the place order for self notification
-							notification.setOrderType("self")
-							notification.setMessage(body)
-							notification.save(flush:true)
-						}
-						if(order.user.deviceType == 1 ){
-							applePNService.sendPN(pnMessage, order.user.deviceToken, "1",body)
-						}
-						else{
-							androidPNService.sendPN(pnMessage,order.user.deviceToken)
+
+
+							def openOrdersCriteria = Orders.createCriteria()
+							def openOrders = openOrdersCriteria.list {
+								eq("venue",order.venue)
+								and{
+									eq("user",order.user)
+								}
+								and{
+									'in'("orderStatus",[
+										"0",
+										"1",
+										"2",
+										"3",
+										"4",
+										"5",
+										"6",
+										"7",
+										"8",
+										"9"
+									])
+								}
+							}
+							pnMessage.put("orderCount",openOrders.size())
+							pnMessage.put("orderStatus",json.orderStatus.toString())
+							pnMessage.put("orderId",json.orderId.toString())
+							pnMessage.put("messageType","updateOrderStatus")
+							pnMessage.put("updateTime",orderDate.toGMTString())
+							pnMessage.put("body",body)
+							pnMessage.put("orderTimeout",order.venue.cancelOrderTime)
+							if(order.receiverProfile.bartsyId && !order.receiverProfile.bartsyId.equals(order.user.bartsyId)){
+								def recieverUser = UserProfile.findByBartsyId(order.receiverProfile.bartsyId)
+								if(recieverUser.deviceType == 1 ){
+									applePNService.sendPN(pnMessage, recieverUser.deviceToken, "1",body)
+								}
+								else{
+									androidPNService.sendPN(pnMessage,recieverUser.deviceToken)
+								}
+								//save the place order for others notification
+								notification.setOrderType("offer")
+								notification.setMessage(body)
+								notification.save(flush:true)
+							}
+							else{
+								//save the place order for self notification
+								notification.setOrderType("self")
+								notification.setMessage(body)
+								notification.save(flush:true)
+							}
+							if(order.user.deviceType == 1 ){
+								applePNService.sendPN(pnMessage, order.user.deviceToken, "1",body)
+							}
+							else{
+								androidPNService.sendPN(pnMessage,order.user.deviceToken)
+							}
+						}else{
+							response.put("errorCode","0")
+							response.put("errorMessage","Order Status Changed")
 						}
 					}
 					else{
@@ -411,7 +444,7 @@ class OrderController {
 									response.put("errorCode","0")
 									response.put("errorMessage","Success")
 									response.put("orderTimeout",venue.cancelOrderTime)
-									pnMessage.put("orderId",json.orderId.toString())									
+									pnMessage.put("orderId",json.orderId.toString())
 									pnMessage.put("updateTime",orderDate.toGMTString())
 									pnMessage.put("bartsyId",order.receiverProfile.getBartsyId())
 									pnMessage.put("messageType","placeOrder")
@@ -520,7 +553,18 @@ class OrderController {
 								eq("venue",venue)
 								and{ eq("user",userprofile) }
 								and{
-									'in'("orderStatus",["0", "2", "3", "9"])
+									'in'("orderStatus",[
+										"0",
+										"1",
+										"2",
+										"3",
+										"4",
+										"5",
+										"6",
+										"7",
+										"8",
+										"9"
+									])
 								}
 							}
 							response.put("orderCount",openOrders.size())
@@ -621,8 +665,8 @@ class OrderController {
 					params.max = noOfResults
 				}
 				criteriaParams.putAll(params)
-				
-				if(dateReceived && venueId && bartsyId){					
+
+				if(dateReceived && venueId && bartsyId){
 					pastOrders = openOrdersCriteria.list(criteriaParams) {
 						eq("venue",venue)
 						between("dateCreated",startDate,endDate)
@@ -637,7 +681,7 @@ class OrderController {
 					pastOrders = openOrdersCriteria.list(criteriaParams) {
 						eq("venue",venue)
 						between("dateCreated",startDate,endDate)
-						
+
 						order "id","desc"
 					}
 				}
@@ -645,80 +689,80 @@ class OrderController {
 					pastOrders = openOrdersCriteria.list(criteriaParams) {
 						between("dateCreated",startDate,endDate)
 						or{
-						eq("user",user)
-						eq("receiverProfile",user)
-						}		
-						
+							eq("user",user)
+							eq("receiverProfile",user)
+						}
+
 						order "id","desc"
 					}
 				}
 				else if(venueId && bartsyId){
-					pastOrders = openOrdersCriteria.list(criteriaParams) {						
+					pastOrders = openOrdersCriteria.list(criteriaParams) {
 						eq("venue",venue)
 						or{
 							eq("user",user)
 							eq("receiverProfile",user)
-							}
-						
+						}
+
 						order "id","desc"
 					}
 				}
 				else if(venueId){
-					pastOrders = openOrdersCriteria.list(criteriaParams) {						
+					pastOrders = openOrdersCriteria.list(criteriaParams) {
 						eq("venue",venue)
-						
+
 						order "id","desc"
 					}
 				}
 				else if(bartsyId){
 					pastOrders = openOrdersCriteria.list(criteriaParams) {
 						or{
-						eq("user",user)
-						eq("receiverProfile",user)
+							eq("user",user)
+							eq("receiverProfile",user)
 						}
-						
+
 						order "id","desc"
 					}
 				}
 				else if(dateReceived){
 					pastOrders = openOrdersCriteria.list(criteriaParams) {
 						between("dateCreated",startDate,endDate)
-						
+
 						order "id","desc"
 					}
 				}
 				else{
-					pastOrders = openOrdersCriteria.list(criteriaParams){
-						order "id","desc"
-					}
+					pastOrders = openOrdersCriteria.list(criteriaParams){ order "id","desc" }
 				}
 				pastOrders.each{
 					def order=it
 					def pastOrdersMap = [:]
-					pastOrdersMap.put("orderId",order.getOrderId())
-					pastOrdersMap.put("orderStatus",order.getOrderStatus())
-					pastOrdersMap.put("venueId",order.venue.getVenueId())
-					pastOrdersMap.put("authApproved",order.getAuthApproved())
-					pastOrdersMap.put("authErrorMessage",order.getAuthErrorMessage())
-					pastOrdersMap.put("venueName",order.venue.getVenueName())
-					pastOrdersMap.put("totalPrice",order.getTotalPrice())
-					pastOrdersMap.put("tipPercentage",order.getTipPercentage())
-					pastOrdersMap.put("captureApproved",order.getCaptureApproved())
-					pastOrdersMap.put("captureErrorMessage",order.getCaptureErrorMessage())
-					pastOrdersMap.put("description",order.getDescription())
-					pastOrdersMap.put("errorReason",order.getErrorReason())
-					pastOrdersMap.put("basePrice",order.getBasePrice())
-					pastOrdersMap.put("lastState",order.getLastState())
-					pastOrdersMap.put("recipientBartsyId",order.receiverProfile.getBartsyId())
-					pastOrdersMap.put("specialInstructions",order.getSpecialInstructions())
-					pastOrdersMap.put("dateCreated",order.getLastUpdated())
-					pastOrdersMap.put("itemName",order.getItemName())
-					pastOrdersMap.put("senderNickname",order.user.getNickName())
-					pastOrdersMap.put("senderBartsyId",order.user.getBartsyId())
-					pastOrdersMap.put("recipientNickname",order.receiverProfile.getNickName())
-					pastOrdersMap.put("SenderImagePath",order.user.getUserImage())
-					pastOrdersMap.put("recipientImagePath",order.receiverProfile.getUserImage())
-					pastOrdersList.add(pastOrdersMap)					
+					if(order.getOrderStatus()&&order.getOrderStatus().toString().equalsIgnoreCase("10")){
+						pastOrdersMap.put("orderId",order.getOrderId())
+						pastOrdersMap.put("orderStatus",order.getOrderStatus())
+						pastOrdersMap.put("venueId",order.venue.getVenueId())
+						pastOrdersMap.put("authApproved",order.getAuthApproved())
+						pastOrdersMap.put("authErrorMessage",order.getAuthErrorMessage())
+						pastOrdersMap.put("venueName",order.venue.getVenueName())
+						pastOrdersMap.put("totalPrice",order.getTotalPrice())
+						pastOrdersMap.put("tipPercentage",order.getTipPercentage())
+						pastOrdersMap.put("captureApproved",order.getCaptureApproved())
+						pastOrdersMap.put("captureErrorMessage",order.getCaptureErrorMessage())
+						pastOrdersMap.put("description",order.getDescription())
+						pastOrdersMap.put("errorReason",order.getErrorReason())
+						pastOrdersMap.put("basePrice",order.getBasePrice())
+						pastOrdersMap.put("lastState",order.getLastState())
+						pastOrdersMap.put("recipientBartsyId",order.receiverProfile.getBartsyId())
+						pastOrdersMap.put("specialInstructions",order.getSpecialInstructions())
+						pastOrdersMap.put("dateCreated",order.getLastUpdated())
+						pastOrdersMap.put("itemName",order.getItemName())
+						pastOrdersMap.put("senderNickname",order.user.getNickName())
+						pastOrdersMap.put("senderBartsyId",order.user.getBartsyId())
+						pastOrdersMap.put("recipientNickname",order.receiverProfile.getNickName())
+						pastOrdersMap.put("SenderImagePath",order.user.getUserImage())
+						pastOrdersMap.put("recipientImagePath",order.receiverProfile.getUserImage())
+						pastOrdersList.add(pastOrdersMap)
+					}
 				}
 				response.put("errorCode",0)
 				response.put("pastOrders",pastOrdersList)

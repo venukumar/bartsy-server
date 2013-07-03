@@ -436,7 +436,7 @@ class UserController {
 				eq("receiverProfile",userProfile)
 			}
 			and{
-				'in'("orderStatus",["0", "2", "3", "9"])
+				'in'("orderStatus",["0","1","2", "3","4","5","6","7","8","9"])
 			}
 		}
 		println"usercheck out "
@@ -536,7 +536,7 @@ class UserController {
 									}
 									and{ eq("venue",venue) }
 									and{
-										'in'("orderStatus",["0", "2", "3", "9"])
+										'in'("orderStatus",["0","1", "2", "3","4","5","6","7","8","9"])
 									}
 								}
 								def ordersList = []
@@ -701,7 +701,7 @@ class UserController {
 							eq("venue",checkedInUser.venue)
 							and{ eq("user",userProfile) }
 							and{
-								'in'("orderStatus",["0", "2", "3", "9"])
+								'in'("orderStatus",["0","1", "2", "3","4","5","6","7","8","9"])
 							}
 						}
 						//retrieve the order Ids and add it to list

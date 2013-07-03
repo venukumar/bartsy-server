@@ -175,7 +175,8 @@ class VenueController {
 				if(venue){
 					venue.deviceToken = json.deviceToken
 					venue.cancelOrderTime = json.cancelOrderTime as int
-					venue.venueName = json.has("venueName")?json.venueName:""
+					if(json.has("venueName")&&json.venueName.trim())
+						venue.venueName =json.venueName
 					venue.lat = json.has("latitude")?json.latitude:""
 					venue.longtd = json.has("longitude")?json.longitude:""
 					venue.phone = json.has("phone")?json.phone:""
