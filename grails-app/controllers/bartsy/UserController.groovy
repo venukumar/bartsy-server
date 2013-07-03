@@ -378,6 +378,7 @@ class UserController {
 							def cancelledOrders = cancelOpenOrders(checkedInUsers.userProfile)
 							Map pnMessage = new HashMap()
 							//send a PN to the venue that the user has checked out of that venue
+							println"cancelledOrders "+cancelledOrders.size()
 							pnMessage.put("cancelledOrders",cancelledOrders)
 							pnMessage.put("bartsyId",userProfile.bartsyId)
 							pnMessage.put("messageType","userCheckOut")
@@ -430,26 +431,60 @@ class UserController {
 		//retrieve the list of open orders for that user from the DB
 		def openOrdersCriteria = Orders.createCriteria()
 		def openOrders = openOrdersCriteria.list {
-			eq("user",userProfile)
+			or{
+				eq("user",userProfile)
+				eq("receiverProfile",userProfile)
+			}
 			and{
 				'in'("orderStatus",["0", "2", "3", "9"])
 			}
 		}
+		println"usercheck out "
+		println "openOrders "+openOrders.size()
+
 		//check if any open orders are present
 		if(openOrders){
 			//if open orders are present loop through the list
 			openOrders.each{
 				def order=it
-				//if order was not accepted/rejected then do not charge the user...else charge
-				if(!order.orderStatus.equals("0")){
-					order = paymentService.makePayment(order)
-				}
-				//set the status to 7 i.e. cancelled
-				order.setOrderStatus("7")
-				//save the order
-				if(order.save(flush:true)){
-					//if save succesful add the order id to the cancelled orders list defined earlier
-					cancelledOrders.add(order.orderId)
+				
+				if(order.drinkOffered){
+					println "drink offered"
+					def rBartsyId = order.receiverProfile.bartsyId.toString().trim()
+					def sBartsyId = userProfile.bartsyId.toString().trim()
+					if(rBartsyId.equalsIgnoreCase(sBartsyId)){
+						//if order was not accepted/rejected then do not charge the user...else charge
+						println "both are same"
+						if(!order.orderStatus.equals("0")){
+							order = paymentService.makePayment(order)
+						}
+						//set the status to 7 i.e. cancelled
+						order.setOrderStatus("7")
+						//save the order
+						if(order.save(flush:true)){
+							//if save succesful add the order id to the cancelled orders list defined earlier
+							cancelledOrders.add(order.orderId)
+							println "order.orderId "+order.orderId
+							println"order.satus "+order.orderStatus
+						}else{
+						
+						}
+					}
+
+				}else{
+					//if order was not accepted/rejected then do not charge the user...else charge
+					if(!order.orderStatus.equals("0")){
+						order = paymentService.makePayment(order)
+					}
+					//set the status to 7 i.e. cancelled
+					order.setOrderStatus("7")
+					//save the order
+					if(order.save(flush:true)){
+						//if save succesful add the order id to the cancelled orders list defined earlier
+						cancelledOrders.add(order.orderId)
+					}else{
+						
+					}
 				}
 			}
 		}
@@ -477,48 +512,61 @@ class UserController {
 				def venue = Venue.findByVenueId(json.venueId)
 				//check if user profile and venue both exists
 				if(userProfile && venue){
-					//if user profile and venue both exists check if user is checked into that venue
-					def checkedInUsers = CheckedInUsers.findByUserProfileAndVenueAndStatus(userProfile,venue,1)
-					if(checkedInUsers){
-						//if checked in into that venue update the lastHBResponse column for that user with current date time
-						checkedInUsers.setLastHBResponse(new Date())
-						//save the object
-						checkedInUsers.save(flush:true)
-						def checkedInUsersList = []
-						def userList = CheckedInUsers.findAllByVenueAndStatus(venue,1)
-						if(userList){
-							userList.each{
-								def user = it
-								checkedInUsersList.add(user.userProfile.bartsyId)
-							}
-							def openOrdersCriteria = Orders.createCriteria()
-							def openOrders = openOrdersCriteria.list {
-								eq("user",userProfile)
-								and{ eq("venue",venue) }
-								and{
-									'in'("orderStatus",["0", "2", "3", "9"])
+					//check whether venue is online or not
+					if(!venue.status.toString().equalsIgnoreCase("online")){
+						//if user profile and venue both exists check if user is checked into that venue
+						def checkedInUsers = CheckedInUsers.findByUserProfileAndVenueAndStatus(userProfile,venue,1)
+						if(checkedInUsers){
+							//if checked in into that venue update the lastHBResponse column for that user with current date time
+							checkedInUsers.setLastHBResponse(new Date())
+							//save the object
+							checkedInUsers.save(flush:true)
+							def checkedInUsersList = []
+							def userList = CheckedInUsers.findAllByVenueAndStatus(venue,1)
+							if(userList){
+								userList.each{
+									def user = it
+									checkedInUsersList.add(user.userProfile.bartsyId)
 								}
-							}
-							def ordersList = []
-							if(openOrders){
-								openOrders.each{
-									def order=it
-									ordersList.add(order.orderId)
+								def openOrdersCriteria = Orders.createCriteria()
+								def openOrders = openOrdersCriteria.list {
+									or{
+										eq("user",userProfile)
+										eq("receiverProfile",userProfile)
+									}
+									and{ eq("venue",venue) }
+									and{
+										'in'("orderStatus",["0", "2", "3", "9"])
+									}
 								}
+								def ordersList = []
+								if(openOrders){
+									openOrders.each{
+										def order=it
+										ordersList.add(order.orderId)
+									}
+								}
+								response.put("bartsyId",userProfile.bartsyId)
+								response.put("venueId",venue.venueId)
+								response.put("venueName",venue.venueName)
+								response.put("messageType","heartBeat")
+								response.put("userCount",checkedInUsersList.size())
+								response.put("openOrders",ordersList)
+								response.put("orderCount",ordersList.size())
+								response.put("checkedInUsersList",checkedInUsersList)
+								response.put("currentTime",new Date().toGMTString())
 							}
-							response.put("bartsyId",userProfile.bartsyId)
-							response.put("venueId",venue.venueId)
-							response.put("venueName",venue.venueName)
-							response.put("messageType","heartBeat")
-							response.put("userCount",checkedInUsersList.size())
-							response.put("openOrders",ordersList)
-							response.put("orderCount",ordersList.size())
-							response.put("checkedInUsersList",checkedInUsersList)
 						}
+						//send the error code 0 acknowleding the request received
+						response.put("errorCode","0")
+						response.put("errorMessage","Request Received")
+					}else{
+						response.put("errorCode","1")
+						response.put("errorMessage","Venue is closed")
 					}
-					//send the error code 0 acknowleding the request received
-					response.put("errorCode","0")
-					response.put("errorMessage","Request Received")
+				}else{
+					response.put("errorCode","1")
+					response.put("errorMessage","Venue does not exists")
 				}
 			}
 			else{
@@ -646,7 +694,7 @@ class UserController {
 						//if checked into a venue send venueId and venuename of that venue
 						response.put("venueId",checkedInUser.venue.venueId)
 						response.put("venueName",checkedInUser.venue.venueName)
-						response.put("cancelOrderTime",checkedInUser.venue.getCancelOrderTime())
+						response.put("orderTimeout",checkedInUser.venue.getCancelOrderTime())
 						//retrieve any open orders for that user in that venue
 						def openOrdersCriteria = Orders.createCriteria()
 						def openOrders = openOrdersCriteria.list {
@@ -669,6 +717,7 @@ class UserController {
 							//if not empty send the list of open orders and count of open orders
 							response.put("openOrders",openOrdersList)
 							response.put("orderCount",openOrdersList.size())
+							response.put("orderTimeout",checkedInUser.venue.cancelOrderTime)
 						}
 						//get the checked in users list in that venue and send the count
 						def checkedInUsers = CheckedInUsers.findAllByVenueAndStatus(checkedInUser.venue,1)
@@ -785,57 +834,57 @@ class UserController {
 		return response
 	}
 	/**
-	* To get user public details
-	*/
+	 * To get user public details
+	 */
 	def getUserPublicDetails={
 		try{
 			def json = JSON.parse(request)
 			def response=[:]
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 			def apiVersionNumber=json.apiVersion
-			
+
 			if(json){
 				if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
-				if(json.has("bartsyId")){
-					def bartsyId = json.bartsyId
-					def userProfile = UserProfile.findByBartsyId(bartsyId)
-					if(userProfile){
-						CommonMethods commonMethods = new CommonMethods()
-						def age= commonMethods.getAge(userProfile.getDateOfBirth())
-						response.put("errorCode", 0)
-						response.put("bartsyId", bartsyId)
-						response.put("gender", userProfile.getGender())
-						response.put("age", age)
-						response.put("orientation", userProfile.getOrientation())
-						response.put("showProfile", userProfile.getShowProfile())
-						response.put("userImagePath", userProfile.getUserImage())
-						response.put("status",userProfile.status)
-						response.put("description",userProfile.description)
-					}else{
-					handleNegativeResponse(response,"Userprofile does not exists")
+					if(json.has("bartsyId")){
+						def bartsyId = json.bartsyId
+						def userProfile = UserProfile.findByBartsyId(bartsyId)
+						if(userProfile){
+							CommonMethods commonMethods = new CommonMethods()
+							def age= commonMethods.getAge(userProfile.getDateOfBirth())
+							response.put("errorCode", 0)
+							response.put("bartsyId", bartsyId)
+							response.put("gender", userProfile.getGender())
+							response.put("age", age)
+							response.put("orientation", userProfile.getOrientation())
+							response.put("showProfile", userProfile.getShowProfile())
+							response.put("userImagePath", userProfile.getUserImage())
+							response.put("status",userProfile.status)
+							response.put("description",userProfile.description)
+						}else{
+							handleNegativeResponse(response,"Userprofile does not exists")
+						}
+					}
+					else{
+						handleNegativeResponse(response,"BartsyId should not be empty or null")
 					}
 				}
 				else{
-					handleNegativeResponse(response,"BartsyId should not be empty or null")
+					//if apiVersion do not match send errorCode 100
+					response.put("errorCode","100")
+					response.put("errorMessage","API version do not match")
 				}
-			}
-			else{
-				//if apiVersion do not match send errorCode 100
-				response.put("errorCode","100")
-				response.put("errorMessage","API version do not match")
-			}
 			}else{
-			handleNegativeResponse(response,"Your post data is empty")
+				handleNegativeResponse(response,"Your post data is empty")
 			}
 			render(text:response as JSON ,  contentType:"application/json")
 		}catch (Exception e) {
 			println "Exception Found !!!! "+e.getMessage()
-		}	
-		
+		}
+
 	}
-	
-	
-	
+
+
+
 	/**
 	 * This is the webservice to be called to get the profile of a user
 	 *
@@ -917,7 +966,7 @@ class UserController {
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}
-	
+
 	/**
 	 * This method used to send bartsy verification mail to user email
 	 */
@@ -938,27 +987,27 @@ class UserController {
 			println "::: "+e.printStackTrace()
 		}
 	}
-	
+
 	def verifyEmailId={
 		println "emailVerification"
 		println"params ---------->>>>>> "+params
 		println "bartsy Id :: "+params.id
 		def decoded = new String(params.id.decodeBase64())
-			println"decoded String "+decoded
-		
+		println"decoded String "+decoded
+
 		def userProfile = UserProfile.findByBartsyId(decoded)
 		if(userProfile.emailVerified.toString().equalsIgnoreCase("false")){
 			userProfile.emailVerified="true"
 			if(userProfile.save()){
 				flash.message="Your Bartsy Account is Verified"
 			}else{
-			flash.message="Please try again later"
+				flash.message="Please try again later"
 			}
 		}else{
-				flash.message="Your Bartsy Account was Already Verified"
-			}
+			flash.message="Your Bartsy Account was Already Verified"
+		}
 	}
-	
+
 	def getServerPublicKey(){
 		try{
 			String cryptoPath = message(code:'userimage.path')
@@ -971,5 +1020,5 @@ class UserController {
 			log.error(e.getMessage())
 		}
 	}
-	
+
 }
