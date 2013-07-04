@@ -177,10 +177,10 @@ class VenueController {
 					venue.cancelOrderTime = json.cancelOrderTime as int
 					if(json.has("venueName")&&json.venueName.trim())
 						venue.venueName =json.venueName
-					venue.lat = json.has("latitude")?json.latitude:""
-					venue.longtd = json.has("longitude")?json.longitude:""
-					venue.phone = json.has("phone")?json.phone:""
-					venue.locuId = json.has("locuId")?json.locuId:""
+					venue.lat = json.has("latitude")?json.latitude:venue.lat
+					venue.longtd = json.has("longitude")?json.longitude:venue.longtd
+					venue.phone = json.has("phone")?json.phone:venue.phone
+					venue.locuId = json.has("locuId")?json.locuId:venue.locuId
 					setValuesToVenue(venue,json)
 					if(venueImageFile){
 						def venueImagePath = saveVenueImage(venueImageFile, venue.venueId)
@@ -377,17 +377,17 @@ class VenueController {
 
 	def setValuesToVenue(Venue venue,json){
 
-		venue.locuSection = json.has("locuSection")?json.locuSection:""
-		venue.totalTaxRate = json.has("totalTaxRate")?json.totalTaxRate:""
-		venue.routingNumber= json.has("routingNumber")?json.routingNumber:""
-		venue.accountNumber= json.has("accountNumber")?json.accountNumber:""
-		venue.managerName=json.has("managerName")?json.managerName:""
-		venue.venueLogin=json.has("venueLogin")?json.venueLogin:""
-		venue.venuePassword=json.has("venuePassword")?json.venuePassword:""
-		venue.vendsyRepName=json.has("vendsyRepName")?json.vendsyRepName:""
-		venue.vendsyRepEmail=json.has("vendsyRepEmail")?json.vendsyRepEmail:""
-		venue.vendsyRepPhone=json.has("vendsyRepPhone")?json.vendsyRepPhone:""
-		venue.openHours =json.has("openHours")?json.openHours:""
+		venue.locuSection = json.has("locuSection")?json.locuSection:venue.locuSection
+		venue.totalTaxRate = json.has("totalTaxRate")?json.totalTaxRate:venue.totalTaxRate
+		venue.routingNumber= json.has("routingNumber")?json.routingNumber:venue.routingNumber
+		venue.accountNumber= json.has("accountNumber")?json.accountNumber:venue.accountNumber
+		venue.managerName=json.has("managerName")?json.managerName:venue.managerName
+		venue.venueLogin=json.has("venueLogin")?json.venueLogin:venue.venueLogin
+		venue.venuePassword=json.has("venuePassword")?json.venuePassword:venue.venuePassword
+		venue.vendsyRepName=json.has("vendsyRepName")?json.vendsyRepName:venue.vendsyRepName
+		venue.vendsyRepEmail=json.has("vendsyRepEmail")?json.vendsyRepEmail:venue.vendsyRepEmail
+		venue.vendsyRepPhone=json.has("vendsyRepPhone")?json.vendsyRepPhone:venue.vendsyRepPhone
+		venue.openHours =json.has("openHours")?json.openHours:venue.openHours
 
 		venue.wifiPresent = json.wifiPresent
 		if(json.wifiPresent == 1){
@@ -757,7 +757,6 @@ class VenueController {
 									usersCheckedOut.add(user.userProfile.bartsyId)
 								}
 							}
-
 							if(usersCheckedOut.size()){
 								def pnMessage = [:]
 								//pnMessage.put("ordersCancelled",ordersCancelled)
@@ -771,7 +770,7 @@ class VenueController {
 						def openOrders = openOrdersCriteria.list {
 							eq("venue",venue)
 							and{
-								'in'("orderStatus",["0", "2", "3"])
+								'in'("orderStatus",["0","1","2","3","4","5","6","7","8","9"])
 							}
 						}
 						if(openOrders){
@@ -780,12 +779,12 @@ class VenueController {
 								def orderStatus = order.orderStatus.toString()
 								order.setLastState(orderStatus)
 								order.setErrorReason("Venue Closed")
-								order.setOrderStatus("7")
+								order.setOrderStatus("10")
 								if(!order.save(flush:true)){
 									println "order cancel error"
 								}else{
 									def pnMessage = [:]
-									pnMessage.put("orderStatus","7")
+									pnMessage.put("orderStatus","10")
 									pnMessage.put("cancelledOrder",order.orderId)
 									pnMessage.put("messageType","orderTimeout")
 									ordersCancelled.add(order.orderId)

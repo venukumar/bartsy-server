@@ -437,6 +437,7 @@ class UserController {
 			}
 			and{
 				'in'("orderStatus",["0","1","2", "3","4","5","6","7","8","9"])
+				//'in'("orderStatus",["0","2", "3","9"])
 			}
 		}
 		println"usercheck out "
@@ -454,12 +455,11 @@ class UserController {
 					def sBartsyId = userProfile.bartsyId.toString().trim()
 					if(rBartsyId.equalsIgnoreCase(sBartsyId)){
 						//if order was not accepted/rejected then do not charge the user...else charge
-						println "both are same"
-						if(!order.orderStatus.equals("0")){
+						if(order.orderStatus.equals("2")||order.orderStatus.equals("3")){
 							order = paymentService.makePayment(order)
 						}
-						//set the status to 7 i.e. cancelled
-						order.setOrderStatus("7")
+						//set the status to 10 i.e. pastOrders
+						order.setOrderStatus("10")
 						//save the order
 						if(order.save(flush:true)){
 							//if save succesful add the order id to the cancelled orders list defined earlier
@@ -473,11 +473,11 @@ class UserController {
 
 				}else{
 					//if order was not accepted/rejected then do not charge the user...else charge
-					if(!order.orderStatus.equals("0")){
+					if(order.orderStatus.equals("2")||order.orderStatus.equals("3")){
 						order = paymentService.makePayment(order)
 					}
-					//set the status to 7 i.e. cancelled
-					order.setOrderStatus("7")
+					//set the status to 10 i.e. pastOrders
+					order.setOrderStatus("10")
 					//save the order
 					if(order.save(flush:true)){
 						//if save succesful add the order id to the cancelled orders list defined earlier
