@@ -54,7 +54,7 @@ class TimeoutService {
 									pnMessage.put("cancelledOrder",order.orderId)
 									pnMessage.put("messageType","orderTimeout")
 									ordersCancelled.add(order.orderId)
-									
+
 									if(order.user.deviceType == 0){
 										androidPNService.sendPN(pnMessage,order.user.deviceToken)
 									}
@@ -92,9 +92,45 @@ class TimeoutService {
 		def timer = BartsyConfiguration.findByConfigName("heartbeat")
 		if(timer){
 			if(timer.value.toBoolean()){
-				
+				println"heart beat"
 				//heartBeatCustomer()
 				//heartBeatVenue()
+				toChangeOrdersToPastOrders()
+			}
+		}
+	}
+	/**
+	 *  Check if an order is in idle state for more than 15 min we changing order status to 10.
+	 * @return
+	 */
+	def toChangeOrdersToPastOrders(){
+		println"change orders to past orders"
+		log.info("change orders to past orders")
+		def openOrdersCriteria = Orders.createCriteria()
+		def openOrders = openOrdersCriteria.list {
+				'in'("orderStatus",["1", "4", "5", "6", "7", "8"])
+		}
+		println "openOrders "+openOrders.size()
+		if(openOrders){
+			openOrders.each{
+				//def order = ""
+				def order = it
+				use(groovy.time.TimeCategory){
+					def diff = new Date() - order.lastUpdated
+					log.warn("difference in minutes"+diff.minutes)
+					def orderStatus = order.orderStatus.toString()
+					if(diff.minutes >= 1){
+						order.setLastState(orderStatus)
+						order.setErrorReason("Past order")
+						order.setOrderStatus("10")
+						if(!order.save(flush:true)){
+							log.info("order moved to past order")
+						}else{
+							log.info("order not moved to past order")
+
+						}
+					}
+				}
 			}
 		}
 	}
@@ -306,9 +342,9 @@ class TimeoutService {
 		println "mailID" +emailId
 		println "message"+message
 		/*sendMail {
-			to emailId
-			subject subjectSent
-			body message
-		}*/
+		 to emailId
+		 subject subjectSent
+		 body message
+		 }*/
 	}
 }
