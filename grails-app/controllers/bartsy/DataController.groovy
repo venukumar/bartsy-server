@@ -39,7 +39,18 @@ class DataController {
 					//def openOrders = Orders.findAllByUserAndOrderStatusNotEqual(userProfile,"0")
 					def openOrdersCriteria = Orders.createCriteria()
 					def openOrders = openOrdersCriteria.list {
-						'in'("orderStatus",["0","1", "2", "3","4","5","6","7","8","9"])
+						'in'("orderStatus",[
+							"0",
+							"1",
+							"2",
+							"3",
+							"4",
+							"5",
+							"6",
+							"7",
+							"8",
+							"9"
+						])
 						or{
 							eq("user",userProfile)
 							eq("receiverProfile",userProfile)
@@ -120,9 +131,9 @@ class DataController {
 				def venue = Venue.findByVenueId(venueId.toString())
 				def bartsyId=json.bartsyId
 				def userProfile = UserProfile.findByBartsyId(bartsyId)
-
 				if(venue && userProfile){
 					def checkedInUsers = CheckedInUsers.findAllByVenueAndStatus(venue,1)
+					println"checkedInUsers "+checkedInUsers.size()
 					if(checkedInUsers){
 						checkedInUsers.each{
 							def checkedInUser = it
@@ -130,8 +141,8 @@ class DataController {
 							def userFavorite = UserFavoritePeople.findByUserBartsyIdAndFavoriteBartsyId(json.bartsyId, checkedInUser.userProfile.bartsyId)
 
 							if(json.has("getUserDetails")&&json.getUserDetails&&json.getUserDetails.toString().equalsIgnoreCase("venue")){
-
-								getUserOrderAndChekedInDetails(venue,checkedInUser,checkedInUsersMap)
+								// Added order and checked in details of user to response
+								getUserOrderAndChekedInDetails(venue,checkedInUser.userProfile,checkedInUsersMap)
 							}
 
 							checkedInUsersMap.put("bartsyId",checkedInUser.userProfile.bartsyId.toString())
@@ -167,7 +178,7 @@ class DataController {
 			}
 		}
 		catch(Exception e){
-			log.info("Exception is ===> "+e.getMessage())
+			println"Exception is ===> "+e.getMessage()
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
 		}
@@ -176,25 +187,61 @@ class DataController {
 
 
 	def getUserOrderAndChekedInDetails(Venue venue,UserProfile checkedInUser,checkedInUsersMap){
-		def totalOrdersOrderedByUser = Orders.findByVenueAndUser(venue,checkedInUser)
-
+		// getting orders based on venue and bartsy id(user)
+		def totalOrdersOrderedByUser = Orders.findAllByUserAndVenue(checkedInUser,venue)
+		// current date
 		def date = new Date()
+		// last 30th date
 		def last30thdate = date-30
 
-		//def last30DaysOrdersOrderedByuser = Orders.findByDateCreated()
+		if(totalOrdersOrderedByUser)
+		{
+			def last30DaysOrdersOrderedByuser = Orders.createCriteria()
 
-		def last30DaysOrdersOrderedByuser = Orders.createCriteria()
-		def results = last30DaysOrdersOrderedByuser.list(){
-			eq("venue",venue)
-			gt("dateCreated",last30thdate)
-			order("dateCreated", "desc")
+			def last30daysCount = last30DaysOrdersOrderedByuser.list(){
+				and{
+					eq("venue",venue)
+					eq("user",checkedInUser)
+				}
+				gt("dateCreated",last30thdate)
+				order("dateCreated", "desc")
+			}
+
+			def firstOrderDate =  Orders.createCriteria().list{
+				eq("venue",venue)
+				eq("user",checkedInUser)
+
+				order("dateCreated", "asc")
+			}
+			checkedInUsersMap.put("firstOrderDate",firstOrderDate?firstOrderDate[0].dateCreated:"")
+			checkedInUsersMap.put("orderCount",totalOrdersOrderedByUser.size())
+			checkedInUsersMap.put("last30DaysOrderCount",last30daysCount?last30daysCount.size():"")
+
 		}
-		checkedInUsersMap.put("firstOrderDate",results.get(0).getDateCreated())
-		checkedInUsersMap.put("orderCount",totalOrdersOrderedByUser.size())
-		checkedInUsersMap.put("last30DaysOrderCount",results.size())
-		checkedInUsersMap.put("firstCheckInDate","")
-		checkedInUsersMap.put("checkInCount","")
-		checkedInUsersMap.put("last30DaysCheckInCount","")
+		// getting checkedIn details of user based on venue
+		def userCheckedInDetails = UserCheckInDetails.findAllByUserProfileAndVenue(checkedInUser,venue)
+		if(userCheckedInDetails){
+			def last30DaysCheckInCount = UserCheckInDetails.createCriteria()
+			def last30DaysCheckIns = last30DaysCheckInCount.list(){
+				and{
+					eq("venue",venue)
+					eq("userProfile",checkedInUser)
+				}
+				gt("checkedInDate",last30thdate)
+				order("checkedInDate", "asc")
+			}
+
+			def firstCheckIn = UserCheckInDetails.createCriteria().list{
+				and{
+					eq("venue",venue)
+					eq("userProfile",checkedInUser)
+				}
+				order("checkedInDate", "asc")
+			}
+			checkedInUsersMap.put("firstCheckInDate",firstCheckIn?firstCheckIn[0].checkedInDate:"")
+			checkedInUsersMap.put("checkInCount",userCheckedInDetails.size())
+			checkedInUsersMap.put("last30DaysCheckInCount",last30DaysCheckIns?last30DaysCheckIns.size():"")
+		}
 	}
 
 
@@ -338,11 +385,11 @@ class DataController {
 				//retrieve the user profile based on bartsyId sent in the request to syscall
 				def userProfile = UserProfile.findByBartsyId(json.bartsyId.toString())
 				//retrieve the venue based on venueId sent in the request to syscall
-				def venue = Venue.findByVenueId(json.venueId)
+				//	def venue = Venue.findByVenueId(json.venueId)
 				//check if user profile and venue both exists
-				if(userProfile && venue){
+				if(userProfile){
 					//if user profile and venue both exists retrieve the notifications
-					def notifications = Notifications.findAllByUserAndVenue(userProfile,venue)
+					def notifications = Notifications.findAllByUser(userProfile)
 					if(notifications){
 						def notificationsList = []
 						notifications.each{
