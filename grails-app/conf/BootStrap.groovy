@@ -10,7 +10,7 @@ class BootStrap {
 			new BartsyConfiguration(configName:'heartbeat',value:'true').save(flush:true)
 			new BartsyConfiguration(configName:'userTimeout',value:'30').save(flush:true)
 			new BartsyConfiguration(configName:'venueTimeout',value:'30').save(flush:true)
-			new BartsyConfiguration(configName:'apiVersion',value:'1').save(flush:true)
+			new BartsyConfiguration(configName:'apiVersion',value:'2').save(flush:true)
 		}
 			  }
     def destroy = {
