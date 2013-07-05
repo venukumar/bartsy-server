@@ -14,7 +14,7 @@ class BootStrap {
 			new BartsyConfiguration(configName:'apiVersion',value:'2').save(flush:true)
 		}
 		if(!AdminUser.count()){
-			new AdminUser(userName:'admin',password:'B@rt$y',userType:'Admin').save(flush:true)
+			new AdminUser(username:'admin',password:'B@rt$y',userType:'Admin').save(flush:true)
 			
 		}
 			  }
