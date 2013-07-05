@@ -1,7 +1,6 @@
 package bartsy
 
 import grails.converters.JSON
-import org.json.simple.parser.JSONParser
 
 /**
  * This is the controller which has all Venue related actions to be performed.
@@ -770,7 +769,18 @@ class VenueController {
 						def openOrders = openOrdersCriteria.list {
 							eq("venue",venue)
 							and{
-								'in'("orderStatus",["0","1","2","3","4","5","6","7","8","9"])
+								'in'("orderStatus",[
+									"0",
+									"1",
+									"2",
+									"3",
+									"4",
+									"5",
+									"6",
+									"7",
+									"8",
+									"9"
+								])
 							}
 						}
 						if(openOrders){
@@ -834,4 +844,102 @@ class VenueController {
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}
+
+
+	/**
+	 *  To get the user checkedIn venues list info and orders info
+	 */
+	def getUserVenues={
+		//defining a map to return as a response for this syscall
+		def response=[:]
+		try{
+			//parse the request sent as input to the syscall
+			def json = JSON.parse(request)
+			//check to make sure the apiVersion sent in the request matches the correct apiVersion
+			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
+				def bartsyId = json.bartsyId
+				if(bartsyId){
+					// get userprofile based on the bartsyId
+					def userProfile = UserProfile.findByBartsyId(bartsyId)
+					if(userProfile){
+						println"userprofile exists"
+						getUserdetails(userProfile,response)
+						println"after response"
+					}
+					else{
+						//if UserProfile does not exists send errorCode 1
+						response.put("errorCode","1")
+						response.put("errorMessage","UserProfile does not exists")
+					}
+
+				}
+				else{
+					//if bartsyId is empty or null send errorCode 1
+					response.put("errorCode","1")
+					response.put("errorMessage","Bartsy Id should not be empty or null")
+				}
+			}
+			else{
+				//if apiVersion do not match send errorCode 100
+				response.put("errorCode","100")
+				response.put("errorMessage","API version do not match")
+			}
+
+		}catch(Exception e){
+			log.info("Exception found !!! "+e.getMessage())
+			response.put("errorCode",200)
+			response.put("errorMessage",e.getMessage())
+		}
+		finally{
+			render(text:response as JSON ,  contentType:"application/json")
+		}
+
+	}
+
+	def getUserdetails(UserProfile user,output){
+		def venueDetails=[]
+		try{
+			// get all venues of user checkedIn previously
+			def userCheckedInVenues = UserCheckInDetails.findAllByUserProfile(user)
+			println"userCheckedInVenues  "+userCheckedInVenues.size()
+			// checking user venues
+			if(userCheckedInVenues){
+				CommonMethods commonMethods = new CommonMethods()
+				println "before each !!! "
+				int i=0
+
+				userCheckedInVenues.each{
+					println "i "+i
+					i++
+				}
+
+				userCheckedInVenues.each{
+					def checkedInuser = it
+					def venue = checkedInuser.venue
+					def details=[:]
+					println"In each !!! "+venue.venueName
+					details.put("venueName",venue.venueName?venue.venueName:"")
+					details.put("venueId",venue.venueId?venue.venueId:"")
+					details.put("venueImagePath",venue.venueImagePath?venue.venueImagePath:"")
+					println "venue.venueName "+venue.venueName
+					commonMethods.getUserOrderAndChekedInDetails(venue,user,details)
+					println"after details"
+					venueDetails.add(details)
+				}
+				output.put("errorCode",0)
+				output.put("userVenues", venueDetails)
+
+			}else{
+				output.put("errorCode",0)
+				output.put("errorMessage","User checkedIn venues are not found")
+			}
+
+		}catch(Exception e){
+			println"Exception in get user details method in venue controller "+e.getMessage()
+		}
+
+		//return venueDetails
+	}
+
 }
