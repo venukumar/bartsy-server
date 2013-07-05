@@ -268,15 +268,23 @@ class UserController {
 							}
 							//check if an entry is there for that user profile for the venue sent in the syscall request
 							def checkedInUsers = CheckedInUsers.findByUserProfileAndVenueAndStatus(userProfile,venue,0)
+							def userCheckedInDeatils
 							if(!checkedInUsers){
 								//if entry not present create a new object
 								checkedInUsers = new CheckedInUsers()
 							}
+							userCheckedInDeatils=new UserCheckInDetails()
 							//set the values to the object
 							checkedInUsers.setUserProfile(userProfile)
 							checkedInUsers.setVenue(venue)
 							checkedInUsers.setStatus(1)
 							checkedInUsers.setLastHBResponse(new Date())
+							// set user checked in details
+							userCheckedInDeatils.setUserProfile(userProfile)
+							userCheckedInDeatils.setVenue(venue)
+							userCheckedInDeatils.setCheckedInDate(new Date())
+
+
 							//save the object
 							if(checkedInUsers.save(flush:true)){
 								//if save successful send error code 0 and given message
@@ -302,6 +310,7 @@ class UserController {
 								notification.setType("checkin")
 								notification.setMessage("You checked into the venue : "+checkedInUsers.venue.venueName)
 								notification.save(flush:true)
+								userCheckedInDeatils.save(flush:true)
 							}
 							else{
 								//if save not successful send error code 1 along with given message
@@ -361,14 +370,20 @@ class UserController {
 					else{
 						//check if an entry is there for that user profile for the venue sent in the syscall request
 						def checkedInUsers = CheckedInUsers.findByUserProfileAndVenueAndStatus(userProfile,venue,1)
+						def userCheckedInDeatils
 						if(!checkedInUsers){
 							//if entry not present create a new object
 							checkedInUsers = new CheckedInUsers()
 						}
+						userCheckedInDeatils=new UserCheckInDetails()
 						//set the values to the object
 						checkedInUsers.setUserProfile(userProfile)
 						checkedInUsers.setVenue(venue)
 						checkedInUsers.setStatus(0)
+						// set user checked in details
+						userCheckedInDeatils.setUserProfile(userProfile)
+						userCheckedInDeatils.setVenue(venue)
+						userCheckedInDeatils.setCheckedInDate(new Date())
 						//save the object
 						if(checkedInUsers.save(flush:true)){
 							//if save successful send error code 0 and error message given below
@@ -390,6 +405,7 @@ class UserController {
 							notification.setType("checkout")
 							notification.setMessage("User checked out from the venue : "+checkedInUsers.venue.venueName)
 							notification.save(flush:true)
+							userCheckedInDeatils.save(flush:true)
 						}
 						else{
 							//if save not successful send error code 1 along with given message
@@ -436,7 +452,18 @@ class UserController {
 				eq("receiverProfile",userProfile)
 			}
 			and{
-				'in'("orderStatus",["0","1","2", "3","4","5","6","7","8","9"])
+				'in'("orderStatus",[
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9"
+				])
 				//'in'("orderStatus",["0","2", "3","9"])
 			}
 		}
@@ -448,7 +475,7 @@ class UserController {
 			//if open orders are present loop through the list
 			openOrders.each{
 				def order=it
-				
+
 				if(order.drinkOffered){
 					println "drink offered"
 					def rBartsyId = order.receiverProfile.bartsyId.toString().trim()
@@ -467,7 +494,7 @@ class UserController {
 							println "order.orderId "+order.orderId
 							println"order.satus "+order.orderStatus
 						}else{
-						
+
 						}
 					}
 
@@ -483,7 +510,7 @@ class UserController {
 						//if save succesful add the order id to the cancelled orders list defined earlier
 						cancelledOrders.add(order.orderId)
 					}else{
-						
+
 					}
 				}
 			}
@@ -536,7 +563,18 @@ class UserController {
 									}
 									and{ eq("venue",venue) }
 									and{
-										'in'("orderStatus",["0","1", "2", "3","4","5","6","7","8","9"])
+										'in'("orderStatus",[
+											"0",
+											"1",
+											"2",
+											"3",
+											"4",
+											"5",
+											"6",
+											"7",
+											"8",
+											"9"
+										])
 									}
 								}
 								def ordersList = []
@@ -701,7 +739,18 @@ class UserController {
 							eq("venue",checkedInUser.venue)
 							and{ eq("user",userProfile) }
 							and{
-								'in'("orderStatus",["0","1", "2", "3","4","5","6","7","8","9"])
+								'in'("orderStatus",[
+									"0",
+									"1",
+									"2",
+									"3",
+									"4",
+									"5",
+									"6",
+									"7",
+									"8",
+									"9"
+								])
 							}
 						}
 						//retrieve the order Ids and add it to list
