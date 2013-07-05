@@ -46,8 +46,7 @@ class OrderController {
 				Venue venue = Venue.findByVenueId(json.venueId)
 				if(userprofile && venue){
 					if(venue.status.equals("OPEN")){
-						def maxId = Orders.createCriteria().get { projections { max "orderId"
-							} } as Long
+						def maxId = Orders.createCriteria().get { projections { max "orderId" } } as Long
 						if(maxId){
 							maxId = maxId+1
 						}
@@ -174,6 +173,10 @@ class OrderController {
 							}else{
 								pnMessage.put("bartsyId",json.bartsyId)
 								pnMessage.put("messageType","placeOrder")
+								def map=[:]
+								CommonMethods common = new CommonMethods()
+								common.getUserOrderAndChekedInDetails(venue, orderUpdate.user, map)
+								pnMessage.put("checkInAndOrderDetailsOfUser",map)
 								response.put("orderCount",openOrders.size())
 								response.put("orderId",orderUpdate?.orderId)
 								response.put("errorCode","0")
