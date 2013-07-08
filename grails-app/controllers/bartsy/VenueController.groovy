@@ -598,6 +598,7 @@ class VenueController {
 						venueMap.put("privateUsers",privateUsers)
 						venueMap.put("venueName",venue.getVenueName())
 						venueMap.put("venueId",venue.getVenueId())
+						venueMap.put("venueImagePath",venue.venueImagePath)
 						venueMap.put("latitude",venue.getLat())
 						venueMap.put("longitude",venue.getLongtd())
 						venueMap.put("venueStatus",venue.getStatus())
@@ -611,8 +612,11 @@ class VenueController {
 						//add the venue object to the list defined earlier
 						totalVenueList.add(venueMap)
 					}
+					response.put("errorCode","0")
+					response.put("errorMessage","Venues available")
+					response.put("venues",totalVenueList)
 					//send the list as a response to the syscall
-					render(text:totalVenueList as JSON,contentType:"application/json")
+					render(text:response as JSON,contentType:"application/json")
 				}
 				else{
 					response.put("errorCode","1")
@@ -629,6 +633,7 @@ class VenueController {
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
+			println"Exception is ===> "+e.getMessage()
 			log.info("Exception is ===> "+e.getMessage())
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
@@ -907,13 +912,6 @@ class VenueController {
 			if(userCheckedInVenues){
 				CommonMethods commonMethods = new CommonMethods()
 				println "before each !!! "
-				int i=0
-
-				userCheckedInVenues.each{
-					println "i "+i
-					i++
-				}
-
 				userCheckedInVenues.each{
 					def checkedInuser = it
 					def venue = checkedInuser.venue
