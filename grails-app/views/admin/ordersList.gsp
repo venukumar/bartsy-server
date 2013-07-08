@@ -18,27 +18,27 @@
 		<th width="20%"><g:message code="item.name.label" default="Item Name" /></th>
 		<th width="20%"><g:message code="order.uname.label" default="Ordered By" /></th>
 		<th width="20%"><g:message code="venue.name.label" default="Venue" /></th>
-		<th width="15%"><g:message code="order.date.label" default="Ordered Date" /></th>
-		<th width="15%"><g:message code="order.total.label" default="Order Total" /></th>
+		<th width="20%"><g:message code="order.date.label" default="Ordered Date" /></th>
+		<th width="10%"><g:message code="order.total.label" default="Order Total" /></th>
 		</tr>
     <% if(ordersTotal>0){%>
       <g:each in="${ordersList}" status="i" var="orderInfo">
 	    <tr>
-          <td><modalbox:createLink controller="admin" action="orderDetails" id="${orderInfo.orderId}" title="Show Order!" width="500">${orderInfo.orderId}</modalbox:createLink></td>
+          <td><modalbox:createLink controller="admin" action="orderDetails" id="${orderInfo.orderId}" title="Show Order!" width="750">${orderInfo.orderId}</modalbox:createLink></td>
           <td>${orderInfo.itemName}</td>
           <td>${orderInfo.user.nickName}</td>
 	  	  <td>${orderInfo.venue.venueName}</td>
-		  <td>${orderInfo.dateCreated}</td>
-	  	  <td>${orderInfo.totalPrice}</td>
+		  <td>${orderInfo.dateCreated.format('hh:mm a, MMM dd,yyyy')}</td>
+	  	  <td>$ ${orderInfo.totalPrice}</td>
         </tr>
       </g:each>
       <% }else { %>
         <tr><td colspan="5" align="center"><div class="errors"><g:message code="page.list.not.found" default="No Records Found" /></div></td></tr>
       <% } %>
       </table>
-    <% if(ordersTotal>10){%>
+    <% if(ordersTotal>50){%>
       <div class="pagination">
-        <g:paginate total="${ordersTotal}" />
+       <g:paginate action="ordersList" total="${ordersTotal}" />
       </div>
       <% } %>
     </div>
