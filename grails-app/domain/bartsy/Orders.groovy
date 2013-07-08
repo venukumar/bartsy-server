@@ -14,6 +14,7 @@ class Orders {
 		errorReason(nullable:true)
 		drinkOffered(nullable:true)
 		specialInstructions(nullable:true)
+		basePrice(nullable:true)
 		}
 	
 	static mapping = {
@@ -23,12 +24,14 @@ class Orders {
     static belongsTo = [user:UserProfile,venue:Venue,receiverProfile:UserProfile]
 	
     Date dateCreated
+	Date dateOffered
     String orderStatus 
     String basePrice
 	String totalPrice
 	String tipPercentage
 	String itemName
 	String itemId
+	String itemsList
 	String specialInstructions
 	long orderId
 	String description
