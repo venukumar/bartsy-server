@@ -34,7 +34,8 @@
 		</ul>
 	</div>
   </g:if>
-  <div class="logo"><h1>BARTSY</h1></div>
+  <div class="logo"><h1>VENDSY</h1></div>
+  <div class="welcme">Bartsy Dashboard</div>
   </div>
   <div class="body-con">
    <g:layoutBody/>
