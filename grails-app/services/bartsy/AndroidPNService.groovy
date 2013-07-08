@@ -6,12 +6,13 @@ import com.google.android.gcm.server.Result
 import com.google.android.gcm.server.Sender
 
 class AndroidPNService {
-
+def grailsApplication
 	public void sendPN(Map pnMessage,String registrationId){
 		try {
 			log.info("Came into the android push")
 			//String apiKey = "AIzaSyCg5JuXmUMUrdUjNXZFNOncozO3vuUaeak" // development
-			String apiKey = "AIzaSyCPwyGQ-jqqCki3-14COpZnixdCdYRNlV8" // production
+			//String apiKey = "AIzaSyCPwyGQ-jqqCki3-14COpZnixdCdYRNlV8" // production
+			String apiKey = grailsApplication.config.GCM.apiKey
 			Sender sender = new Sender(apiKey)
 			Message message
 			message = new Message.Builder()
