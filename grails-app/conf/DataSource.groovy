@@ -1,9 +1,20 @@
 dataSource {
     pooled = true
-    driverClassName = "com.mysql.jdbc.Driver"
-    dialect = org.hibernate.dialect.MySQL5InnoDBDialect
-    username = "root"
-    password = "techv1@3"
+    driverClassName = "" //configured in /usr/Bartsy-config.properties file
+    dialect = "" //configured in /usr/Bartsy-config.properties file
+    username = "" //configured in /usr/Bartsy-config.properties file
+    password = "" //configured in /usr/Bartsy-config.properties file
+	
+	properties {
+		maxActive = -1
+		minEvictableIdleTimeMillis=1800000
+		timeBetweenEvictionRunsMillis=1800000
+		numTestsPerEvictionRun=3
+		testOnBorrow=true
+		testWhileIdle=true
+		testOnReturn=true
+		validationQuery="SELECT 1"
+	 }
 }
 hibernate {
     cache.use_second_level_cache = true
@@ -15,30 +26,20 @@ environments {
     development {
         dataSource {
             dbCreate = "update" // one of 'create', 'create-drop', 'update', 'validate', ''
-            url = "jdbc:mysql://localhost/bartsy"
+            url = "" ////configured in /usr/Bartsy-config.properties file
         }
     }
     test {
         dataSource {
             dbCreate = "update"
-            url = "jdbc:h2:mem:testDb;MVCC=TRUE;LOCK_TIMEOUT=10000"
+            url = "" ////configured in /usr/Bartsy-config.properties file
         }
     }
     production {
         dataSource {
             dbCreate = "update"
-            url = "jdbc:mysql://localhost/bartsy"
-            pooled = true
-            properties {
-               maxActive = -1
-               minEvictableIdleTimeMillis=1800000
-               timeBetweenEvictionRunsMillis=1800000
-               numTestsPerEvictionRun=3
-               testOnBorrow=true
-               testWhileIdle=true
-               testOnReturn=true
-               validationQuery="SELECT 1"
-            }
+			url = "" //configured in /usr/Bartsy-config.properties file
+           
         }
     }
 }
