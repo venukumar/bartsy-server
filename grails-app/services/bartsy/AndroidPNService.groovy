@@ -12,7 +12,9 @@ def grailsApplication
 			log.info("Came into the android push")
 			//String apiKey = "AIzaSyCg5JuXmUMUrdUjNXZFNOncozO3vuUaeak" // development
 			//String apiKey = "AIzaSyCPwyGQ-jqqCki3-14COpZnixdCdYRNlV8" // production
+			//String apiKey = "AIzaSyB6AlN7_LDeX9gIh3iKmXEDkkR3QBP93u8" //Alpha server
 			String apiKey = grailsApplication.config.GCM.apiKey
+
 			Sender sender = new Sender(apiKey)
 			Message message
 			message = new Message.Builder()
