@@ -13,23 +13,18 @@ class AdminController {
 	def adminLogin(){
 		try{
 			if(params){
-				println "params.username "+params.username
-				println "params.password "+params.password
 				def adminInstance = AdminUser.findByUsernameAndPassword(params.username, params.password)
 				if(!adminInstance){
 					flash.errors = message(code:"default.admin.not.exists", default:"Invalid Username/Password")
 					render(view:"index", model: [adminUserInstance:params])
 					return
-				}else{
-					println"adminInstance exists"
 				}
 
 				session.user = adminInstance
 				forward(action:"ordersList")
 			}
 		}catch(Exception e){
-			log.error(e.getMessage())
-			println "Exception found !! "+e.getMessage()
+			log.error("Exception found in admin login =====>"+ e.getMessage())
 		}
 	}
 
@@ -46,7 +41,6 @@ class AdminController {
 	def orderDetails(){
 		try{
 			if(params){
-				println "params id "+params.id
 				def order = Orders.findByOrderId(params.id)
 				def orderStatusArr = []
 				orderStatusArr.putAt(0,"New")
@@ -72,8 +66,6 @@ class AdminController {
 				def orderStatus = orderStatusArr[orderStatusNumber]
 				def orderLastState = orderStatusArr[lastOrderState]
 
-				println"orderStatus "+orderStatus
-				println"orderLastState "+orderLastState
 				render(view:"orderDetails",model:[selectedOrder:order,orderStatus:orderStatus,orderLastState:orderLastState])
 				
 			}
@@ -94,7 +86,7 @@ class AdminController {
 	}
 
 	def ordersList(){
-		params.max = Math.min(params.max ? params.int('max') : 10, 100)
+		params.max = Math.min(params.max ? params.int('max') : 50, 100)
 		try{
 			def orderslist = Orders.createCriteria().list(params){ order "id", "desc" }
 			def orderlistTotal = Orders.count()
