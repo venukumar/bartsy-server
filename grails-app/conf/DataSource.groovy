@@ -39,7 +39,7 @@ environments {
         dataSource {
             dbCreate = "update"
 			url = "" //configured in /usr/Bartsy-config.properties file
-           
+
         }
     }
 }
