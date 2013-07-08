@@ -168,13 +168,25 @@ class UserController {
 							userProfileToSave.setUserImage(userImagePath)
 							//save the user profile object
 							if(userProfileToSave.save()){
-								//if save successful send the bartsyId along with errorCode 0 and given errorMessage. Also send the userCheckedIn flag as 1 as new user would not have been checked in earlier
+								def paymentCheck
+								if(json.has("creditCardNumber")&&json.has("expMonth")&&json.has("expYear")){
+									paymentCheck = paymentService.authorizePayment(userProfileToSave,"0.01",userProfileToSave.bartsyId)
+								}
 								response.put("bartsyId",maxId)
+								response.put("userCheckedIn","1")
+								if(paymentCheck.authApproved)
+								{
+								//if save successful send the bartsyId along with errorCode 0 and given errorMessage. Also send the userCheckedIn flag as 1 as new user would not have been checked in earlier
 								response.put("errorCode","0")
 								response.put("errorMessage","Save Successful")
-								response.put("userCheckedIn","1")
-								//send Email for email address verification
-								sendVerificationMailToUser(userProfileToSave.getEmail(),userProfileToSave.getBartsyId())
+								println "in if "
+							}else{
+							println "else "
+							response.put("errorCode","10")
+							response.put("errorMessage","Your credit card number or name are invalid. Please enter them again.")
+							}
+							//send Email for email address verification
+							sendVerificationMailToUser(userProfileToSave.getEmail(),userProfileToSave.getBartsyId())
 							}
 							else{
 								//if user profile save was not successful send the errorCode as 1 along with the message given below
@@ -587,6 +599,7 @@ class UserController {
 								response.put("bartsyId",userProfile.bartsyId)
 								response.put("venueId",venue.venueId)
 								response.put("venueName",venue.venueName)
+								response.put("venueImagePath",venue.venueImagePath)
 								response.put("messageType","heartBeat")
 								response.put("userCount",checkedInUsersList.size())
 								response.put("openOrders",ordersList)
