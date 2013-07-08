@@ -73,7 +73,7 @@ class DataController {
 							orderMap.put("basePrice",order.basePrice)
 							orderMap.put("totalPrice",order.totalPrice)
 							orderMap.put("tipPercentage",order.tipPercentage)
-							orderMap.put("itemName",order.itemName)
+							orderMap.put("itemName",order.itemsList?order.itemsList:order.itemName)
 							orderMap.put("itemId",order.itemId)
 							orderMap.put("description",order.description)
 							orderMap.put("updateTime",order.lastUpdated.toGMTString())
@@ -272,6 +272,8 @@ class DataController {
 				def venue = Venue.findByVenueId(json.venueId.toString())
 				def checkedInUsersList = []
 				def ordersList = []
+				// This list used to send expiredO orders to bartender 
+				def expiredOrders=[]
 				if(venue){
 					response.put("venueStatus",venue.status)
 					response.put("orderTimeout",venue.cancelOrderTime)
@@ -294,7 +296,7 @@ class DataController {
 					def orders = ordersCriteria.list{
 						eq("venue",venue)
 						and{
-							'in'("orderStatus",["0", "2", "3"])
+							'in'("orderStatus",["0", "2", "3","7"])
 						}
 					}
 					if(orders){
@@ -303,25 +305,26 @@ class DataController {
 							def ordersMap = [:]
 							ordersMap.put("senderBartsyId",order.user.bartsyId)
 							ordersMap.put("recipientBartsyId",order.receiverProfile.bartsyId)
-
 							ordersMap.put("senderNickname",order.user.nickName)
 							ordersMap.put("recipientNickname",order.receiverProfile.nickName)
-
 							ordersMap.put("SenderImagePath",order.user.userImage)
 							ordersMap.put("recipientImagePath",order.receiverProfile.userImage)
-
 							ordersMap.put("orderStatus",order.orderStatus)
 							ordersMap.put("orderId",order.orderId)
-							ordersMap.put("itemName",order.itemName)
+							ordersMap.put("itemName",order.itemsList?order.itemsList:order.itemName)
 							ordersMap.put("orderTime",order.dateCreated.toGMTString())
 							ordersMap.put("basePrice",order.basePrice)
 							ordersMap.put("tipPercentage",order.tipPercentage)
 							ordersMap.put("totalPrice", order.totalPrice)
 							ordersMap.put("description",order.description)
 							ordersMap.put("updateTime",order.lastUpdated.toGMTString())
-							ordersList.add(ordersMap)
+							if(!order.orderStatus.equalsIgnoreCase("7"))
+								ordersList.add(ordersMap)
+							else
+								expiredOrders.add(ordersMap)
 						}
 						response.put("orders",ordersList)
+						response.put("expiredOrders",expiredOrders)
 					}
 
 				}
@@ -389,8 +392,26 @@ class DataController {
 				//check if user profile and venue both exists
 				if(userProfile){
 					//if user profile and venue both exists retrieve the notifications
-					def notifications = Notifications.findAllByUser(userProfile)
-					if(notifications){
+					def listOfNotifications = Notifications.createCriteria()
+					if(listOfNotifications){
+						
+						def criteriaParams = [:]
+						int index,noOfResults
+						if(json.has("index")){
+							index =  json.index
+							params.offset = index
+						}
+						if(json.has("noOfResults")){
+							noOfResults =  json.noOfResults
+							params.max = noOfResults
+						}
+						criteriaParams.putAll(params)
+						
+					    def	notifications = listOfNotifications.list(criteriaParams) {
+							eq("user",userProfile)
+							order("dateCreated", "desc")
+						}
+						
 						def notificationsList = []
 						notifications.each{
 							def notification = it
@@ -400,11 +421,9 @@ class DataController {
 							notificationMap.put("message",notification.getMessage())
 							notificationMap.put("type",notification.getType())
 							notificationMap.put("userImage",notification.user.getUserImage())
-
 							notificationMap.put("venueImage",notification.venue.getVenueImagePath())
 							notificationMap.put("createdTime",notification.getDateCreated())
 							notificationMap.put("venueName",notification.venue.getVenueName())
-
 							//add venueName for check in and check out notifications
 							if(notification.getType().equals("checkin") || notification.getType().equals("checkout")){
 								notificationMap.put("venueName",notification.venue.venueName)
@@ -422,12 +441,11 @@ class DataController {
 									notificationMap.put("recieverImage",notification.order.receiverProfile.userImage)
 								}
 							}
-							//Add every notification to the list
 							notificationsList.add(notificationMap)
 						}
 						//Add the list to response
 						response.put("errorCode","0")
-						response.put("errorMessage","Notifications sent")
+						response.put("errorMessage","Notifications Available")
 						response.put("notifications",notificationsList)
 					}
 					else{
