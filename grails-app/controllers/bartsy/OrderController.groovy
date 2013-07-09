@@ -80,34 +80,41 @@ class OrderController {
 							order.setOrderStatus("0")
 						}
 						order.setAuthApproved("false")
-
 						order.save(flush:true)
 						Orders orderUpdate = Orders.findByOrderId(order.orderId)
 						def authorizeResponse = paymentService.authorizePayment(userprofile,json.totalPrice,orderUpdate?.orderId)
 						//order.setAuthTransactionId(authorizeResponse.transactionId as long)
 
 						if(authorizeResponse.get("authApproved").toBoolean()){
+							
 							if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
+						
 								orderUpdate.setOrderStatus("9")
 							}else{
+						
 								orderUpdate.setOrderStatus("0")
+								
 							}
+							
 							orderUpdate.setAuthApproved("true")
 							orderUpdate.setAuthCode(authorizeResponse.get("authCode"))
 							orderUpdate.setAuthTransactionNumber(authorizeResponse.get("authTransactionNumber"))
 						}
 						else{
+							
 							orderUpdate.setOrderStatus("7")
 							orderUpdate.setAuthApproved("false")
 							orderUpdate.setAuthErrorMessage(authorizeResponse.get("authErrorMessage"))
 							orderUpdate.setLastState("0")
 							orderUpdate.setErrorReason("Payment Auth Failed")
+					
 							orderUpdate.save(flush:true)
 							response.put("errorCode",1)
 							response.put("errorMessage",authorizeResponse.get("authErrorMessage"))
 							render(text:response as JSON,contentType:"application/json")
 							return
 						}
+					
 						if(orderUpdate.save(flush:true)){
 							//create the place order notification
 							def notification = new Notifications()
@@ -154,7 +161,7 @@ class OrderController {
 							pnMessage.put("orderTimeout",venue.cancelOrderTime)
 							pnMessage.put("specialInstructions",json.specialInstructions ?: "")
 							if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
-								println "userprofiles are not same"
+								
 								def body="You have been offered a drink "+json.itemName+" by "+orderUpdate.user.nickName
 								pnMessage.put("messageType","DrinkOffered")
 								pnMessage.put("bartsyId",json.recieverBartsyId)
@@ -170,8 +177,8 @@ class OrderController {
 									try{
 										applePNService.sendPN(pnMessage,recieverUserprofile.deviceToken, "1",body)
 									}catch(Exception e){
-										println "came in exception"
-										println "Exception "+e.getMessage()
+										
+										log.info("Exception "+e.getMessage())
 									}
 								}
 								else{
@@ -247,22 +254,21 @@ class OrderController {
 			def json = JSON.parse(request)
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
-				def listOfOrders = json.has("orderId")?json.orderId:""
-				println "size of orders "+listOfOrders.size()
+				def listOfOrders = json.has("orderList")?json.orderList:""
 				if(listOfOrders){
 					def failureOrders=[]
 					listOfOrders.each{
-					def orderId = it
-					def order = Orders.findByOrderId(orderId)
+					def orderObject = it
+					def order = Orders.findByOrderId(orderObject.orderId)
 					Map pnMessage = new HashMap()
 					Date orderDate = new Date()
 					if(order) {
 						def body
-						switch(json.orderStatus.toString()){
+						switch(orderObject.orderStatus.toString()){
 							case "1" :
 								body = "Your order has been Rejected"
 								order.setLastState("0")
-								order.setErrorReason("Order Rejected")
+								order.setErrorReason(orderObject.has("errorReason")?orderObject.errorReason:"Order Rejected")
 								break
 							case "2" :
 								body = "Your order has been Accepted"
@@ -272,7 +278,7 @@ class OrderController {
 								break
 							case "4" :
 								order.setLastState("2")
-								order.setErrorReason("Order Failed")
+								order.setErrorReason(orderObject.has("errorReason")?orderObject.errorReason:"Order Failed")
 								body = "Your order has Failed"
 								break
 							case "5" :
@@ -287,14 +293,14 @@ class OrderController {
 							case "6" :
 								body = "order is cancelled due to NOSHOW"
 								order.setLastState("3")
-								order.setErrorReason("NOSHOW")
+								order.setErrorReason(orderObject.has("errorReason")?orderObject.errorReason:"NOSHOW")
 								break
 							case "10" :
 								order.setLastState(order.orderStatus)
-								order.setErrorReason("Dismiss")
+								order.setErrorReason(orderObject.has("errorReason")?orderObject.errorReason:"Dismiss")
 								break;
 						}
-						order.setOrderStatus(json.orderStatus.toString())
+						order.setOrderStatus(orderObject.orderStatus.toString())
 						if(order.save()){
 							//create the place order notification
 							def notification = new Notifications()
@@ -303,13 +309,18 @@ class OrderController {
 							notification.setOrder(order)
 							notification.setType("updateorder")
 							if(!json.orderStatus.toString().equals("10")){
+								response.put("orderTimeout",order.venue.cancelOrderTime)
 								if(!json.orderStatus.toString().equals("5") || order.getCaptureApproved().toBoolean()){
-									response.put("errorCode","0")
-									response.put("errorMessage","Order Status Changed")
-									response.put("orderTimeout",order.venue.cancelOrderTime)
+									//response.put("errorCode","0")
+									//response.put("errorMessage","Order Status Changed")
 								}
 								else{
-									failureOrders.add(order.orderId)
+									def failure = [:]
+									failure.put("errorCode",3)
+									failure.put("orderId",order.orderId)
+									failure.put("errorReason","Order has been cancelled due to payment failure")
+									failure.put("orderTimeout",order.venue.cancelOrderTime)
+									failureOrders.add(failure)
 									response.put("errorCode","1")
 									response.put("errorMessage","Order has been cancelled due to payment failure")
 								}
@@ -343,7 +354,8 @@ class OrderController {
 								pnMessage.put("updateTime",orderDate.toGMTString())
 								pnMessage.put("body",body)
 								pnMessage.put("orderTimeout",order.venue.cancelOrderTime)
-								if(order.receiverProfile.bartsyId && !order.receiverProfile.bartsyId.equals(order.user.bartsyId)){
+								if(order.receiverProfile.bartsyId && !order.receiverProfile.bartsyId.equals(order.user.bartsyId))
+								{
 									def recieverUser = UserProfile.findByBartsyId(order.receiverProfile.bartsyId)
 									if(recieverUser.deviceType == 1 ){
 										applePNService.sendPN(pnMessage, recieverUser.deviceToken, "1",body)
@@ -374,22 +386,35 @@ class OrderController {
 							}
 						}
 						else{
-							failureOrders.add(order.orderId)
+							def failure=[:]
+							failure.put("errorCode",2)
+							failure.put("orderId",order.orderId)
+							failure.put("errorReason","Order Status Change Failed")
+							failure.put("orderTimeout",order.venue.cancelOrderTime)
+							failureOrders.add(failure)
 //							response.put("errorCode","1")
 //							response.put("errorMessage","Order Status Change Failed")
 						}
 					}
 					else{
-						
-						failureOrders.add(orderId)
+						def failure=[:]
+						failure.put("errorCode",1)
+						failure.put("orderId",orderObject.orderId)
+						failure.put("errorReason","Order Id does not exist")
+						failureOrders.add(failure)
 //						response.put("errorCode","1")
 //						response.put("errorMessage","Order Id does not exist")
 					}
 				}
-					println"after loop"
-					response.put("errorCode","0")
-					response.put("errorMessage","Order Status Changed")
-					response.put("failureOrders",failureOrders)
+					if(failureOrders.size()>0){
+						response.put("errorCode","1")
+						response.put("errorCodes",failureOrders)
+					}else{
+						response.put("errorCode","0")
+						response.put("errorMessage","Order Status Changed")
+					}
+					
+					
 				}else{
 					response.put("errorCode","1")
 					response.put("errorMessage","Order Id's are missing please send again")
@@ -639,7 +664,7 @@ class OrderController {
 			render(text:response as JSON,contentType:"application/json")
 		}
 		catch(Exception e){
-			println "error Message"+e.getMessage()
+			log.info("error Message"+e.getMessage())
 		}
 	}
 
@@ -803,7 +828,7 @@ class OrderController {
 			}
 		}
 		catch(Exception e){
-			println "Exception is ===> "+e.getMessage()
+			log.info("Exception is ===> "+e.getMessage())
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
 		}
