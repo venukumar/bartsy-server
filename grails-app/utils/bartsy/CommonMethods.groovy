@@ -35,6 +35,17 @@ class CommonMethods {
 		System.out.println("The age of user is : " + age);
 		return age
 	}
+	static final String num = "123456789";
+	static Random rnum = new Random()
+	String randomNumString( int len ) {
+		StringBuilder sb = new StringBuilder( len );
+		for( int i = 0; i < len; i++ ){
+			println "i "+i
+			sb.append( num.charAt( rnum.nextInt(num.length()) ) );}
+		return sb.toString();
+	}
+
+
 
 	/**
 	 * 
