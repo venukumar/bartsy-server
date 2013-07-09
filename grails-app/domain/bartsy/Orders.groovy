@@ -15,6 +15,7 @@ class Orders {
 		drinkOffered(nullable:true)
 		specialInstructions(nullable:true)
 		basePrice(nullable:true)
+		itemsList(nullable:true)
 		}
 	
 	static mapping = {
