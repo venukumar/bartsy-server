@@ -176,7 +176,7 @@ class UserController {
 								}
 								response.put("bartsyId",maxId)
 								response.put("userCheckedIn","1")
-								if(paymentCheck.authApproved)
+								if(paymentCheck?.authApproved)
 								{
 								//if save successful send the bartsyId along with errorCode 0 and given errorMessage. Also send the userCheckedIn flag as 1 as new user would not have been checked in earlier
 								response.put("errorCode","0")
@@ -218,6 +218,13 @@ class UserController {
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}
+	
+	def randomTest = {
+		println" randomTest "
+		CommonMethods common = new CommonMethods()
+		String sessionCode = common.randomNumString(3)
+		println "sessionCode "+sessionCode
+	}
 
 	/**
 	 * This is the webservice to check in a user into a venue
@@ -229,7 +236,7 @@ class UserController {
 		//defining a map to return as a response for this syscall
 		def response = [:]
 		try{
-			//parse the request sent as input to the syscall
+		    //parse the request sent as input to the syscall
 			def json = JSON.parse(request)
 			//check to make sure the apiVersion sent in the request matches the correct apiVersion
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
@@ -287,11 +294,15 @@ class UserController {
 								//if entry not present create a new object
 								checkedInUsers = new CheckedInUsers()
 							}
+							// to generate random number for user sessionCode
+							String sessionCode = generateSessionCode()
+							
 							userCheckedInDeatils=new UserCheckInDetails()
 							//set the values to the object
 							checkedInUsers.setUserProfile(userProfile)
 							checkedInUsers.setVenue(venue)
 							checkedInUsers.setStatus(1)
+							checkedInUsers.setUserSessionCode(sessionCode)
 							checkedInUsers.setLastHBResponse(new Date())
 							// set user checked in details
 							userCheckedInDeatils.setUserProfile(userProfile)
@@ -354,6 +365,19 @@ class UserController {
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}
+	
+	def generateSessionCode(){
+		CommonMethods common = new CommonMethods()
+		String sessionCode = common.randomNumString(3)
+		
+		def user = CheckedInUsers.findAllByUserSessionCode(sessionCode)
+		if(user.size()>0){
+			generateSessionCode()
+		}
+		else{
+			return sessionCode
+		}
+	}
 
 	/**
 	 * This is the webservice to check out a user from a venue
@@ -398,6 +422,7 @@ class UserController {
 						userCheckedInDeatils.setUserProfile(userProfile)
 						userCheckedInDeatils.setVenue(venue)
 						userCheckedInDeatils.setCheckedInDate(new Date())
+						checkedInUsers.setUserSessionCode(null)
 						//save the object
 						if(checkedInUsers.save(flush:true)){
 							//if save successful send error code 0 and error message given below
@@ -424,7 +449,7 @@ class UserController {
 						else{
 							//if save not successful send error code 1 along with given message
 							response.put("errorCode","1")
-							response.put("errorMessage","User check in failed")
+							response.put("errorMessage","User check out failed")
 						}
 					}
 				}
