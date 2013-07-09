@@ -108,6 +108,7 @@ class UserController {
 									response.put("userCheckedIn","0")
 									response.put("venueId",userCheckedIn.venue.venueId)
 									response.put("venueName",userCheckedIn.venue.venueName)
+									response.put("venueImagePath",userCheckedIn.venue.venueImagePath)
 								}
 								else{
 									//if not checked in send the flag userCheckedIn as 1
