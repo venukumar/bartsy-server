@@ -193,11 +193,13 @@ class VenueController {
 					if(venue.save(flush:true)){
 						response.put("venueId",venue.getVenueId())
 						response.put("venueName",venue.getVenueName())
+						response.put("venueImagePath",venue.venueImagePath)
 						response.put("errorCode","0")
 						response.put("errorMessage","Venue Details Updated")
 					}else{
 						response.put("venueId",venue.getVenueId())
 						response.put("venueName",venue.getVenueName())
+						response.put("venueImagePath",venue.venueImagePath)
 						response.put("errorCode","1")
 						response.put("errorMessage","Venue exists but details are not updated")
 					}
@@ -344,6 +346,7 @@ class VenueController {
 						//if save successful send the following details as response with errorCode 0
 						response.put("venueId",maxId)
 						response.put("venueName",venue.getVenueName())
+						response.put("venueImagePath",venue.venueImagePath)
 						response.put("errorCode","0")
 						response.put("errorMessage",message(code:'venue.save'))
 					}
@@ -920,9 +923,7 @@ class VenueController {
 					details.put("venueName",venue.venueName?venue.venueName:"")
 					details.put("venueId",venue.venueId?venue.venueId:"")
 					details.put("venueImagePath",venue.venueImagePath?venue.venueImagePath:"")
-					println "venue.venueName "+venue.venueName
 					commonMethods.getUserOrderAndChekedInDetails(venue,user,details)
-					println"after details"
 					venueDetails.add(details)
 				}
 				output.put("errorCode",0)
