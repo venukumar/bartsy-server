@@ -4,7 +4,7 @@ class CheckedInUsers {
 
     static constraints = {
 		lastHBResponse(nullable:true)
-		userSessionCode(unique:true)
+		userSessionCode(nullable:true)
     }
     
     static belongsTo = [userProfile : UserProfile,venue : Venue]
