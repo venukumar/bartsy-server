@@ -57,6 +57,7 @@ class DataController {
 						}
 					}
 					if(openOrders){
+						def checkedInuser = CheckedInUsers.findByUserProfile(userProfile)
 						openOrders.each{
 							def order = it
 							def orderMap = [:]
@@ -80,6 +81,7 @@ class DataController {
 							orderMap.put("specialInstructions",order.specialInstructions)
 							orderMap.put("orderTimeout",order.venue.getCancelOrderTime())
 							orderMap.put("currentTime",new Date().toGMTString())
+							orderMap.put("userSessionCode",checkedInuser.userSessionCode)
 							totalOrders.add(orderMap)
 						}
 						response.put("errorCode","0")
@@ -303,6 +305,10 @@ class DataController {
 						orders.each{
 							def order = it
 							def ordersMap = [:]
+							
+							def userProfile = UserProfile.findByBartsyId(order.user.bartsyId)
+							def checkedInuser = CheckedInUsers.findByUserProfile(userProfile)
+							
 							ordersMap.put("senderBartsyId",order.user.bartsyId)
 							ordersMap.put("recipientBartsyId",order.receiverProfile.bartsyId)
 							ordersMap.put("senderNickname",order.user.nickName)
@@ -318,6 +324,7 @@ class DataController {
 							ordersMap.put("totalPrice", order.totalPrice)
 							ordersMap.put("description",order.description)
 							ordersMap.put("updateTime",order.lastUpdated.toGMTString())
+							ordersMap.put("userSessionCode",checkedInuser.userSessionCode)
 							if(!order.orderStatus.equalsIgnoreCase("7"))
 								ordersList.add(ordersMap)
 							else
