@@ -7,6 +7,7 @@ class UserController {
 
 	def androidPNService
 	def paymentService
+	def grailsApplication
 
 	/**
 	 * This is the webservice to save the user registration details received from the customer application.
@@ -84,11 +85,11 @@ class UserController {
 							userProfile.setExpYear(json.expYear.toString() ?: "")
 							//code to read the image file sent in the request to the syscall and save it locally
 							def webRootDir = servletContext.getRealPath("/")
-							def userDir = new File(message(code:'userimage.path'))
+							def userDir = new File(grailsApplication.config.userimage.path)
 							userDir.mkdirs()
 							String tmp = userProfile.bartsyId.toString()
 							userImageFile.transferTo( new File( userDir, tmp))
-							def userImagePath = message(code:'userimage.path.save')+tmp
+							def userImagePath = grailsApplication.config.userimage.savePath+tmp
 							//set the location of the image to the user profile
 							userProfile.setUserImage(userImagePath)
 							//save the user profile
@@ -160,11 +161,11 @@ class UserController {
 							userProfileToSave.setBartsyId(maxId.toString())
 							//code to read the image file sent in the request to the syscall and save it locally
 							def webRootDir = servletContext.getRealPath("/")
-							def userDir = new File(message(code:'userimage.path'))
+							def userDir = new File(grailsApplication.config.userimage.path)
 							userDir.mkdirs()
 							String tmp = maxId.toString()
 							userImageFile.transferTo( new File( userDir, tmp))
-							def userImagePath = message(code:'userimage.path.save')+tmp
+							def userImagePath = grailsApplication.config.userimage.savePath+tmp
 							//set the location of the image to the user profile
 							userProfileToSave.setUserImage(userImagePath)
 							//save the user profile object
@@ -1073,7 +1074,7 @@ class UserController {
 
 	def getServerPublicKey(){
 		try{
-			String cryptoPath = message(code:'userimage.path')
+			String cryptoPath = grailsApplication.config.userimage.path
 			String publicKey ="bartsy_publicKey.pem"
 			def pubKeyFileStream= new FileInputStream(cryptoPath+publicKey)
 			response.setHeader("Content-disposition", "filename=bartsyPublicKey.pem")

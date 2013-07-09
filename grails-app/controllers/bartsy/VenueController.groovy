@@ -13,6 +13,7 @@ class VenueController {
 	def inventoryService
 	def androidPNService
 	def applePNService
+	def grailsApplication
 
 	/**
 	 * This is a test webservice to save venue details from a hardcoded locu response. To be removed later. 
@@ -425,11 +426,11 @@ class VenueController {
 		def venueImagePath
 		if(venueImageFile){
 			def webRootDir = servletContext.getRealPath("/")
-			def venueDir = new File(message(code:'venueimage.path'))
+			def venueDir = new File(grailsApplication.config.venueimage.path)
 			venueDir.mkdirs()
 			String tmp = venueImageName.toString()
 			venueImageFile.transferTo( new File( venueDir, tmp))
-			venueImagePath = message(code:'venueimage.path.save')+tmp
+			venueImagePath = grailsApplication.config.venueimage.savePath+tmp
 		}
 		return venueImagePath
 	}
