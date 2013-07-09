@@ -286,12 +286,12 @@ class OrderController {
 								break
 							case "6" :
 								body = "order is cancelled due to NOSHOW"
-								order.setLastState(order.orderStatus)
-								order.setErrorReason("Past Order")
-								break
-							case "10" :
 								order.setLastState("3")
 								order.setErrorReason("NOSHOW")
+								break
+							case "10" :
+								order.setLastState(order.orderStatus)
+								order.setErrorReason("Dismiss")
 								break;
 						}
 						order.setOrderStatus(json.orderStatus.toString())
