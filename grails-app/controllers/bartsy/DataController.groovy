@@ -422,7 +422,7 @@ class DataController {
 							notificationMap.put("type",notification.getType())
 							notificationMap.put("userImage",notification.user.getUserImage())
 							notificationMap.put("venueImage",notification.venue.getVenueImagePath())
-							notificationMap.put("createdTime",notification.getDateCreated())
+							notificationMap.put("createdTime",notification.getDateCreated().toGMTString())
 							notificationMap.put("venueName",notification.venue.getVenueName())
 							//add venueName for check in and check out notifications
 							if(notification.getType().equals("checkin") || notification.getType().equals("checkout")){
