@@ -46,7 +46,8 @@ class OrderController {
 				Venue venue = Venue.findByVenueId(json.venueId)
 				if(userprofile && venue){
 					if(venue.status.equals("OPEN")){
-						def maxId = Orders.createCriteria().get { projections { max "orderId" } } as Long
+						def maxId = Orders.createCriteria().get { projections { max "orderId"
+							} } as Long
 						if(maxId){
 							maxId = maxId+1
 						}
@@ -55,11 +56,11 @@ class OrderController {
 						}
 
 						if(json.has("itemsList")){
-							
+
 							order.setItemsList(json.itemsList.toString())
 						}
-						
-						
+
+
 						order.setOrderId(maxId)
 						order.setBasePrice(json.basePrice)
 						order.setItemId(json.itemId.toString())
@@ -86,35 +87,35 @@ class OrderController {
 						//order.setAuthTransactionId(authorizeResponse.transactionId as long)
 
 						if(authorizeResponse.get("authApproved").toBoolean()){
-							
+
 							if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
-						
+
 								orderUpdate.setOrderStatus("9")
 							}else{
-						
+
 								orderUpdate.setOrderStatus("0")
-								
+
 							}
-							
+
 							orderUpdate.setAuthApproved("true")
 							orderUpdate.setAuthCode(authorizeResponse.get("authCode"))
 							orderUpdate.setAuthTransactionNumber(authorizeResponse.get("authTransactionNumber"))
 						}
 						else{
-							
+
 							orderUpdate.setOrderStatus("7")
 							orderUpdate.setAuthApproved("false")
 							orderUpdate.setAuthErrorMessage(authorizeResponse.get("authErrorMessage"))
 							orderUpdate.setLastState("0")
 							orderUpdate.setErrorReason("Payment Auth Failed")
-					
+
 							orderUpdate.save(flush:true)
 							response.put("errorCode",1)
 							response.put("errorMessage",authorizeResponse.get("authErrorMessage"))
 							render(text:response as JSON,contentType:"application/json")
 							return
 						}
-					
+
 						if(orderUpdate.save(flush:true)){
 							//create the place order notification
 							def notification = new Notifications()
@@ -161,7 +162,7 @@ class OrderController {
 							pnMessage.put("orderTimeout",venue.cancelOrderTime)
 							pnMessage.put("specialInstructions",json.specialInstructions ?: "")
 							if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
-								
+
 								def body="You have been offered a drink "+json.itemName+" by "+orderUpdate.user.nickName
 								pnMessage.put("messageType","DrinkOffered")
 								pnMessage.put("bartsyId",json.recieverBartsyId)
@@ -177,7 +178,7 @@ class OrderController {
 									try{
 										applePNService.sendPN(pnMessage,recieverUserprofile.deviceToken, "1",body)
 									}catch(Exception e){
-										
+
 										log.info("Exception "+e.getMessage())
 									}
 								}
@@ -258,154 +259,153 @@ class OrderController {
 				if(listOfOrders){
 					def failureOrders=[]
 					listOfOrders.each{
-					def orderObject = it
-					def order = Orders.findByOrderId(orderObject.orderId)
-					Map pnMessage = new HashMap()
-					Date orderDate = new Date()
-					if(order) {
-						def body
-						switch(orderObject.orderStatus.toString()){
-							case "1" :
-								body = "Your order has been Rejected"
-								order.setLastState("0")
-								order.setErrorReason(orderObject.has("errorReason")?orderObject.errorReason:"Order Rejected")
-								break
-							case "2" :
-								body = "Your order has been Accepted"
-								break
-							case "3" :
-								body = "Your order is Complete"
-								break
-							case "4" :
-								order.setLastState("2")
-								order.setErrorReason(orderObject.has("errorReason")?orderObject.errorReason:"Order Failed")
-								body = "Your order has Failed"
-								break
-							case "5" :
-								order = paymentService.makePayment(order)
-								if(order.getCaptureApproved().toBoolean()){
-									body = "You have picked up the order"
-								}
-								else{
-									body = "Order has been cancelled due to payment failure"
-								}
-								break
-							case "6" :
-								body = "order is cancelled due to NOSHOW"
-								order.setLastState("3")
-								order.setErrorReason(orderObject.has("errorReason")?orderObject.errorReason:"NOSHOW")
-								break
-							case "10" :
-								order.setLastState(order.orderStatus)
-								order.setErrorReason(orderObject.has("errorReason")?orderObject.errorReason:"Dismiss")
-								break;
-						}
-						order.setOrderStatus(orderObject.orderStatus.toString())
-						if(order.save()){
-							//create the place order notification
-							def notification = new Notifications()
-							notification.setUser(order.user)
-							notification.setVenue(order.venue)
-							notification.setOrder(order)
-							notification.setType("updateorder")
-							if(!json.orderStatus.toString().equals("10")){
-								response.put("orderTimeout",order.venue.cancelOrderTime)
-								if(!json.orderStatus.toString().equals("5") || order.getCaptureApproved().toBoolean()){
-									//response.put("errorCode","0")
-									//response.put("errorMessage","Order Status Changed")
-								}
-								else{
-									def failure = [:]
-									failure.put("errorCode",3)
-									failure.put("orderId",order.orderId)
-									failure.put("errorReason","Order has been cancelled due to payment failure")
-									failure.put("orderTimeout",order.venue.cancelOrderTime)
-									failureOrders.add(failure)
-									//response.put("errorCode","1")
-									//response.put("errorMessage","Order has been cancelled due to payment failure")
-								}
-	
-	
-								def openOrdersCriteria = Orders.createCriteria()
-								def openOrders = openOrdersCriteria.list {
-									eq("venue",order.venue)
-									and{
-										eq("user",order.user)
-									}
-									and{
-										'in'("orderStatus",[
-											"0",
-											"1",
-											"2",
-											"3",
-											"4",
-											"5",
-											"6",
-											"7",
-											"8",
-											"9"
-										])
-									}
-								}
-								pnMessage.put("orderCount",openOrders.size())
-								pnMessage.put("orderStatus",json.orderStatus.toString())
-								pnMessage.put("orderId",json.orderId.toString())
-								pnMessage.put("messageType","updateOrderStatus")
-								pnMessage.put("updateTime",orderDate.toGMTString())
-								pnMessage.put("body",body)
-								pnMessage.put("orderTimeout",order.venue.cancelOrderTime)
-								if(order.receiverProfile.bartsyId && !order.receiverProfile.bartsyId.equals(order.user.bartsyId))
-								{
-									def recieverUser = UserProfile.findByBartsyId(order.receiverProfile.bartsyId)
-									if(recieverUser.deviceType == 1 ){
-										applePNService.sendPN(pnMessage, recieverUser.deviceToken, "1",body)
+						def orderObject = it
+						def order = Orders.findByOrderId(orderObject.orderId)
+						Map pnMessage = new HashMap()
+						Date orderDate = new Date()
+						if(order) {
+							def body
+							switch(orderObject.orderStatus.toString()){
+								case "1" :
+									body = "Your order has been Rejected"
+									order.setLastState("0")
+									order.setErrorReason(orderObject.has("errorReason")?orderObject.errorReason:"Order Rejected")
+									break
+								case "2" :
+									body = "Your order has been Accepted"
+									break
+								case "3" :
+									body = "Your order is Complete"
+									break
+								case "4" :
+									order.setLastState("2")
+									order.setErrorReason(orderObject.has("errorReason")?orderObject.errorReason:"Order Failed")
+									body = "Your order has Failed"
+									break
+								case "5" :
+									order = paymentService.makePayment(order)
+									if(order.getCaptureApproved().toBoolean()){
+										body = "You have picked up the order"
 									}
 									else{
-										androidPNService.sendPN(pnMessage,recieverUser.deviceToken)
+										body = "Order has been cancelled due to payment failure"
 									}
-									//save the place order for others notification
-									notification.setOrderType("offer")
-									notification.setMessage(body)
-									notification.save(flush:true)
+									break
+								case "6" :
+									body = "order is cancelled due to NOSHOW"
+									order.setLastState("3")
+									order.setErrorReason(orderObject.has("errorReason")?orderObject.errorReason:"NOSHOW")
+									break
+								case "10" :
+									order.setErrorReason(orderObject.has("errorReason")?orderObject.errorReason:"Dismiss")
+									break;
+							}
+							order.setOrderStatus(orderObject.orderStatus.toString())
+							if(order.save()){
+								//create the place order notification
+								def notification = new Notifications()
+								notification.setUser(order.user)
+								notification.setVenue(order.venue)
+								notification.setOrder(order)
+								notification.setType("updateorder")
+								if(!json.orderStatus.toString().equals("10")){
+									response.put("orderTimeout",order.venue.cancelOrderTime)
+									if(!json.orderStatus.toString().equals("5") || order.getCaptureApproved().toBoolean()){
+										//response.put("errorCode","0")
+										//response.put("errorMessage","Order Status Changed")
+									}
+									else{
+										def failure = [:]
+										failure.put("errorCode",3)
+										failure.put("orderId",order.orderId)
+										failure.put("errorReason","Order has been cancelled due to payment failure")
+										failure.put("orderTimeout",order.venue.cancelOrderTime)
+										failureOrders.add(failure)
+										//response.put("errorCode","1")
+										//response.put("errorMessage","Order has been cancelled due to payment failure")
+									}
+
+
+									def openOrdersCriteria = Orders.createCriteria()
+									def openOrders = openOrdersCriteria.list {
+										eq("venue",order.venue)
+										and{
+											eq("user",order.user)
+										}
+										and{
+											'in'("orderStatus",[
+												"0",
+												"1",
+												"2",
+												"3",
+												"4",
+												"5",
+												"6",
+												"7",
+												"8",
+												"9"
+											])
+										}
+									}
+									pnMessage.put("orderCount",openOrders.size())
+									pnMessage.put("orderStatus",json.orderStatus.toString())
+									pnMessage.put("orderId",json.orderId.toString())
+									pnMessage.put("messageType","updateOrderStatus")
+									pnMessage.put("updateTime",orderDate.toGMTString())
+									pnMessage.put("body",body)
+									pnMessage.put("orderTimeout",order.venue.cancelOrderTime)
+									if(order.receiverProfile.bartsyId && !order.receiverProfile.bartsyId.equals(order.user.bartsyId))
+									{
+										def recieverUser = UserProfile.findByBartsyId(order.receiverProfile.bartsyId)
+										if(recieverUser.deviceType == 1 ){
+											applePNService.sendPN(pnMessage, recieverUser.deviceToken, "1",body)
+										}
+										else{
+											androidPNService.sendPN(pnMessage,recieverUser.deviceToken)
+										}
+										//save the place order for others notification
+										notification.setOrderType("offer")
+										notification.setMessage(body)
+										notification.save(flush:true)
+									}
+									else{
+										//save the place order for self notification
+										notification.setOrderType("self")
+										notification.setMessage(body)
+										notification.save(flush:true)
+									}
+									if(order.user.deviceType == 1 ){
+										applePNService.sendPN(pnMessage, order.user.deviceToken, "1",body)
+									}
+									else{
+										androidPNService.sendPN(pnMessage,order.user.deviceToken)
+									}
+								}else{
+									//								response.put("errorCode","0")
+									//								response.put("errorMessage","Order Status Changed")
 								}
-								else{
-									//save the place order for self notification
-									notification.setOrderType("self")
-									notification.setMessage(body)
-									notification.save(flush:true)
-								}
-								if(order.user.deviceType == 1 ){
-									applePNService.sendPN(pnMessage, order.user.deviceToken, "1",body)
-								}
-								else{
-									androidPNService.sendPN(pnMessage,order.user.deviceToken)
-								}
-							}else{
-//								response.put("errorCode","0")
-//								response.put("errorMessage","Order Status Changed")
+							}
+							else{
+								def failure=[:]
+								failure.put("errorCode",2)
+								failure.put("orderId",order.orderId)
+								failure.put("errorReason","Order Status Change Failed")
+								failure.put("orderTimeout",order.venue.cancelOrderTime)
+								failureOrders.add(failure)
+								//							response.put("errorCode","1")
+								//							response.put("errorMessage","Order Status Change Failed")
 							}
 						}
 						else{
 							def failure=[:]
-							failure.put("errorCode",2)
-							failure.put("orderId",order.orderId)
-							failure.put("errorReason","Order Status Change Failed")
-							failure.put("orderTimeout",order.venue.cancelOrderTime)
+							failure.put("errorCode",1)
+							failure.put("orderId",orderObject.orderId)
+							failure.put("errorReason","Order Id does not exist")
 							failureOrders.add(failure)
-//							response.put("errorCode","1")
-//							response.put("errorMessage","Order Status Change Failed")
+							//						response.put("errorCode","1")
+							//						response.put("errorMessage","Order Id does not exist")
 						}
 					}
-					else{
-						def failure=[:]
-						failure.put("errorCode",1)
-						failure.put("orderId",orderObject.orderId)
-						failure.put("errorReason","Order Id does not exist")
-						failureOrders.add(failure)
-//						response.put("errorCode","1")
-//						response.put("errorMessage","Order Id does not exist")
-					}
-				}
 					if(failureOrders.size()>0){
 						response.put("errorCode","1")
 						response.put("errorCodes",failureOrders)
@@ -413,8 +413,8 @@ class OrderController {
 						response.put("errorCode","0")
 						response.put("errorMessage","Order Status Changed")
 					}
-					
-					
+
+
 				}else{
 					response.put("errorCode","1")
 					response.put("errorMessage","Order Id's are missing please send again")
@@ -810,7 +810,7 @@ class OrderController {
 						pastOrdersMap.put("recipientBartsyId",order.receiverProfile.getBartsyId())
 						pastOrdersMap.put("specialInstructions",order.getSpecialInstructions())
 						pastOrdersMap.put("dateCreated",order.getLastUpdated())
-						pastOrdersMap.put("itemName",order.getItemName())
+						pastOrdersMap.put("itemName",order.itemsList?order.itemsList:order.getItemName())
 						pastOrdersMap.put("senderNickname",order.user.getNickName())
 						pastOrdersMap.put("senderBartsyId",order.user.getBartsyId())
 						pastOrdersMap.put("recipientNickname",order.receiverProfile.getNickName())
