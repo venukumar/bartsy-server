@@ -215,11 +215,78 @@ class DataController {
 
 				order("dateCreated", "asc")
 			}
+			checkedInUsersMap.put("firstOrderDate",firstOrderDate?firstOrderDate[0].dateCreated.toGMTString():"")
+			checkedInUsersMap.put("orderCount",totalOrdersOrderedByUser.size())
+			checkedInUsersMap.put("last30DaysOrderCount",last30daysCount?last30daysCount.size():"")
+
+		}
+		// getting checkedIn details of user based on venue
+		def userCheckedInDetails = UserCheckInDetails.findAllByUserProfileAndVenue(checkedInUser,venue)
+		if(userCheckedInDetails){
+			def last30DaysCheckInCount = UserCheckInDetails.createCriteria()
+			def last30DaysCheckIns = last30DaysCheckInCount.list(){
+				and{
+					eq("venue",venue)
+					eq("userProfile",checkedInUser)
+				}
+				gt("checkedInDate",last30thdate)
+				order("checkedInDate", "asc")
+			}
+
+			def firstCheckIn = UserCheckInDetails.createCriteria().list{
+				and{
+					eq("venue",venue)
+					eq("userProfile",checkedInUser)
+				}
+				order("checkedInDate", "asc")
+			}
+			checkedInUsersMap.put("firstCheckInDate",firstCheckIn?firstCheckIn[0].checkedInDate.toGMTString():"")
+			checkedInUsersMap.put("checkInCount",userCheckedInDetails.size())
+			checkedInUsersMap.put("last30DaysCheckInCount",last30DaysCheckIns?last30DaysCheckIns.size():"")
+		}
+	}
+	// getting order details of user based on venue
+	def orderDetailsOfUserInVenue(Venue venue,UserProfile checkedInUser,checkedInUsersMap){
+		// getting orders based on venue and bartsy id(user)
+		def totalOrdersOrderedByUser = Orders.findAllByUserAndVenue(checkedInUser,venue)
+		// current date
+		def date = new Date()
+		// last 30th date
+		def last30thdate = date-30
+
+		if(totalOrdersOrderedByUser)
+		{
+			def last30DaysOrdersOrderedByuser = Orders.createCriteria()
+
+			def last30daysCount = last30DaysOrdersOrderedByuser.list(){
+				and{
+					eq("venue",venue)
+					eq("user",checkedInUser)
+				}
+				gt("dateCreated",last30thdate)
+				order("dateCreated", "desc")
+			}
+
+			def firstOrderDate =  Orders.createCriteria().list{
+				eq("venue",venue)
+				eq("user",checkedInUser)
+
+				order("dateCreated", "asc")
+			}
 			checkedInUsersMap.put("firstOrderDate",firstOrderDate?firstOrderDate[0].dateCreated:"")
 			checkedInUsersMap.put("orderCount",totalOrdersOrderedByUser.size())
 			checkedInUsersMap.put("last30DaysOrderCount",last30daysCount?last30daysCount.size():"")
 
 		}
+
+	}
+
+	// getting checkedIn details of user based on venue
+	def userCheckedInDetails(Venue venue,UserProfile checkedInUser,checkedInUsersMap){
+		// current date
+		def date = new Date()
+		// last 30th date
+		def last30thdate = date-30
 		// getting checkedIn details of user based on venue
 		def userCheckedInDetails = UserCheckInDetails.findAllByUserProfileAndVenue(checkedInUser,venue)
 		if(userCheckedInDetails){
@@ -245,7 +312,6 @@ class DataController {
 			checkedInUsersMap.put("last30DaysCheckInCount",last30DaysCheckIns?last30DaysCheckIns.size():"")
 		}
 	}
-
 
 	/**
 	 * This is the webservice to sync the data upon bartender app start up
@@ -274,7 +340,7 @@ class DataController {
 				def venue = Venue.findByVenueId(json.venueId.toString())
 				def checkedInUsersList = []
 				def ordersList = []
-				// This list used to send expiredO orders to bartender 
+				// This list used to send expiredO orders to bartender
 				def expiredOrders=[]
 				if(venue){
 					response.put("venueStatus",venue.status)
@@ -289,6 +355,13 @@ class DataController {
 							checkedInUsersMap.put("userImagePath",checkedInUser.userProfile.userImage)
 							checkedInUsersMap.put("gender",checkedInUser.userProfile.gender)
 							checkedInUsersMap.put("showProfile",checkedInUser.userProfile.showProfile)
+							checkedInUsersMap.put("userSessionCode",checkedInUser.userSessionCode)
+							//userCheckedInDetails(venue,checkedInUser.userProfile,checkedInUsersMap)
+
+							if(json.has("getUserDetails")&&json.getUserDetails&&json.getUserDetails.toString().equalsIgnoreCase("venue")){
+								// Added order and checked in details of user to response
+								getUserOrderAndChekedInDetails(venue,checkedInUser.userProfile,checkedInUsersMap)
+							}
 							checkedInUsersList.add(checkedInUsersMap)
 						}
 						response.put("checkedInUsers",checkedInUsersList)
@@ -298,17 +371,17 @@ class DataController {
 					def orders = ordersCriteria.list{
 						eq("venue",venue)
 						and{
-							'in'("orderStatus",["0", "2", "3","7"])
+							'in'("orderStatus",["0", "2", "3", "7"])
 						}
 					}
 					if(orders){
 						orders.each{
 							def order = it
 							def ordersMap = [:]
-							
+
 							def userProfile = UserProfile.findByBartsyId(order.user.bartsyId)
 							def checkedInuser = CheckedInUsers.findByUserProfile(userProfile)
-							
+
 							ordersMap.put("senderBartsyId",order.user.bartsyId)
 							ordersMap.put("recipientBartsyId",order.receiverProfile.bartsyId)
 							ordersMap.put("senderNickname",order.user.nickName)
@@ -325,6 +398,7 @@ class DataController {
 							ordersMap.put("description",order.description)
 							ordersMap.put("updateTime",order.lastUpdated.toGMTString())
 							ordersMap.put("userSessionCode",checkedInuser.userSessionCode)
+							//orderDetailsOfUserInVenue(venue,userProfile,ordersMap)
 							if(!order.orderStatus.equalsIgnoreCase("7"))
 								ordersList.add(ordersMap)
 							else
@@ -401,7 +475,7 @@ class DataController {
 					//if user profile and venue both exists retrieve the notifications
 					def listOfNotifications = Notifications.createCriteria()
 					if(listOfNotifications){
-						
+
 						def criteriaParams = [:]
 						int index,noOfResults
 						if(json.has("index")){
@@ -413,12 +487,12 @@ class DataController {
 							params.max = noOfResults
 						}
 						criteriaParams.putAll(params)
-						
-					    def	notifications = listOfNotifications.list(criteriaParams) {
+
+						def	notifications = listOfNotifications.list(criteriaParams) {
 							eq("user",userProfile)
 							order("dateCreated", "desc")
 						}
-						
+
 						def notificationsList = []
 						notifications.each{
 							def notification = it
@@ -431,6 +505,8 @@ class DataController {
 							notificationMap.put("venueImage",notification.venue.getVenueImagePath())
 							notificationMap.put("createdTime",notification.getDateCreated().toGMTString())
 							notificationMap.put("venueName",notification.venue.getVenueName())
+							notificationMap.put("venueId",notification.venue.venueId)
+
 							//add venueName for check in and check out notifications
 							if(notification.getType().equals("checkin") || notification.getType().equals("checkout")){
 								notificationMap.put("venueName",notification.venue.venueName)
