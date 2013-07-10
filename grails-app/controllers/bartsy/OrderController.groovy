@@ -321,8 +321,8 @@ class OrderController {
 									failure.put("errorReason","Order has been cancelled due to payment failure")
 									failure.put("orderTimeout",order.venue.cancelOrderTime)
 									failureOrders.add(failure)
-									response.put("errorCode","1")
-									response.put("errorMessage","Order has been cancelled due to payment failure")
+									//response.put("errorCode","1")
+									//response.put("errorMessage","Order has been cancelled due to payment failure")
 								}
 	
 	
