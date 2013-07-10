@@ -408,20 +408,20 @@ class UserController {
 					else{
 						//check if an entry is there for that user profile for the venue sent in the syscall request
 						def checkedInUsers = CheckedInUsers.findByUserProfileAndVenueAndStatus(userProfile,venue,1)
-						def userCheckedInDeatils
+						//def userCheckedInDeatils
 						if(!checkedInUsers){
 							//if entry not present create a new object
 							checkedInUsers = new CheckedInUsers()
 						}
-						userCheckedInDeatils=new UserCheckInDetails()
+						//userCheckedInDeatils=new UserCheckInDetails()
 						//set the values to the object
 						checkedInUsers.setUserProfile(userProfile)
 						checkedInUsers.setVenue(venue)
 						checkedInUsers.setStatus(0)
 						// set user checked in details
-						userCheckedInDeatils.setUserProfile(userProfile)
-						userCheckedInDeatils.setVenue(venue)
-						userCheckedInDeatils.setCheckedInDate(new Date())
+//						userCheckedInDeatils.setUserProfile(userProfile)
+//						userCheckedInDeatils.setVenue(venue)
+//						userCheckedInDeatils.setCheckedInDate(new Date())
 						checkedInUsers.setUserSessionCode(null)
 						//save the object
 						if(checkedInUsers.save(flush:true)){
@@ -444,7 +444,7 @@ class UserController {
 							notification.setType("checkout")
 							notification.setMessage("User checked out from the venue : "+checkedInUsers.venue.venueName)
 							notification.save(flush:true)
-							userCheckedInDeatils.save(flush:true)
+							//userCheckedInDeatils.save(flush:true)
 						}
 						else{
 							//if save not successful send error code 1 along with given message
