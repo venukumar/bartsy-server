@@ -580,15 +580,19 @@ class VenueController {
 						def checkedInUsers = CheckedInUsers.findAllByVenueAndStatus(venue,1)
 						//varibale to count number of private checked in users
 						def privateUsers = 0
-						//loop through the checkedin users list and check for private users
-						checkedInUsers.each{
-							def checkedInUser = it
-							if(checkedInUser.userProfile.getShowProfile().equals("OFF")){
-								privateUsers = privateUsers+1
+						if(checkedInUsers){
+							//loop through the checkedin users list and check for private users
+							checkedInUsers.each{
+								def checkedInUser = it
+								if(checkedInUser.userProfile.getShowProfile().equals("OFF")){
+									privateUsers = privateUsers+1
+								}
 							}
 						}
 						//check if the user placed an order in that venue
-						def orders = Orders.findAllByUser(userProfile)
+						def orders
+						if(userProfile)
+							orders = Orders.findAllByUser(userProfile)
 						//defining a map to store the venue object details
 						def venueMap = [:]
 						//if order placed mark the venue as unlocked else locked
