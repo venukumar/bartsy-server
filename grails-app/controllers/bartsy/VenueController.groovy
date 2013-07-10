@@ -598,7 +598,7 @@ class VenueController {
 						else{
 							venueMap.put("unlocked","false")
 						}
-						venueMap.put("checkedInUsers",checkedInUsers.size())
+						venueMap.put("checkedInUsers",checkedInUsers?.size())
 						venueMap.put("privateUsers",privateUsers)
 						venueMap.put("venueName",venue.getVenueName())
 						venueMap.put("venueId",venue.getVenueId())
