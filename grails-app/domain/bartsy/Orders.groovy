@@ -15,17 +15,19 @@ class Orders {
 		drinkOffered(nullable:true)
 		specialInstructions(nullable:true)
 		basePrice(nullable:true)
-		itemsList(nullable:true, size:0..65535)
+		itemsList(nullable:true)
 		}
 	
 	static mapping = {
 		drinkOffered defaultValue: 'false'
+		itemsList type: 'text'
+		
 		}
     
     static belongsTo = [user:UserProfile,venue:Venue,receiverProfile:UserProfile]
 	
     Date dateCreated
-	Date dateOffered
+	Date dateOffered = new Date()
     String orderStatus 
     String basePrice
 	String totalPrice

@@ -2,8 +2,8 @@ package bartsy
 
 class Messages {
 
-    static constraints = {
-		message(size:0..65535)
+    static mapping = {
+		message type:'text'
     }
 	
 	static belongsTo = [sender:UserProfile,receiver:UserProfile,venue:Venue]
