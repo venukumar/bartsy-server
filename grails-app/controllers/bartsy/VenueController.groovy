@@ -617,6 +617,7 @@ class VenueController {
 						def address = venue.getStreetAddress()+","+venue.getLocality()+","+venue.getCountry()+","+venue.getPostalCode()
 						venueMap.put("address",address)
 						venueMap.put("cancelOrderTime",venue.getCancelOrderTime())
+						venueMap.put("totalTaxRate",venue.totalTaxRate)
 						//add the venue object to the list defined earlier
 						totalVenueList.add(venueMap)
 					}
