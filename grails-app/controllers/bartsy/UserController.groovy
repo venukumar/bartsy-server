@@ -172,23 +172,23 @@ class UserController {
 							if(userProfileToSave.save()){
 								def paymentCheck
 								if(json.has("creditCardNumber")&&json.has("expMonth")&&json.has("expYear")){
-									paymentCheck = paymentService.authorizePayment(userProfileToSave,"0.01",userProfileToSave.bartsyId)
+									paymentCheck = paymentService.authorizePaymentInSaveUserProfile(userProfileToSave,"0.01",userProfileToSave.bartsyId)
 								}
 								response.put("bartsyId",maxId)
 								response.put("userCheckedIn","1")
 								if(paymentCheck?.authApproved)
 								{
-								//if save successful send the bartsyId along with errorCode 0 and given errorMessage. Also send the userCheckedIn flag as 1 as new user would not have been checked in earlier
-								response.put("errorCode","0")
-								response.put("errorMessage","Save Successful")
-								println "in if "
-							}else{
-							println "else "
-							response.put("errorCode","10")
-							response.put("errorMessage","Your credit card number or name are invalid. Please enter them again.")
-							}
-							//send Email for email address verification
-							sendVerificationMailToUser(userProfileToSave.getEmail(),userProfileToSave.getBartsyId())
+									//if save successful send the bartsyId along with errorCode 0 and given errorMessage. Also send the userCheckedIn flag as 1 as new user would not have been checked in earlier
+									response.put("errorCode","0")
+									response.put("errorMessage","Save Successful")
+
+								}else{
+									println "else "
+									response.put("errorCode","10")
+									response.put("errorMessage","Your credit card number or name are invalid. Please enter them again.")
+								}
+								//send Email for email address verification
+								sendVerificationMailToUser(userProfileToSave.getEmail(),userProfileToSave.getBartsyId())
 							}
 							else{
 								//if user profile save was not successful send the errorCode as 1 along with the message given below
@@ -218,7 +218,7 @@ class UserController {
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}
-	
+
 	def randomTest = {
 		println" randomTest "
 		CommonMethods common = new CommonMethods()
@@ -236,7 +236,7 @@ class UserController {
 		//defining a map to return as a response for this syscall
 		def response = [:]
 		try{
-		    //parse the request sent as input to the syscall
+			//parse the request sent as input to the syscall
 			def json = JSON.parse(request)
 			//check to make sure the apiVersion sent in the request matches the correct apiVersion
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
@@ -296,7 +296,7 @@ class UserController {
 							}
 							// to generate random number for user sessionCode
 							String sessionCode = generateSessionCode()
-							
+
 							userCheckedInDeatils=new UserCheckInDetails()
 							//set the values to the object
 							checkedInUsers.setUserProfile(userProfile)
@@ -365,11 +365,11 @@ class UserController {
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}
-	
+
 	def generateSessionCode(){
 		CommonMethods common = new CommonMethods()
 		String sessionCode = common.randomNumString(3)
-		
+
 		def user = CheckedInUsers.findAllByUserSessionCode(sessionCode)
 		if(user.size()>0){
 			generateSessionCode()
@@ -419,9 +419,9 @@ class UserController {
 						checkedInUsers.setVenue(venue)
 						checkedInUsers.setStatus(0)
 						// set user checked in details
-//						userCheckedInDeatils.setUserProfile(userProfile)
-//						userCheckedInDeatils.setVenue(venue)
-//						userCheckedInDeatils.setCheckedInDate(new Date())
+						//						userCheckedInDeatils.setUserProfile(userProfile)
+						//						userCheckedInDeatils.setVenue(venue)
+						//						userCheckedInDeatils.setCheckedInDate(new Date())
 						checkedInUsers.setUserSessionCode(null)
 						//save the object
 						if(checkedInUsers.save(flush:true)){
