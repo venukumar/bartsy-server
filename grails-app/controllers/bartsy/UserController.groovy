@@ -1061,39 +1061,36 @@ class UserController {
 	 */
 	def sendVerificationMailToUser(String emailId,String bartsyId){
 		try{
-			println"emailId :: "+emailId
 			def userId = bartsyId.bytes.encodeBase64().toString()
-			println"encoded String "+userId
 			String url =  request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+"/"+grailsApplication.getMetadata().getApplicationName()
-			println "url--------------------->>>>>>>"+url
 			sendMail {
 				to emailId.trim()
 				subject "Bartsy Verification"
 				html g.render(template:'/user/mailTemplate', model:[url:url,userId:userId])
 			}
 		}catch(Exception e){
-			println "Exception found !!!!! "+e.getMessage()
-			println "::: "+e.printStackTrace()
+			log.info("Exception found In sendVerificationMailToUser !!!!! "+e.getMessage())
 		}
 	}
 
 	def verifyEmailId={
-		println "emailVerification"
-		println"params ---------->>>>>> "+params
-		println "bartsy Id :: "+params.id
-		def decoded = new String(params.id.decodeBase64())
-		println"decoded String "+decoded
+		try{
+			def decoded = new String(params.id.decodeBase64())
+			println"decoded String "+decoded
 
-		def userProfile = UserProfile.findByBartsyId(decoded)
-		if(userProfile.emailVerified.toString().equalsIgnoreCase("false")){
-			userProfile.emailVerified="true"
-			if(userProfile.save()){
-				flash.message="Your Bartsy Account is Verified"
+			def userProfile = UserProfile.findByBartsyId(decoded)
+			if(userProfile.emailVerified.toString().equalsIgnoreCase("false")){
+				userProfile.emailVerified="true"
+				if(userProfile.save()){
+					flash.message="Your Bartsy Account is Verified"
+				}else{
+					flash.message="Please try again later"
+				}
 			}else{
-				flash.message="Please try again later"
+				flash.message="Your Bartsy Account was Already Verified"
 			}
-		}else{
-			flash.message="Your Bartsy Account was Already Verified"
+		}catch(Exception e){
+		log.info("Exception found In verifyEmailId !!!!! "+e.getMessage())
 		}
 	}
 
