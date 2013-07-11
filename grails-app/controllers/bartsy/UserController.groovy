@@ -27,6 +27,7 @@ class UserController {
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
 				def userImageFile = request.getFile("userImage")
+				
 				// checking user image is posted or not
 				if(userImageFile){
 					//check if deviceToken is present
@@ -58,6 +59,7 @@ class UserController {
 						}
 						//check if user profile present based on given credentials
 						if(userProfile) {
+							println "if condition !!!!! "
 							//if user profile present, update it with values sent in the syscall request
 							userProfile.setName(json.name ?: "")
 							userProfile.setFirstName(json.firstname ?: "")
@@ -96,7 +98,7 @@ class UserController {
 							if(userProfile.save()){
 								if(emailUpdated){
 									//send Email for email address verification
-									sendVerificationMailToUser(userProfileToSave.getEmail(),userProfileToSave.getBartsyId())
+									sendVerificationMailToUser(userProfile.getEmail(),userProfile.getBartsyId())
 								}
 								//if save successful return the bartsy ID along with errorCode 1 and the message given below
 								response.put("bartsyId",userProfile.bartsyId)
@@ -168,6 +170,7 @@ class UserController {
 							def userImagePath = grailsApplication.config.userimage.savePath+tmp
 							//set the location of the image to the user profile
 							userProfileToSave.setUserImage(userImagePath)
+							println "userProfileToSave "
 							//save the user profile object
 							if(userProfileToSave.save()){
 								def paymentCheck
