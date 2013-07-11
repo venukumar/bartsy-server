@@ -34,7 +34,7 @@ class PaymentService {
 		order.setInvoiceNumber(orderId.toString())
 
 		Customer customer = Customer.createCustomer()
-		if(userprofile.firstName){
+		if(userprofile?.firstName){
 			customer.setFirstName(userprofile.firstName)
 			customer.setLastName(userprofile.lastName)
 		}else
