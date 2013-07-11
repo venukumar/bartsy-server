@@ -2,6 +2,7 @@ package bartsy
 
 import grails.converters.JSON
 import java.text.SimpleDateFormat
+import org.codehaus.groovy.grails.web.json.JSONArray
 
 class OrderController {
 
@@ -46,8 +47,7 @@ class OrderController {
 				Venue venue = Venue.findByVenueId(json.venueId)
 				if(userprofile && venue){
 					if(venue.status.equals("OPEN")){
-						def maxId = Orders.createCriteria().get { projections { max "orderId"
-							} } as Long
+						def maxId = Orders.createCriteria().get { projections { max "orderId" } } as Long
 						if(maxId){
 							maxId = maxId+1
 						}
@@ -803,15 +803,21 @@ class OrderController {
 						pastOrdersMap.put("tipPercentage",order.getTipPercentage())
 						pastOrdersMap.put("captureApproved",order.getCaptureApproved())
 						pastOrdersMap.put("captureErrorMessage",order.getCaptureErrorMessage())
-						pastOrdersMap.put("description",order.getDescription())
 						pastOrdersMap.put("errorReason",order.getErrorReason())
 						pastOrdersMap.put("basePrice",order.getBasePrice())
 						pastOrdersMap.put("lastState",order.getLastState())
 						pastOrdersMap.put("recipientBartsyId",order.receiverProfile.getBartsyId())
 						pastOrdersMap.put("specialInstructions",order.getSpecialInstructions())
 						pastOrdersMap.put("dateCreated",order.getLastUpdated())
-						pastOrdersMap.put("itemName",order.getItemName())
-						pastOrdersMap.put("itemList",order.itemsList?order.itemsList:"")
+						def itemsListStr
+						if(order.itemsList){
+							itemsListStr = new JSONArray(order.itemsList)
+							pastOrdersMap.put("itemsList",itemsListStr)
+						}else{
+							pastOrdersMap.put("itemName",order.itemName)
+							pastOrdersMap.put("itemId",order.itemId)
+							pastOrdersMap.put("description",order.description)
+						}
 						pastOrdersMap.put("senderNickname",order.user.getNickName())
 						pastOrdersMap.put("senderBartsyId",order.user.getBartsyId())
 						pastOrdersMap.put("recipientNickname",order.receiverProfile.getNickName())

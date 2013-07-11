@@ -397,13 +397,19 @@ class DataController {
 							ordersMap.put("recipientImagePath",order.receiverProfile.userImage)
 							ordersMap.put("orderStatus",order.orderStatus)
 							ordersMap.put("orderId",order.orderId)
-							ordersMap.put("itemName",order.itemName)
-							ordersMap.put("itemList",order.itemsList?order.itemsList:"")
+							def itemsListStr
+							if(order.itemsList){
+								itemsListStr = new JSONArray(order.itemsList)
+								ordersMap.put("itemsList",itemsListStr)
+							}else{
+								ordersMap.put("itemName",order.itemName)
+								ordersMap.put("itemId",order.itemId)
+								ordersMap.put("description",order.description)
+							}
 							ordersMap.put("orderTime",order.dateCreated.toGMTString())
 							ordersMap.put("basePrice",order.basePrice)
 							ordersMap.put("tipPercentage",order.tipPercentage)
 							ordersMap.put("totalPrice", order.totalPrice)
-							ordersMap.put("description",order.description)
 							ordersMap.put("updateTime",order.lastUpdated.toGMTString())
 							ordersMap.put("userSessionCode",checkedInuser.userSessionCode)
 							//orderDetailsOfUserInVenue(venue,userProfile,ordersMap)
