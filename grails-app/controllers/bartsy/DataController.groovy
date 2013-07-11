@@ -1,6 +1,7 @@
 package bartsy
 
 import grails.converters.JSON
+import org.codehaus.groovy.grails.web.json.JSONArray
 
 
 class DataController {
@@ -74,10 +75,15 @@ class DataController {
 							orderMap.put("basePrice",order.basePrice)
 							orderMap.put("totalPrice",order.totalPrice)
 							orderMap.put("tipPercentage",order.tipPercentage)
-							orderMap.put("itemName",order.itemName)
-							orderMap.put("itemId",order.itemId)
-							orderMap.put("itemList",order.itemsList?order.itemsList:"")
-							orderMap.put("description",order.description)
+							def itemsListStr
+							if(order.itemsList){
+								itemsListStr = new JSONArray(order.itemsList)
+								orderMap.put("itemsList",itemsListStr)
+							}else{
+								orderMap.put("itemName",order.itemName)
+								orderMap.put("itemId",order.itemId)
+								orderMap.put("description",order.description)
+							}
 							orderMap.put("updateTime",order.lastUpdated.toGMTString())
 							orderMap.put("specialInstructions",order.specialInstructions)
 							orderMap.put("orderTimeout",order.venue.getCancelOrderTime())
