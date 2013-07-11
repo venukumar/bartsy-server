@@ -23,6 +23,7 @@ class UserController {
 			def json = JSON.parse(params.details)
 			//varibale to check if email is updated
 			def emailUpdated = false
+			def sessionCode = System.currentTimeMillis().toString()
 			//check to make sure the apiVersion sent in the request matches the correct apiVersion
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
@@ -83,8 +84,10 @@ class UserController {
 							userProfile.setDeviceToken(json.deviceToken ?: "")
 							userProfile.setDeviceType(json.deviceType as int)
 							userProfile.setCreditCardNumber(json.creditCardNumber.toString() ?: "")
+							userProfile.setEncryptedCreditCard(json.encryptedCreditCard.toString() ?: "")
 							userProfile.setExpMonth(json.expMonth.toString() ?: "")
 							userProfile.setExpYear(json.expYear.toString() ?: "")
+							userProfile.setSessionCode(sessionCode)
 							//code to read the image file sent in the request to the syscall and save it locally
 							def webRootDir = servletContext.getRealPath("/")
 							def userDir = new File(grailsApplication.config.userimage.path)
@@ -148,8 +151,10 @@ class UserController {
 							userProfileToSave.setBartsyPassword(json.bartsyPassword.toString() ?: "")
 							userProfileToSave.setBartsyLogin(json.bartsyLogin ?: "")
 							userProfileToSave.setCreditCardNumber(json.creditCardNumber.toString() ?: "")
+							userProfileToSave.setEncryptedCreditCard(json.encryptedCreditCard.toString() ?: "")
 							userProfileToSave.setExpMonth(json.expMonth.toString() ?: "")
 							userProfileToSave.setExpYear(json.expYear.toString() ?: "")
+							userProfileToSave.setSessionCode(sessionCode)
 							userProfileToSave.setEmailVerified("false")
 							//retrieve the max bartsyId from DB and increment it by 1
 							def maxId = UserProfile.createCriteria().get { projections { max "bartsyId" } } as Long
@@ -212,6 +217,7 @@ class UserController {
 				response.put("errorCode","100")
 				response.put("errorMessage","API version do not match")
 			}
+			response.put("oauthCode", sessionCode)
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
@@ -219,6 +225,7 @@ class UserController {
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
 		}
+		
 		render(text:response as JSON ,  contentType:"application/json")
 	}
 
