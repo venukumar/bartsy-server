@@ -15,6 +15,9 @@ class Orders {
 		drinkOffered(nullable:true)
 		specialInstructions(nullable:true)
 		basePrice(nullable:true)
+		itemId(nullable:true)
+		itemName(nullable:true)
+		description(nullable:true)
 		itemsList(nullable:true)
 		}
 	
