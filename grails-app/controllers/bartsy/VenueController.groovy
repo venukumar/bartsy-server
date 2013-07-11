@@ -136,14 +136,12 @@ class VenueController {
 		//defining a map to return as a response for this syscall
 		def response = [:]
 		try{
-			println "save venue details"
 			//parse the request sent as input to the syscall
 			def json
 			if(params.details)
 				json = JSON.parse(params.details)
 			else
 				json = JSON.parse(request)
-			println"json "+json
 			//check to make sure the apiVersion sent in the request matches the correct apiVersion
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
@@ -392,8 +390,8 @@ class VenueController {
 		venue.vendsyRepPhone=json.has("vendsyRepPhone")?json.vendsyRepPhone:venue.vendsyRepPhone
 		venue.openHours =json.has("openHours")?json.openHours:venue.openHours
 
-		venue.wifiPresent = json.wifiPresent
-		if(json.wifiPresent == 1){
+		venue.wifiPresent = Integer.parseInt(json.wifiPresent)
+		if(Integer.parseInt(json.wifiPresent) == 1){
 			venue.wifiName = json.wifiName
 			venue.wifiPassword = json.wifiPassword
 			venue.typeOfAuthentication = json.typeOfAuthentication
