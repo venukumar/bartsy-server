@@ -14,6 +14,7 @@ class VenueController {
 	def androidPNService
 	def applePNService
 	def grailsApplication
+	def venueService
 
 	/**
 	 * This is a test webservice to save venue details from a hardcoded locu response. To be removed later. 
@@ -546,6 +547,67 @@ class VenueController {
 		}
 		render(text:response as JSON,contentType:"application/json")
 	}
+	/**
+	 * This is sys call used to get locu menu list based on the 
+	 * 
+	 */
+	def getLocuMenu = {
+		def response=[:]
+		try{
+			def json = JSON.parse(request)
+			if(json){
+
+				def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+				if(json.has("apiVersion")&&apiVersion.value.toInteger() == json.apiVersion.toInteger()){
+					venueService.getLocuMenu(json,response)
+				}else{
+					response.put("errorCode", 2)
+					response.put("errorMessage", "API version do not match")
+				}
+			}else{
+				response.put("errorCode", 1)
+				response.put("errorMessage", "Post data is missing. Please check for same")
+			}
+		}catch(Exception e){
+			log.info("Exception found in getLocuMenuHeaders sys call "+e.getMessage())
+			response.put("errorCode", 200)
+			response.put("errorMessage",e.getMessage())
+		}finally{
+			render(text:response as JSON,contentType:"application/json")
+		}
+
+	}
+	/**
+	 * 
+	 * This is sys call used to get locu Menu Headers	 
+	 **/
+	def getLocuMenuHeaders={
+		def response=[:]
+		try{
+			def json = JSON.parse(request)
+			if(json){
+				def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+				if(json.has("apiVersion")&&apiVersion.value.toInteger() == json.apiVersion.toInteger()){
+					venueService.getLocuMenuHeaders(json,response)
+				}else{
+					response.put("errorCode", 2)
+					response.put("errorMessage", "API version do not match")
+				}
+			}else{
+				response.put("errorCode", 1)
+				response.put("errorMessage", "Post data is missing. Please check for same")
+			}
+		}catch(Exception e){
+			log.info("Exception found in getLocuMenuHeaders sys call "+e.getMessage())
+			response.put("errorCode", 200)
+			response.put("errorMessage",e.getMessage())
+		}finally{
+			render(text:response as JSON,contentType:"application/json")
+		}
+
+
+	}
+
 
 
 	/**
@@ -945,4 +1007,28 @@ class VenueController {
 		//return venueDetails
 	}
 
+	/**
+	 * To get locu data
+	 * 
+	 */
+	def locuData = {
+		def response=[:]
+		try{
+
+			def json = JSON.parse(request)
+			def url = message(code:'app.locu.url')+json.locuId+'/?api_key='+message(code:'app.locu.apikey')
+			def parsedData = JSON.parse( new URL(url).text )
+			response.put("locuData",parsedData)
+
+		}catch(Exception e){
+			println "exception found in locu data"
+			log.info("exception found in locu data")
+			response.put("errorCode",200)
+			response.put("errorMessage",e.getMessage())
+
+		}
+		finally{
+			render(text:response as JSON ,  contentType:"application/json")
+		}
+	}
 }
