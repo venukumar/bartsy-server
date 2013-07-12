@@ -164,9 +164,9 @@ class DataController {
 							checkedInUsersMap.put("dateOfBirth",checkedInUser.userProfile.dateOfBirth)
 							checkedInUsersMap.put("showProfile",checkedInUser.userProfile.showProfile)
 							if(userFavorite)
-								checkedInUsersMap.put("like",userFavorite.getStaus())
+							checkedInUsersMap.put("like",userFavorite.getStaus())
 							else
-								checkedInUsersMap.put("like","1")
+							checkedInUsersMap.put("like","1")
 							checkedInUsersList.add(checkedInUsersMap)
 						}
 						response.put("checkedInUsers",checkedInUsersList)
@@ -417,7 +417,7 @@ class DataController {
 								ordersList.add(ordersMap)
 							}
 							else
-								expiredOrders.add(ordersMap)
+							expiredOrders.add(ordersMap)
 						}
 						response.put("orders",ordersList)
 						response.put("expiredOrders",expiredOrders)
@@ -502,12 +502,10 @@ class DataController {
 							params.max = noOfResults
 						}
 						criteriaParams.putAll(params)
-
 						def	notifications = listOfNotifications.list(criteriaParams) {
 							eq("user",userProfile)
 							order("dateCreated", "desc")
 						}
-
 						def notificationsList = []
 						notifications.each{
 							def notification = it
@@ -596,7 +594,7 @@ class DataController {
 					message.setVenue(venue)
 					message.setMessage(json.message)
 					//save the message
-					if(message.save()){
+					if(message.save(flush:true)){
 						def pnMessage = [:]
 						pnMessage.put("message",json.message)
 						pnMessage.put("senderId",senderProfile.bartsyId)
@@ -657,24 +655,50 @@ class DataController {
 				//check if user profiles and venue both exists
 				if(senderProfile && receiverProfile && venue){
 					//if user profiles and venue both exists retrieve the messages
-					def query = {
+
+					def criteriaParams = [:]
+					int index,noOfResults
+					if(json.has("index")){
+						index =  json.index
+						params.offset = index
+					}
+					if(json.has("noOfResults")){
+						noOfResults =  json.noOfResults
+						params.max = noOfResults
+					}
+					criteriaParams.putAll(params)
+
+
+					/*def query = {
+					 eq("venue",venue)
+					 eq("sender",senderProfile)
+					 eq("receiver",receiverProfile)
+					 }
+					 def queryRec = {
+					 eq("venue",venue)
+					 eq("sender",receiverProfile)
+					 eq("receiver",senderProfile)
+					 }*/
+					def messages = Messages.createCriteria().list(criteriaParams){
+						
 						eq("venue",venue)
 						eq("sender",senderProfile)
 						eq("receiver",receiverProfile)
+					
 					}
-					def queryRec = {
+					def messagesRec = Messages.createCriteria().list(criteriaParams){
+						
 						eq("venue",venue)
 						eq("sender",receiverProfile)
 						eq("receiver",senderProfile)
+					
 					}
-					def messages = Messages.createCriteria().list(query)
-					def messagesRec = Messages.createCriteria().list(queryRec)
 					def compList = []
 
 					if(messages)
-						compList.addAll(messages.toList())
+					compList.addAll(messages.toList())
 					if(messagesRec)
-						compList.addAll(messagesRec.toList())
+					compList.addAll(messagesRec.toList())
 
 					if(compList){
 						def messagesList = []
@@ -724,7 +748,6 @@ class DataController {
 	 * This method used to change User bartsy password
 	 */
 	def changeUserPassword={
-
 		def json = JSON.parse(request)
 		def response=[:]
 		def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
