@@ -754,6 +754,7 @@ class UserController {
 			def json = JSON.parse(request)
 			//check to make sure the apiVersion sent in the request matches the correct apiVersion
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+			def sessionCode = System.currentTimeMillis().toString()
 			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
 				//define the variable to retrieve and store the user profile object
 				def userProfile
@@ -771,11 +772,13 @@ class UserController {
 					//if user profile exists set device type and device token sent in the syscall request
 					userProfile.setDeviceToken(json.deviceToken)
 					userProfile.setDeviceType(json.deviceType as int)
+					userProfile.setSessionCode(sessionCode)
 					//save the user profile object
 					userProfile.save()
 					//return error code 0 and bartsyId
 					response.put("errorCode", 0)
 					response.put("bartsyId",userProfile.bartsyId)
+					response.put("oauthCode", userProfile.sessionCode)
 					//check if user checked into any venue as per server
 					def checkedInUser = CheckedInUsers.findByUserProfileAndStatus(userProfile,1)
 					if(checkedInUser){
@@ -840,6 +843,7 @@ class UserController {
 				response.put("errorCode","100")
 				response.put("errorMessage","API version do not match")
 			}
+			
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
@@ -1044,6 +1048,7 @@ class UserController {
 						response.put("facebookId",userProfile.getFacebookId())
 						response.put("googleId",userProfile.getGoogleId())
 						response.put("googleUserName",userProfile.getGoogleUserName())
+						response.put("oauthCode", userProfile.getSessionCode())
 					}
 					else{
 						//if user profile does not exists send error code 1
