@@ -411,10 +411,11 @@ class DataController {
 							ordersMap.put("tipPercentage",order.tipPercentage)
 							ordersMap.put("totalPrice", order.totalPrice)
 							ordersMap.put("updateTime",order.lastUpdated.toGMTString())
-							ordersMap.put("userSessionCode",checkedInuser.userSessionCode)
 							//orderDetailsOfUserInVenue(venue,userProfile,ordersMap)
-							if(!order.orderStatus.equalsIgnoreCase("7"))
+							if(!order.orderStatus.equalsIgnoreCase("7")){
+								ordersMap.put("userSessionCode",checkedInuser.userSessionCode)
 								ordersList.add(ordersMap)
+							}
 							else
 								expiredOrders.add(ordersMap)
 						}
