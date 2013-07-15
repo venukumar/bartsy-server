@@ -4,6 +4,8 @@ class UserProfile {
 
      static constraints = {
 		 emailVerified(nullable:true)
+		 sessionCode(nullable:true)
+		 encryptedCreditCard(nullable:true)
     }
 	
 	static mapping = {
@@ -49,4 +51,6 @@ class UserProfile {
 		String expMonth
 		String expYear
 		String emailVerified
+		String sessionCode
+		String encryptedCreditCard
       }
