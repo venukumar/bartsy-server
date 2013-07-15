@@ -28,7 +28,7 @@ class UserController {
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
 				def userImageFile = request.getFile("userImage")
-				
+
 				// checking user image is posted or not
 				if(userImageFile){
 					//check if deviceToken is present
@@ -225,7 +225,7 @@ class UserController {
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
 		}
-		
+
 		render(text:response as JSON ,  contentType:"application/json")
 	}
 
@@ -769,6 +769,7 @@ class UserController {
 				}
 				//check if user profile exists
 				if(userProfile){
+
 					//if user profile exists set device type and device token sent in the syscall request
 					userProfile.setDeviceToken(json.deviceToken)
 					userProfile.setDeviceType(json.deviceType as int)
@@ -785,7 +786,47 @@ class UserController {
 						//if checked into a venue send venueId and venuename of that venue
 						response.put("venueId",checkedInUser.venue.venueId)
 						response.put("venueName",checkedInUser.venue.venueName)
+						response.put("venueImagePath",checkedInUser.venue.venueImagePath)
+
+						response.put("latitude",checkedInUser.venue.getLat())
+						response.put("longitude",checkedInUser.venue.getLongtd())
+						response.put("venueStatus",checkedInUser.venue.getStatus())
+						response.put("wifiPresent",checkedInUser.venue.getWifiPresent().toString())
+						response.put("wifiName",checkedInUser.venue.getWifiName())
+						response.put("wifiPassword",checkedInUser.venue.getWifiPassword())
+						def address = checkedInUser.venue.getStreetAddress()+","+checkedInUser.venue.getLocality()+","+checkedInUser.venue.getCountry()+","+checkedInUser.venue.getPostalCode()
+						response.put("address",address)
+						response.put("totalTaxRate",checkedInUser.venue.totalTaxRate)
 						response.put("orderTimeout",checkedInUser.venue.getCancelOrderTime())
+						response.put("typeOfAuthentication",checkedInUser.venue.getTypeOfAuthentication())
+						def orders = Orders.findAllByUser(userProfile)
+						if(orders){
+							response.put("unlocked","true")
+						}
+						else{
+							response.put("unlocked","false")
+						}
+						//Find the list of checkedIn users for that venue
+						def checkedInUsers = CheckedInUsers.findAllByVenueAndStatus(checkedInUser.venue,1)
+
+						//varibale to count number of private checked in users
+						def privateUsers = 0
+						if(checkedInUsers){
+							//loop through the checkedin users list and check for private users
+							checkedInUsers.each{
+								def checkedIn = it
+								if(checkedIn.userProfile.getShowProfile().equals("OFF")){
+									privateUsers = privateUsers+1
+								}
+							}
+						}
+						response.put("checkedInUsers",checkedInUsers?.size())
+						response.put("privateUsers",privateUsers)
+						//get the checked in users list in that venue and send the count
+						if(checkedInUsers){
+							response.put("userCount",checkedInUsers.size())
+						}
+
 						//retrieve any open orders for that user in that venue
 						def openOrdersCriteria = Orders.createCriteria()
 						def openOrders = openOrdersCriteria.list {
@@ -821,11 +862,6 @@ class UserController {
 							response.put("orderCount",openOrdersList.size())
 							response.put("orderTimeout",checkedInUser.venue.cancelOrderTime)
 						}
-						//get the checked in users list in that venue and send the count
-						def checkedInUsers = CheckedInUsers.findAllByVenueAndStatus(checkedInUser.venue,1)
-						if(checkedInUsers){
-							response.put("userCount",checkedInUsers.size())
-						}
 					}
 				}
 				else{
@@ -843,7 +879,7 @@ class UserController {
 				response.put("errorCode","100")
 				response.put("errorMessage","API version do not match")
 			}
-			
+
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
@@ -1105,7 +1141,7 @@ class UserController {
 				flash.message="Your Bartsy Account was Already Verified"
 			}
 		}catch(Exception e){
-		log.info("Exception found In verifyEmailId !!!!! "+e.getMessage())
+			log.info("Exception found In verifyEmailId !!!!! "+e.getMessage())
 		}
 	}
 

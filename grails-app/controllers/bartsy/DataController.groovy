@@ -39,9 +39,10 @@ class DataController {
 				def userProfile = UserProfile.findByBartsyId(bartsyId.toString())
 				if(userProfile){
 					//def openOrders = Orders.findAllByUserAndOrderStatusNotEqual(userProfile,"0")
-					def openOrdersCriteria = Orders.createCriteria()
-					def openOrders = openOrdersCriteria.list {
-						'in'("orderStatus",[
+					//def openOrdersCriteria = Orders.createCriteria()
+					//def openOrders = openOrdersCriteria.list {
+					def openOrders = Orders.createCriteria().list {
+						/*'in'("orderStatus",[
 							"0",
 							"1",
 							"2",
@@ -52,7 +53,8 @@ class DataController {
 							"7",
 							"8",
 							"9"
-						])
+						])*/
+						ne("orderStatus", "10")
 						or{
 							eq("user",userProfile)
 							eq("receiverProfile",userProfile)
@@ -62,7 +64,7 @@ class DataController {
 
 						openOrders.each{
 							def order = it
-							def checkedInuser = CheckedInUsers.findByUserProfileAndVenue(userProfile,order.venue)
+							def checkedInuser = CheckedInUsers.findByUserProfileAndVenue(order.receiverProfile,order.venue)
 							def orderMap = [:]
 							orderMap.put("orderId",order.orderId)
 							orderMap.put("senderBartsyId",order.user.bartsyId)
@@ -389,7 +391,7 @@ class DataController {
 							def ordersMap = [:]
 
 							def userProfile = UserProfile.findByBartsyId(order.user.bartsyId)
-							def checkedInuser = CheckedInUsers.findByUserProfileAndVenue(userProfile,venue)
+							def checkedInuser = CheckedInUsers.findByUserProfileAndVenue(order.receiverProfile,venue)
 
 							ordersMap.put("senderBartsyId",order.user.bartsyId)
 							ordersMap.put("recipientBartsyId",order.receiverProfile.bartsyId)
