@@ -59,7 +59,7 @@ class DataController {
 						}
 					}
 					if(openOrders){
-						
+
 						openOrders.each{
 							def order = it
 							def checkedInuser = CheckedInUsers.findByUserProfileAndVenue(userProfile,order.venue)
@@ -166,9 +166,9 @@ class DataController {
 							checkedInUsersMap.put("dateOfBirth",checkedInUser.userProfile.dateOfBirth)
 							checkedInUsersMap.put("showProfile",checkedInUser.userProfile.showProfile)
 							if(userFavorite)
-							checkedInUsersMap.put("like",userFavorite.getStaus())
+								checkedInUsersMap.put("like",userFavorite.getStaus())
 							else
-							checkedInUsersMap.put("like","1")
+								checkedInUsersMap.put("like","1")
 							checkedInUsersList.add(checkedInUsersMap)
 						}
 						response.put("checkedInUsers",checkedInUsersList)
@@ -389,7 +389,7 @@ class DataController {
 							def ordersMap = [:]
 
 							def userProfile = UserProfile.findByBartsyId(order.user.bartsyId)
-							def checkedInuser = CheckedInUsers.findByUserProfile(userProfile)
+							def checkedInuser = CheckedInUsers.findByUserProfileAndVenue(userProfile,venue)
 
 							ordersMap.put("senderBartsyId",order.user.bartsyId)
 							ordersMap.put("recipientBartsyId",order.receiverProfile.bartsyId)
@@ -419,7 +419,7 @@ class DataController {
 								ordersList.add(ordersMap)
 							}
 							else
-							expiredOrders.add(ordersMap)
+								expiredOrders.add(ordersMap)
 						}
 						response.put("orders",ordersList)
 						response.put("expiredOrders",expiredOrders)
@@ -682,25 +682,26 @@ class DataController {
 					 eq("receiver",senderProfile)
 					 }*/
 					def messages = Messages.createCriteria().list(criteriaParams){
-						
-						eq("venue",venue)
+
+						//eq("venue",venue)
 						eq("sender",senderProfile)
 						eq("receiver",receiverProfile)
-					
+						order("dateCreated","desc")
+
 					}
 					def messagesRec = Messages.createCriteria().list(criteriaParams){
-						
-						eq("venue",venue)
+
+						//eq("venue",venue)
 						eq("sender",receiverProfile)
 						eq("receiver",senderProfile)
-					
+						order("dateCreated","desc")
 					}
 					def compList = []
 
 					if(messages)
-					compList.addAll(messages.toList())
+						compList.addAll(messages.toList())
 					if(messagesRec)
-					compList.addAll(messagesRec.toList())
+						compList.addAll(messagesRec.toList())
 
 					if(compList){
 						def messagesList = []
@@ -836,6 +837,6 @@ class DataController {
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}
-	
-	
+
+
 }
