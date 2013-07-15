@@ -1,6 +1,13 @@
 package bartsy
 
 import grails.converters.JSON
+import bartsy.AsymmetricCipherTest
+import com.sun.org.apache.xerces.internal.impl.dv.util.Base64
+import java.security.KeyPair
+import java.security.PrivateKey
+import java.security.PublicKey
+
+import javax.crypto.spec.SecretKeySpec
 
 
 class UserController {
@@ -1144,18 +1151,58 @@ class UserController {
 			log.info("Exception found In verifyEmailId !!!!! "+e.getMessage())
 		}
 	}
+	
+	def createServerKeys(){
+		String privateKeyFile = "bartsy_privateKey.pem"
+		String publicKeyFile = "bartsy_publicKey.pem"
+		String csrFile = "bartsy_office.csr"
+		String certFile = "bartsy_office.crt"
+		String caCert = "bartsy_ca.crt"
+		String caPrivKey = "bartsy_CAkey.pem"
+		String cryptoPath = servletContext.getRealPath("/")+"images/"
+		CryptoUtil.createCAKeys(cryptoPath+caPrivKey,cryptoPath+caCert)
+		CryptoUtil.createRSAKeys(cryptoPath+privateKeyFile,cryptoPath+publicKeyFile)
+		String subj1 = "/C=US/ST=Florida/L=West Palm Beach/O=Bartsy Owner LLC/OU=Support/CN=Bartsy/emailAddress=info@bartsy.com"
+		CryptoUtil.createCSR(cryptoPath+privateKeyFile,cryptoPath+csrFile,subj1)
+		CryptoUtil.createUserSignedCert(cryptoPath+csrFile,cryptoPath+certFile,cryptoPath+caCert,cryptoPath+caPrivKey)
+	}
 
-	def getServerPublicKey(){
+	def getServerPublicKey(){		
+		def json = JSON.parse(request)
+		def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+		if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
 		try{
-			String cryptoPath = grailsApplication.config.userimage.path
-			String publicKey ="bartsy_publicKey.pem"
-			def pubKeyFileStream= new FileInputStream(cryptoPath+publicKey)
+			def pubKeyFile = grailsApplication.mainContext.getResource("images/bartsy_publicKey.pem").getFile() 
+			def pubKeyFileStream= new FileInputStream(pubKeyFile)
 			response.setHeader("Content-disposition", "filename=bartsyPublicKey.pem")
 			response.outputStream << pubKeyFileStream
 			response.outputStream.flush()
-		}catch(Exception e){
+			}catch(Exception e){
 			log.error(e.getMessage())
+			}
+		}else{
+			def response = [:]
+			response.put("errorCode", 1)
+			response.put("errorMessage","API version do not match")
+			render(text:response as JSON ,  contentType:"application/json")
 		}
+	}
+	
+	def getEncryptDecryptedKey(){
+		def baseFolder = servletContext.getRealPath("/")
+		PublicKey userPublicKey=CryptoUtil.readPublicKey(baseFolder+"images/bartsy_office.crt")
+		String creditInfo = "4121212212121212122"
+		String hexOficeAES=AsymmetricCipherTest.encrypt(creditInfo.getBytes(),userPublicKey)
+		PrivateKey bartsyPrivateKey=AsymmetricCipherTest.getPemPrivateKey(baseFolder+"images/bartsy_privateKey.pem","RSA")
+		Base64 b64 = new Base64();
+		//def hexMesg=b64.encode(hexOficeAES.getBytes());
+		byte[] bb=b64.decode(hexOficeAES)
+		log.info("decode with base 64")
+		byte[] bDecryptedKey = AsymmetricCipherTest.decrypt(bb,bartsyPrivateKey)
+		log.info("decrypt with Bartsy private key")
+		String decCredit = new String(bDecryptedKey, "UTF8")
+		decCredit = decCredit.trim();
+		println "zxzx "+decCredit
 	}
 
 }
