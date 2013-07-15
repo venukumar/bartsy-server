@@ -297,6 +297,7 @@ class OrderController {
 									order.setErrorReason(orderObject.has("errorReason")?orderObject.errorReason:"NOSHOW")
 									break
 								case "10" :
+								    order.setLastState(order.orderStatus)
 									order.setErrorReason(orderObject.has("errorReason")?orderObject.errorReason:"Dismiss")
 									break;
 							}
@@ -308,9 +309,9 @@ class OrderController {
 								notification.setVenue(order.venue)
 								notification.setOrder(order)
 								notification.setType("updateorder")
-								if(!json.orderStatus.toString().equals("10")){
+								if(!orderObject.orderStatus.toString().equals("10")){
 									response.put("orderTimeout",order.venue.cancelOrderTime)
-									if(!json.orderStatus.toString().equals("5") || order.getCaptureApproved().toBoolean()){
+									if(!orderObject.orderStatus.toString().equals("5") || order.getCaptureApproved().toBoolean()){
 										//response.put("errorCode","0")
 										//response.put("errorMessage","Order Status Changed")
 									}
@@ -348,8 +349,8 @@ class OrderController {
 										}
 									}
 									pnMessage.put("orderCount",openOrders.size())
-									pnMessage.put("orderStatus",json.orderStatus.toString())
-									pnMessage.put("orderId",json.orderId.toString())
+									pnMessage.put("orderStatus",orderObject.orderStatus.toString())
+									pnMessage.put("orderId",orderObject.orderId.toString())
 									pnMessage.put("messageType","updateOrderStatus")
 									pnMessage.put("updateTime",orderDate.toGMTString())
 									pnMessage.put("body",body)

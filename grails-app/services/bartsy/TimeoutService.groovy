@@ -92,7 +92,7 @@ class TimeoutService {
 		def timer = BartsyConfiguration.findByConfigName("heartbeat")
 		if(timer){
 			if(timer.value.toBoolean()){
-				println"heart beat"
+				//println"heart beat"
 				//heartBeatCustomer()
 				//heartBeatVenue()
 				toChangeOrdersToPastOrders()
@@ -104,7 +104,10 @@ class TimeoutService {
 	 * @return
 	 */
 	def toChangeOrdersToPastOrders(){
-		println"change orders to past orders"
+		//println"change orders to past orders "+new Date()
+		//println "Date "+new Date().getDateString()
+		//println "Time "+new Date().getTimeString()
+		//println "Day "+new Date().getDateTimeString()
 		log.info("change orders to past orders")
 		def openOrdersCriteria = Orders.createCriteria()
 		def openOrders = openOrdersCriteria.list {
@@ -119,7 +122,7 @@ class TimeoutService {
 					def diff = new Date() - order.lastUpdated
 					log.warn("difference in minutes"+diff.minutes)
 					def orderStatus = order.orderStatus.toString()
-					if(diff.minutes >= 1){
+					if(diff.minutes >= 15){
 						order.setLastState(orderStatus)
 						order.setErrorReason("Past order")
 						order.setOrderStatus("10")
