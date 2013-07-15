@@ -8,6 +8,7 @@ class DataController {
 
 	def applePNService
 	def androidPNService
+	def grailsApplication
 
 	/**
 	 * This is the webservice to sync the data upon customer app start up
@@ -58,9 +59,10 @@ class DataController {
 						}
 					}
 					if(openOrders){
-						def checkedInuser = CheckedInUsers.findByUserProfile(userProfile)
+						
 						openOrders.each{
 							def order = it
+							def checkedInuser = CheckedInUsers.findByUserProfileAndVenue(userProfile,order.venue)
 							def orderMap = [:]
 							orderMap.put("orderId",order.orderId)
 							orderMap.put("senderBartsyId",order.user.bartsyId)
@@ -834,5 +836,6 @@ class DataController {
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}
-
+	
+	
 }
