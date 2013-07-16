@@ -32,7 +32,7 @@ class InventoryController {
 					if(ingredients) {
 						ingredients.each{
 							def ingredient =  it
-							def ingredientToSave = Ingredients.findByIngredientId(ingredient.ingredientId as long)
+							def ingredientToSave = Ingredients.findByIngredientIdAndVenue(ingredient.ingredientId as long,venue)
 							if(ingredientToSave){
 								ingredientToSave.setPrice(ingredient.price as int)
 								ingredientToSave.setAvailable(ingredient.available)
