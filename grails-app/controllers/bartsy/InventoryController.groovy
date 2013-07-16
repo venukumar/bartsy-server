@@ -88,7 +88,7 @@ class InventoryController {
 					if(cocktails) {
 						cocktails.each{
 							def cocktail =  it
-							def cocktailsToSave = Cocktails.findByCocktailId(cocktail.cocktailId as long)
+							def cocktailsToSave = Cocktails.findByCocktailIdAndVenue(cocktail.cocktailId as long,venue)
 							if(cocktailsToSave){
 								cocktailsToSave.setPrice(cocktail.price as int)
 								cocktailsToSave.setAvailable(cocktail.available)
