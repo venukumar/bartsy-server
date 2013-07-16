@@ -43,17 +43,17 @@ class DataController {
 					//def openOrders = openOrdersCriteria.list {
 					def openOrders = Orders.createCriteria().list {
 						/*'in'("orderStatus",[
-							"0",
-							"1",
-							"2",
-							"3",
-							"4",
-							"5",
-							"6",
-							"7",
-							"8",
-							"9"
-						])*/
+						 "0",
+						 "1",
+						 "2",
+						 "3",
+						 "4",
+						 "5",
+						 "6",
+						 "7",
+						 "8",
+						 "9"
+						 ])*/
 						ne("orderStatus", "10")
 						or{
 							eq("user",userProfile)
@@ -152,7 +152,6 @@ class DataController {
 							def checkedInUser = it
 							def checkedInUsersMap = [:]
 							def userFavorite = UserFavoritePeople.findByUserBartsyIdAndFavoriteBartsyId(json.bartsyId, checkedInUser.userProfile.bartsyId)
-
 							if(json.has("getUserDetails")&&json.getUserDetails&&json.getUserDetails.toString().equalsIgnoreCase("venue")){
 								// Added order and checked in details of user to response
 								getUserOrderAndChekedInDetails(venue,checkedInUser.userProfile,checkedInUsersMap)
@@ -167,6 +166,18 @@ class DataController {
 							checkedInUsersMap.put("description",checkedInUser.userProfile.description)
 							checkedInUsersMap.put("dateOfBirth",checkedInUser.userProfile.dateOfBirth)
 							checkedInUsersMap.put("showProfile",checkedInUser.userProfile.showProfile)
+							checkedInUsersMap.put("currentTime",new Date().toGMTString())
+
+							def userReadMessages = Messages.findAllBySenderAndReceiverAndStatus(checkedInUser.userProfile,userProfile,1)
+							def userUnReadMessages = Messages.findAllBySenderAndReceiverAndStatus(checkedInUser.userProfile,userProfile,0)
+
+							if(userUnReadMessages && userUnReadMessages.size()>0)
+								checkedInUsersMap.put("hasMessages","New")
+							else if(userReadMessages && userReadMessages.size()>0)
+								checkedInUsersMap.put("hasMessages","Old")
+							else
+								checkedInUsersMap.put("hasMessages","None")
+
 							if(userFavorite)
 								checkedInUsersMap.put("like",userFavorite.getStaus())
 							else
@@ -367,6 +378,7 @@ class DataController {
 							checkedInUsersMap.put("gender",checkedInUser.userProfile.gender)
 							checkedInUsersMap.put("showProfile",checkedInUser.userProfile.showProfile)
 							checkedInUsersMap.put("userSessionCode",checkedInUser.userSessionCode)
+							checkedInUsersMap.put("currentTime",new Date().toGMTString())
 							//userCheckedInDetails(venue,checkedInUser.userProfile,checkedInUsersMap)
 
 							if(json.has("getUserDetails")&&json.getUserDetails&&json.getUserDetails.toString().equalsIgnoreCase("venue")){
@@ -415,6 +427,7 @@ class DataController {
 							ordersMap.put("tipPercentage",order.tipPercentage)
 							ordersMap.put("totalPrice", order.totalPrice)
 							ordersMap.put("updateTime",order.lastUpdated.toGMTString())
+							ordersMap.put("currentTime",new Date().toGMTString())
 							//orderDetailsOfUserInVenue(venue,userProfile,ordersMap)
 							if(!order.orderStatus.equalsIgnoreCase("7")){
 								ordersMap.put("userSessionCode",checkedInuser.userSessionCode)
@@ -541,7 +554,11 @@ class DataController {
 									notificationMap.put("recieverImage",notification.order.receiverProfile.userImage)
 								}
 							}
+							notificationMap.put("currentTime",new Date().toGMTString())
 							notificationsList.add(notificationMap)
+							println "notification :: "
+							notification.setStatus(1)
+							notification.save(flush:true)
 						}
 						//Add the list to response
 						response.put("errorCode","0")
@@ -596,6 +613,7 @@ class DataController {
 					message.setSender(senderProfile)
 					message.setReceiver(receiverProfile)
 					message.setVenue(venue)
+					message.setStatus(0)
 					message.setMessage(json.message)
 					//save the message
 					if(message.save(flush:true)){
@@ -604,6 +622,7 @@ class DataController {
 						pnMessage.put("senderId",senderProfile.bartsyId)
 						pnMessage.put("messageType","message")
 						pnMessage.put("receiverId",receiverProfile.bartsyId)
+						pnMessage.put("currentTime",new Date().toGMTString())
 						pnMessage.put("body","You have recieved a new message")
 						//send PN to receiver device
 						if(receiverProfile.deviceType == 1){
@@ -632,6 +651,7 @@ class DataController {
 				response.put("errorCode","100")
 				response.put("errorMessage","API version do not match")
 			}
+			response.put("currentTime",new Date().toGMTString())
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
@@ -717,7 +737,10 @@ class DataController {
 							messageMap.put("senderId",message.sender.bartsyId)
 							messageMap.put("receiverId",message.receiver.bartsyId)
 							messageMap.put("date",message.dateCreated)
+							messageMap.put("currentTime",new Date().toGMTString())
 							messagesList.add(messageMap)
+							message.setStatus(1)
+							message.save(flush:true)
 						}
 						response.put("messages",messagesList)
 					}
@@ -817,10 +840,8 @@ class DataController {
 		def json = JSON.parse(request)
 		def response=[:]
 		def mailId=json.email
-		println "mailID" +mailId
 		try{
 			def email=UserProfile.findByEmail(mailId)
-			println"email :::::::: "+email
 			if(email){
 				sendMail {
 					to mailId
@@ -835,7 +856,7 @@ class DataController {
 			}
 		}catch(Exception e){
 
-			println "Exception Found !!!! "+e.getMessage()
+			log.info("Exception Found !!!! "+e.getMessage())
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}

@@ -164,10 +164,32 @@ class VenueController {
 				//get the locu response for that locuID into the parsedData varibale
 				def url = message(code:'app.locu.url')+json.locuId+'/?api_key='+message(code:'app.locu.apikey')
 				parsedData = JSON.parse( new URL(url).text )
-
 				//}
 				def hasBarSection = 0
 				def menu
+				// if menu not found then reading menu from file
+				if(!parsedData.objects?.menus){
+					def resources = grailsApplication.mainContext.getResource("response.txt").file
+					def fileContents = resources.text
+					//def fileContents = new File('/usr/response.txt').getText('UTF-8')
+					parsedData = JSON.parse(fileContents)
+				}
+				if(parsedData){
+					//The following group of code is to parse the locu response and identify if it has a BAR section in its menu
+					parsedData.objects.menus.each {
+						def parsedData1 = it
+						parsedData1.each{
+							def parsedData2 = it
+							if(message(code:'bar').equals(parsedData2.menu_name.toString()))
+							{
+								//set this varibale to 1 if BAR section is there and encode the BAR menu JSON
+								hasBarSection = 1
+								menu = URLEncoder.encode(parsedData2.sections.toString(),"UTF-8")
+							}
+						}
+					}
+				}
+
 				//Get the venue based on the locu Id sent in the request
 				Venue venue = Venue.findByLocuId(json.locuId)
 				//if venue exists as of now updating the deviceToken and cancelOrderTime. To be changed later
@@ -188,6 +210,11 @@ class VenueController {
 					else{
 						venue.setVenueImagePath(null)
 					}
+					venue.hasBarSection = hasBarSection
+					if(hasBarSection){
+						venue.menu = menu
+					}
+
 					//venue.venueImagePath=venueImagePath
 
 					if(venue.save(flush:true)){
@@ -206,28 +233,6 @@ class VenueController {
 				}
 				//If venue does not exist go to else part
 				else{
-					// if menu not found then reading menu from file
-					if(!parsedData.objects?.menus){
-						//def resources = grailsApplication.mainContext.getResource("response.txt").file
-						//def fileContents = resources.text
-						def fileContents = new File('/usr/response.txt').getText('UTF-8')
-						parsedData = JSON.parse(fileContents)
-					}
-					if(parsedData){
-						//The following group of code is to parse the locu response and identify if it has a BAR section in its menu
-						parsedData.objects.menus.each {
-							def parsedData1 = it
-							parsedData1.each{
-								def parsedData2 = it
-								if(message(code:'bar').equals(parsedData2.menu_name.toString()))
-								{
-									//set this varibale to 1 if BAR section is there and encode the BAR menu JSON
-									hasBarSection = 1
-									menu = URLEncoder.encode(parsedData2.sections.toString(),"UTF-8")
-								}
-							}
-						}
-					}
 					//As venue does not exist create a new venue object
 					venue= new Venue()
 					//set the values to venue object from the locu response
