@@ -66,6 +66,7 @@ class InventoryController {
 				response.put("errorCode","100")
 				response.put("errorMessage","API version do not match")
 			}
+			response.put("currentTime",new Date().toGMTString())
 		}
 		catch(Exception e){
 			log.info("Exception is ===> "+e.getMessage())
@@ -121,6 +122,7 @@ class InventoryController {
 				response.put("errorCode","100")
 				response.put("errorMessage","API version do not match")
 			}
+			response.put("currentTime",new Date().toGMTString())
 		}
 		catch(Exception e){
 			log.info("Exception is ===> "+e.getMessage())
@@ -178,6 +180,7 @@ class InventoryController {
 						}
 						response.put("errorCode","0")
 						response.put("ingredients",listOfTypes)
+						response.put("currentTime",new Date().toGMTString())
 					}
 					else{
 						response.put("errorCode","1")
@@ -228,6 +231,7 @@ class InventoryController {
 					response.put("errorCode","100")
 					response.put("errorMessage","API version do not match")
 				}
+				response.put("currentTime",new Date().toGMTString())
 			}
 			catch(Exception e){
 				log.info("Exception is ===> "+e.getMessage())
@@ -274,6 +278,7 @@ class InventoryController {
 				response.put("errorCode","100")
 				response.put("errorMessage","API version do not match")
 			}
+			response.put("currentTime",new Date().toGMTString())
 		}
 		catch(Exception e){
 			log.info("Exception is ===> "+e.getMessage())

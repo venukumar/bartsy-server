@@ -364,6 +364,7 @@ class VenueController {
 				response.put("errorCode","100")
 				response.put("errorMessage","API version do not match")
 			}
+			response.put("currentTime",new Date().toGMTString())
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
@@ -473,6 +474,7 @@ class VenueController {
 				response.put("errorCode","100")
 				response.put("errorMessage","API version do not match")
 			}
+			response.put("currentTime",new Date().toGMTString())
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
@@ -679,6 +681,7 @@ class VenueController {
 						venueMap.put("address",address)
 						venueMap.put("cancelOrderTime",venue.getCancelOrderTime())
 						venueMap.put("totalTaxRate",venue.totalTaxRate)
+						venueMap.put("currentTime",new Date().toGMTString())
 						//add the venue object to the list defined earlier
 						totalVenueList.add(venueMap)
 					}
@@ -836,6 +839,7 @@ class VenueController {
 								//pnMessage.put("ordersCancelled",ordersCancelled)
 								pnMessage.put("usersCheckedOut",usersCheckedOut)
 								pnMessage.put("messageType","userTimeout")
+								pnMessage.put("currentTime",new Date().toGMTString())
 								androidPNService.sendPN(pnMessage,venue.deviceToken)
 							}
 						}
@@ -872,6 +876,7 @@ class VenueController {
 									pnMessage.put("orderStatus","10")
 									pnMessage.put("cancelledOrder",order.orderId)
 									pnMessage.put("messageType","orderTimeout")
+									pnMessage.put("currentTime",new Date().toGMTString())
 									ordersCancelled.add(order.orderId)
 
 									if(order.user.deviceType == 0){
@@ -894,6 +899,7 @@ class VenueController {
 								def pnMessage = [:]
 								pnMessage.put("ordersCancelled",ordersCancelled)
 								pnMessage.put("messageType","orderTimeout")
+								pnMessage.put("currentTime",new Date().toGMTString())
 								androidPNService.sendPN(pnMessage,venue.deviceToken)
 							}
 						}
@@ -903,6 +909,7 @@ class VenueController {
 					//send the errorCode 0 as acknowledgement of the status save
 					response.put("errorCode","0")
 					response.put("errorMessage","Save Successful")
+					response.put("currentTime",new Date().toGMTString())
 				}
 			}
 			else{
@@ -960,7 +967,7 @@ class VenueController {
 				response.put("errorCode","100")
 				response.put("errorMessage","API version do not match")
 			}
-
+			response.put("currentTime",new Date().toGMTString())
 		}catch(Exception e){
 			log.info("Exception found !!! "+e.getMessage())
 			response.put("errorCode",200)
@@ -990,6 +997,7 @@ class VenueController {
 					details.put("venueName",venue.venueName?venue.venueName:"")
 					details.put("venueId",venue.venueId?venue.venueId:"")
 					details.put("venueImagePath",venue.venueImagePath?venue.venueImagePath:"")
+					details.put("currentTime",new Date().toGMTString())
 					commonMethods.getUserOrderAndChekedInDetails(venue,user,details)
 					venueDetails.add(details)
 				}

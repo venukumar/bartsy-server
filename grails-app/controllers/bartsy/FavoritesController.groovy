@@ -43,6 +43,8 @@ class FavoritesController {
 					handleNegativeResponse(response,"BartsyId should not be empty or null")
 			}else
 				handleNegativeResponse(response,"Json should not be empty")
+
+			response.put("currentTime",new Date().toGMTString())
 		}catch(Exception e){
 			log.info("Exception is ===> "+e.getMessage())
 			response.put("errorCode",200)
@@ -52,31 +54,25 @@ class FavoritesController {
 		}
 	}
 
-/*	def getUserFavoritePeople={
-		def response=[:]
-		try{
-
-			def json = JSON.parse(request)
-			if(json){
-				if(json.has("bartsyId")){
-					
-					def 
-					
-					
-					
-					
-				}else
-					handleNegativeResponse(response,"BartsyId should not be empty or null")
-			}else
-				handleNegativeResponse(response,"Json should not be empty")
-		}catch(Exception e){
-			log.info("Exception is ===> "+e.getMessage())
-			response.put("errorCode",200)
-			response.put("errorMessage",e.getMessage())
-		}finally{
-			render(text:response as JSON,contentType:"application/json")
-		}
-	}*/
+	/*	def getUserFavoritePeople={
+	 def response=[:]
+	 try{
+	 def json = JSON.parse(request)
+	 if(json){
+	 if(json.has("bartsyId")){
+	 def 
+	 }else
+	 handleNegativeResponse(response,"BartsyId should not be empty or null")
+	 }else
+	 handleNegativeResponse(response,"Json should not be empty")
+	 }catch(Exception e){
+	 log.info("Exception is ===> "+e.getMessage())
+	 response.put("errorCode",200)
+	 response.put("errorMessage",e.getMessage())
+	 }finally{
+	 render(text:response as JSON,contentType:"application/json")
+	 }
+	 }*/
 
 	/**
 	 * To verify the user profile exists or not
