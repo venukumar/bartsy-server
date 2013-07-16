@@ -6,6 +6,9 @@ class Notifications {
 		order(nullable:true)
 		orderType(nullable:true)
     }
+	static mapping={
+		status defaultValue: 0
+	}
 	
 	static belongsTo = [user:UserProfile,venue:Venue,order:Orders]
 	
@@ -14,4 +17,5 @@ class Notifications {
 	String orderType
 	Date dateCreated
 	Date lastUpdated
+	int status
 }
