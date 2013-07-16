@@ -1,7 +1,6 @@
 package bartsy
 
 import grails.converters.JSON
-import bartsy.AsymmetricCipherTest
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64
 import java.security.KeyPair
 import java.security.PrivateKey
@@ -225,6 +224,7 @@ class UserController {
 				response.put("errorMessage","API version do not match")
 			}
 			response.put("oauthCode", sessionCode)
+			response.put("currentTime",new Date().toGMTString())
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
@@ -294,6 +294,7 @@ class UserController {
 									pnMessage.put("cancelledOrders",cancelledOrders)
 									pnMessage.put("bartsyId",userProfile.bartsyId)
 									pnMessage.put("messageType","userCheckOut")
+									pnMessage.put("currentTime",new Date().toGMTString())
 									androidPNService.sendPN(pnMessage,userCheckedIn.venue.deviceToken)
 									//save the user checkout notfication
 									def notification = new Notifications()
@@ -344,6 +345,7 @@ class UserController {
 								pnMessage.put("messageType","userCheckIn")
 								pnMessage.put("showProfile",userProfile.showProfile)
 								pnMessage.put("userImagePath",userProfile.getUserImage())
+								pnMessage.put("currentTime",new Date().toGMTString())
 								androidPNService.sendPN(pnMessage,venue.deviceToken)
 								//save the user checkin notification
 								def notification = new Notifications()
@@ -373,6 +375,7 @@ class UserController {
 				response.put("errorCode","100")
 				response.put("errorMessage","API version do not match")
 			}
+			response.put("currentTime",new Date().toGMTString())
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
@@ -453,6 +456,7 @@ class UserController {
 							pnMessage.put("cancelledOrders",cancelledOrders)
 							pnMessage.put("bartsyId",userProfile.bartsyId)
 							pnMessage.put("messageType","userCheckOut")
+							pnMessage.put("currentTime",new Date().toGMTString())
 							androidPNService.sendPN(pnMessage,venue.deviceToken)
 							//save the user checkout notification
 							def notification = new Notifications()
@@ -481,6 +485,7 @@ class UserController {
 				response.put("errorCode","100")
 				response.put("errorMessage","API version do not match")
 			}
+			response.put("currentTime",new Date().toGMTString())
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
@@ -737,6 +742,7 @@ class UserController {
 				response.put("errorCode","100")
 				response.put("errorMessage","API version do not match")
 			}
+			response.put("currentTime",new Date().toGMTString())
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
@@ -886,7 +892,7 @@ class UserController {
 				response.put("errorCode","100")
 				response.put("errorMessage","API version do not match")
 			}
-
+			response.put("currentTime",new Date().toGMTString())
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
@@ -959,6 +965,7 @@ class UserController {
 				response.put("errorCode","100")
 				response.put("errorMessage","API version do not match")
 			}
+			response.put("currentTime",new Date().toGMTString())
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
@@ -1022,9 +1029,10 @@ class UserController {
 			}else{
 				handleNegativeResponse(response,"Your post data is empty")
 			}
+			response.put("currentTime",new Date().toGMTString())
 			render(text:response as JSON ,  contentType:"application/json")
 		}catch (Exception e) {
-			println "Exception Found !!!! "+e.getMessage()
+			log.info("Exception Found !!!! "+e.getMessage())
 		}
 
 	}
@@ -1104,6 +1112,7 @@ class UserController {
 				response.put("errorCode","100")
 				response.put("errorMessage","API version do not match")
 			}
+			response.put("currentTime",new Date().toGMTString())
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
@@ -1111,6 +1120,7 @@ class UserController {
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
 		}
+
 		render(text:response as JSON ,  contentType:"application/json")
 	}
 
@@ -1151,7 +1161,7 @@ class UserController {
 			log.info("Exception found In verifyEmailId !!!!! "+e.getMessage())
 		}
 	}
-	
+
 	def createServerKeys(){
 		String privateKeyFile = "bartsy_privateKey.pem"
 		String publicKeyFile = "bartsy_publicKey.pem"
@@ -1167,18 +1177,18 @@ class UserController {
 		CryptoUtil.createUserSignedCert(cryptoPath+csrFile,cryptoPath+certFile,cryptoPath+caCert,cryptoPath+caPrivKey)
 	}
 
-	def getServerPublicKey(){		
+	def getServerPublicKey(){
 		def json = JSON.parse(request)
 		def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 		if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
-		try{
-			def pubKeyFile = grailsApplication.mainContext.getResource("images/bartsy_publicKey.pem").getFile() 
-			def pubKeyFileStream= new FileInputStream(pubKeyFile)
-			response.setHeader("Content-disposition", "filename=bartsyPublicKey.pem")
-			response.outputStream << pubKeyFileStream
-			response.outputStream.flush()
+			try{
+				def pubKeyFile = grailsApplication.mainContext.getResource("images/bartsy_publicKey.pem").getFile()
+				def pubKeyFileStream= new FileInputStream(pubKeyFile)
+				response.setHeader("Content-disposition", "filename=bartsyPublicKey.pem")
+				response.outputStream << pubKeyFileStream
+				response.outputStream.flush()
 			}catch(Exception e){
-			log.error(e.getMessage())
+				log.error(e.getMessage())
 			}
 		}else{
 			def response = [:]
@@ -1187,7 +1197,7 @@ class UserController {
 			render(text:response as JSON ,  contentType:"application/json")
 		}
 	}
-	
+
 	def getEncryptDecryptedKey(){
 		def baseFolder = servletContext.getRealPath("/")
 		PublicKey userPublicKey=CryptoUtil.readPublicKey(baseFolder+"images/bartsy_office.crt")

@@ -225,6 +225,7 @@ class OrderController {
 				response.put("errorCode","100")
 				response.put("errorMessage","API version do not match")
 			}
+			response.put("currentTime",new Date().toGMTString())
 		}
 		catch(Exception e){
 			log.info("Exception is ===> "+e.getMessage())
@@ -353,6 +354,7 @@ class OrderController {
 									pnMessage.put("orderId",orderObject.orderId.toString())
 									pnMessage.put("messageType","updateOrderStatus")
 									pnMessage.put("updateTime",orderDate.toGMTString())
+									pnMessage.put("currentTime",new Date().toGMTString())
 									pnMessage.put("body",body)
 									pnMessage.put("orderTimeout",order.venue.cancelOrderTime)
 									if(order.receiverProfile.bartsyId && !order.receiverProfile.bartsyId.equals(order.user.bartsyId))
@@ -425,6 +427,7 @@ class OrderController {
 				response.put("errorCode","100")
 				response.put("errorMessage","API version do not match")
 			}
+			response.put("currentTime",new Date().toGMTString())
 		}
 		catch(Exception e){
 			log.info("Exception is ===> "+e.getMessage())
@@ -468,6 +471,7 @@ class OrderController {
 									pnMessage.put("messageType","DrinkOfferRejected")
 									pnMessage.put("updateTime",orderDate.toGMTString())
 									pnMessage.put("orderTimeout",venue.cancelOrderTime)
+									pnMessage.put("currentTime",new Date().toGMTString())
 									pnMessage.put("body",body)
 									// checking deviceType android is 0 and iphone is 1
 									if(order.user.deviceType == 1 ){
@@ -513,6 +517,7 @@ class OrderController {
 									pnMessage.put("totalPrice", order.totalPrice)
 									pnMessage.put("description",order.description)
 									pnMessage.put("orderTimeout",venue.cancelOrderTime)
+									pnMessage.put("currentTime",new Date().toGMTString())
 									pnMessage.put("body",body)
 									//sending PN to Bartender
 									androidPNService.sendPN(pnMessage, venue.deviceToken)
@@ -558,6 +563,7 @@ class OrderController {
 				response.put("errorCode","100")
 				response.put("errorMessage","API version do not match")
 			}
+			response.put("currentTime",new Date().toGMTString())
 		}
 		catch(Exception e){
 			log.info("Exception is ===> "+e.getMessage())
@@ -824,6 +830,7 @@ class OrderController {
 						pastOrdersMap.put("recipientNickname",order.receiverProfile.getNickName())
 						pastOrdersMap.put("SenderImagePath",order.user.getUserImage())
 						pastOrdersMap.put("recipientImagePath",order.receiverProfile.getUserImage())
+						pastOrdersMap.put("currentTime",new Date().toGMTString())
 						pastOrdersList.add(pastOrdersMap)
 					}
 				}
