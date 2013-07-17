@@ -161,6 +161,7 @@ class OrderController {
 							pnMessage.put("updateTime",orderDate.toGMTString())
 							pnMessage.put("orderTimeout",venue.cancelOrderTime)
 							pnMessage.put("specialInstructions",json.specialInstructions ?: "")
+							pnMessage.put("itemsList",json.has("itemsList")?json.itemsList.toString():"")
 							if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
 
 								def body="You have been offered a drink "+json.itemName+" by "+orderUpdate.user.nickName
@@ -230,7 +231,7 @@ class OrderController {
 		catch(Exception e){
 			log.info("Exception is ===> "+e.getMessage())
 			response.put("errorCode",200)
-			response.put("errorMessage",e.getMessage())
+			response.put("errorMessage","Error occured while processing your request. Please verify json")
 		}
 		render(text:response as JSON,contentType:"application/json")
 	}
@@ -287,6 +288,9 @@ class OrderController {
 									order = paymentService.makePayment(order)
 									if(order.getCaptureApproved().toBoolean()){
 										body = "You have picked up the order"
+										//Calculating reward points
+										CommonMethods common = new CommonMethods()
+										common.calculateRewardPoints(order)
 									}
 									else{
 										body = "Order has been cancelled due to payment failure"
@@ -298,7 +302,7 @@ class OrderController {
 									order.setErrorReason(orderObject.has("errorReason")?orderObject.errorReason:"NOSHOW")
 									break
 								case "10" :
-								    order.setLastState(order.orderStatus)
+									order.setLastState(order.orderStatus)
 									order.setErrorReason(orderObject.has("errorReason")?orderObject.errorReason:"Dismiss")
 									break;
 							}

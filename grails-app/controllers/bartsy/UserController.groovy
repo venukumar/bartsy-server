@@ -545,6 +545,11 @@ class UserController {
 						//if order was not accepted/rejected then do not charge the user...else charge
 						if(order.orderStatus.equals("2")||order.orderStatus.equals("3")){
 							order = paymentService.makePayment(order)
+							if(order.getCaptureApproved().toBoolean()){
+								//Calculating reward points
+								CommonMethods common = new CommonMethods()
+								common.calculateRewardPoints(order)
+							}
 						}
 						//set the status to 10 i.e. pastOrders
 						order.setOrderStatus("10")
@@ -563,6 +568,11 @@ class UserController {
 					//if order was not accepted/rejected then do not charge the user...else charge
 					if(order.orderStatus.equals("2")||order.orderStatus.equals("3")){
 						order = paymentService.makePayment(order)
+						if(order.getCaptureApproved().toBoolean()){
+							//Calculating reward points
+							CommonMethods common = new CommonMethods()
+							common.calculateRewardPoints(order)
+						}
 					}
 					//set the status to 10 i.e. pastOrders
 					order.setOrderStatus("10")
