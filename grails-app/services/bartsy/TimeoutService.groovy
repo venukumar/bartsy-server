@@ -45,6 +45,11 @@ class TimeoutService {
 								order.setOrderStatus("7")
 								if(orderStatus.equals("3")){
 									order = paymentService.makePayment(order)
+									if(order.getCaptureApproved().toBoolean()){
+										//Calculating reward points
+										CommonMethods common = new CommonMethods()
+										common.calculateRewardPoints(order)
+									}
 								}
 								if(!order.save(flush:true)){
 									println "order timeout error"
@@ -111,7 +116,7 @@ class TimeoutService {
 		log.info("change orders to past orders")
 		def openOrdersCriteria = Orders.createCriteria()
 		def openOrders = openOrdersCriteria.list {
-				'in'("orderStatus",["1", "4", "5", "6", "7", "8"])
+			'in'("orderStatus",["1", "4", "5", "6", "7", "8"])
 		}
 		println "openOrders "+openOrders.size()
 		if(openOrders){
