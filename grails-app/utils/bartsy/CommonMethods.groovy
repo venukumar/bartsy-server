@@ -1,8 +1,27 @@
 package bartsy
 
 import java.text.SimpleDateFormat
+import org.codehaus.groovy.grails.web.json.JSONArray
 
 class CommonMethods {
+
+
+
+	/**
+	 * To verify the user profile exists or not
+	 */
+	def verifyBartsyId(bartsyId){
+		boolean user = false
+		def userProfile = UserProfile.findByBartsyId(bartsyId)
+		if(userProfile)
+			user=true
+		return user
+	}
+	def exceptionFound(e,response){
+		println"Exception found in getUserRewards "+e.getMessage()
+		response.put("errorCode",200)
+		response.put("errorMessage",e.getMessage())
+	}
 
 	/**
 	 * 
@@ -121,5 +140,33 @@ class CommonMethods {
 		}
 		//return checkedInUsersMap
 	}
+	/*
+	 *  Calculating reward points of the user based on the venue
+	 */
+	def calculateRewardPoints(Orders order){
 
+
+		int rewards=1
+		if(order.itemsList){
+			def itemsListStr = new JSONArray(order.itemsList)
+			rewards = itemsListStr.size()
+		}
+
+
+		def userRewardsPoints
+		//userRewardsPoints =  UserRewardPoints.findByUserAndVenue(user,venue)
+
+		//if(userRewardsPoints){
+		//	int existingPoints = getUserPoints.rewardPoints
+		//	rewards = existingPoints+rewards;
+		//}
+		//else{
+		userRewardsPoints = new UserRewardPoints()
+		//}
+		userRewardsPoints.setVenue(order.venue)
+		userRewardsPoints.setUser(order.user)
+		userRewardsPoints.setOrder(order)
+		userRewardsPoints.setRewardPoints(rewards)
+		userRewardsPoints.save(flush:true)
+	}
 }
