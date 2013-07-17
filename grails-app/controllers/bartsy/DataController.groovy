@@ -739,8 +739,12 @@ class DataController {
 							messageMap.put("date",message.dateCreated)
 							messageMap.put("currentTime",new Date().toGMTString())
 							messagesList.add(messageMap)
-							message.setStatus(1)
-							message.save(flush:true)
+
+							if(json.senderId.trim().equalsIgnoreCase(message.receiver.bartsyId.trim()))
+							{
+								message.setStatus(1)
+								message.save(flush:true)
+							}
 						}
 						response.put("messages",messagesList)
 					}
