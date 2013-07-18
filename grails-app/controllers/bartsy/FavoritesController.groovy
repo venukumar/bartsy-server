@@ -96,4 +96,53 @@ class FavoritesController {
 		response.put("errorMessage", message)
 		return response
 	}
+
+	def favoriteVenues={
+		def response=[:]
+		try{
+			def json = JSON.parse(request)
+			if(json){
+				def bartsyId
+				def venueId
+				def venue
+				def user
+
+				if(json.has("bartsyId"))
+					bartsyId=json.bartsyId
+				if(json.has("venueId"))
+					venueId = json.venueId
+				if(venueId)
+					venue = Venue.findByVenueId(venueId)
+				if(bartsyId)
+					user=UserProfile.findByBartsyId(bartsyId)
+
+				if(venue){
+					if(user){
+
+						def fvtVenue = UserFavoriteVenues.findByUserAndVenue(user,venue)
+						if(!fvtVenue){
+							UserFavoriteVenues userFvtVenue = new UserFavoriteVenues()
+							userFvtVenue.venue=venue
+							userFvtVenue.user=user
+							if(userFvtVenue.save(flush:true)){
+								response.put("errorCode","0")
+								response.put("errorMessage",venue.venueName+" successfully saved as favorite venue")
+							}else{
+								handleNegativeResponse(response,venue.venueName+" not saved successfully")
+							}
+						}
+					}else{
+						handleNegativeResponse(response,"User does not exists")
+					}
+				}	else{
+					handleNegativeResponse(response,"Venue does not exists")
+				}
+			}
+			else
+				handleNegativeResponse(response,"Request should not be empty")
+		}catch(Exception e){
+			log.info("Exception found in favoritesVenue "+e.getMessage())
+			println("Exception found in favoritesVenue "+e.getMessage())
+		}
+	}
 }
