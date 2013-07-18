@@ -236,9 +236,7 @@ class VenueController {
 					//As venue does not exist create a new venue object
 					venue= new Venue()
 					//set the values to venue object from the locu response
-
 					setValuesToVenue(venue,json)
-
 					//set the values to venue object from the locu response
 
 					if(json.has("venueName")&&json.venueName.trim())

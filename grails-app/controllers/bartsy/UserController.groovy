@@ -24,9 +24,13 @@ class UserController {
 	def saveUserProfile = {
 		//defining a map to return as a response for this syscall
 		def response = [:]
+		
 		try{
 			//parse the request sent as input to the syscall
 			def json = JSON.parse(params.details)
+			/*if(json.encryptedCreditCard){
+				println "sdfsf " +getDecryptCredit(json.encryptedCreditCard)
+			}*/
 			//varibale to check if email is updated
 			def emailUpdated = false
 			def sessionCode = System.currentTimeMillis().toString()
@@ -186,6 +190,7 @@ class UserController {
 							if(userProfileToSave.save()){
 								def paymentCheck
 								if(json.has("creditCardNumber")&&json.has("expMonth")&&json.has("expYear")){
+									
 									paymentCheck = paymentService.authorizePaymentInSaveUserProfile(userProfileToSave,"0.01",userProfileToSave.bartsyId)
 								}
 								response.put("bartsyId",maxId)
@@ -1186,6 +1191,8 @@ class UserController {
 		CryptoUtil.createCSR(cryptoPath+privateKeyFile,cryptoPath+csrFile,subj1)
 		CryptoUtil.createUserSignedCert(cryptoPath+csrFile,cryptoPath+certFile,cryptoPath+caCert,cryptoPath+caPrivKey)
 	}
+	
+	
 
 	def getServerPublicKey(){
 		def json = JSON.parse(request)
@@ -1208,6 +1215,20 @@ class UserController {
 		}
 	}
 
+	def getDecryptCredit(String encCard){
+		def baseFolder = servletContext.getRealPath("/")
+		PrivateKey bartsyPrivateKey=AsymmetricCipherTest.getPemPrivateKey(baseFolder+"images/bartsy_privateKey.pem","RSA")
+		Base64 b64 = new Base64();
+		//def hexMesg=b64.encode(hexOficeAES.getBytes());
+		byte[] bb=b64.decode(encCard)
+		log.info("decode with base 64")
+		byte[] bDecryptedKey = AsymmetricCipherTest.decrypt(bb,bartsyPrivateKey)
+		log.info("decrypt with Bartsy private key")
+		String decCredit = new String(bDecryptedKey, "UTF8")
+		decCredit = decCredit.trim();
+		return decCredit
+	}
+
 	def getEncryptDecryptedKey(){
 		def baseFolder = servletContext.getRealPath("/")
 		PublicKey userPublicKey=CryptoUtil.readPublicKey(baseFolder+"images/bartsy_office.crt")
@@ -1222,7 +1243,6 @@ class UserController {
 		log.info("decrypt with Bartsy private key")
 		String decCredit = new String(bDecryptedKey, "UTF8")
 		decCredit = decCredit.trim();
-		println "zxzx "+decCredit
 	}
 
 }

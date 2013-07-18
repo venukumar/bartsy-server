@@ -29,6 +29,7 @@
 		<ul>
 			<li><g:link controller="admin" action="ordersList"><img src="${resource(dir: 'images', file: 'home-icon.png')}" alt="img" width="20" height="18" /></g:link></li>
 			<li><g:link controller="admin" action="saleuserList"><img src="${resource(dir: 'images', file: 'user.png')}" alt="Sales Users" width="14" height="16" /></g:link></li>
+            <li><g:link controller="admin" action="usersList"><img src="${resource(dir: 'images', file: 'user.png')}" alt="Users" width="14" height="16" /></g:link></li>
             <li><g:link controller="admin" action="appSettings"><img src="${resource(dir: 'images', file: 'settings.png')}" alt="img" width="20" height="18" /></g:link></li>
 			<li><g:link controller="admin" action="logout"><img src="${resource(dir: 'images', file: 'logout.png')}" alt="img" width="17" height="17" /></g:link></li>
 		</ul>

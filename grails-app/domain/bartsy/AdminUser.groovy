@@ -8,7 +8,7 @@ class AdminUser {
 		email(nullable:true)
 		username()
 		password()
-		userType(inList: ["Admin","SalesUser"])
+		userType(inList: ["Admin","SalesUser","SalesManager"])
 		dateCreated()
 		lastUpdated()
     }

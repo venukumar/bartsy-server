@@ -75,10 +75,10 @@ class AdminController {
 	}
 
 	def usersList(){
+		params.max = Math.min(params.max ? params.int('max') : 50, 100)
 		try{
-			def userlist = UserProfile.list()
+			def userlist = UserProfile.createCriteria().list(params){ order "id", "desc" }
 			def userlistTotal = UserProfile.count()
-
 			[usersList:userlist, usersTotal:userlistTotal]
 		}catch(Exception e){
 			log.error("Error in Users List ==>"+e.getMessage())
@@ -90,7 +90,6 @@ class AdminController {
 		try{
 			def orderslist = Orders.createCriteria().list(params){ order "id", "desc" }
 			def orderlistTotal = Orders.count()
-
 			[ordersList:orderslist, ordersTotal:orderlistTotal]
 		}catch(Exception e){
 			log.error("Error in Orders List ==>"+e.getMessage())
@@ -205,28 +204,87 @@ class AdminController {
 
 	def saleuserList(){
 		try{
-			def salesList = AdminUser.findAllByUserType("SalesUser")
+			def salesList = AdminUser.findAllByUserTypeInList(["SalesUser","SalesManager"])
 			def salesCnt = salesList.size()
 			[salesList:salesList, salesCnt:salesCnt]
 		}catch(Exception e){
 			log.error("Error in sales user list"+e.getMessage())
 		}
 	}
-
-	def createServerKeys(){
-		String privateKeyFile = "bartsy_privateKey.pem"
-		String publicKeyFile = "bartsy_publicKey.pem"
-		String csrFile = "bartsy_office.csr"
-		String certFile = "bartsy_office.crt"
-		String caCert = "bartsy_ca.crt"
-		String caPrivKey = "bartsy_CAkey.pem"
-		String cryptoPath = message(code:'userimage.path')
-		CryptoUtil.createCAKeys(cryptoPath+caPrivKey,cryptoPath+caCert)
-		CryptoUtil.createRSAKeys(cryptoPath+privateKeyFile,cryptoPath+publicKeyFile)
-		String subj1 = "/C=US/ST=Florida/L=West Palm Beach/O=Bartsy Owner LLC/OU=Support/CN=Bartsy/emailAddress=info@bartsy.com"
-		CryptoUtil.createCSR(cryptoPath+privateKeyFile,cryptoPath+csrFile,subj1)
-		CryptoUtil.createUserSignedCert(cryptoPath+csrFile,cryptoPath+certFile,cryptoPath+caCert,cryptoPath+caPrivKey)
+	
+	def createSaleUser(){
+		try{
+			
+			if(params.act){
+				def saleInfo = AdminUser.findAllByUsernameAndUserType(params.username,params.userType)
+				if(!saleInfo){
+					def saleAcc = new AdminUser()
+					saleAcc.setFirstName(params.firstName)
+					saleAcc.setLastName(params.lastName)
+					saleAcc.setEmail(params.email)
+					saleAcc.setUsername(params.username)
+					saleAcc.setPassword(params.password)
+					saleAcc.setUserType(params.userType)
+					saleAcc.save(flush:true)
+					flash.message =  "Sales Account created successfully"
+					forward(action:"saleuserList")
+				}else{
+					flash.error = "Sales Account already exists with the same Username"
+					[saleInstance:params]
+				}
+				
+			}
+			[saleInstance:params]
+			
+		}catch(Exception e){
+			log.error("Exception in create Sale User ==>"+e.getMessage())
+		}
 	}
+	
+	def editSaleUser(){
+		try{
+			def saleInfo = AdminUser.get(params.id)
+			if(saleInfo){
+				if(params.act){
+						saleInfo.setFirstName(params.firstName)
+						saleInfo.setLastName(params.lastName)
+						saleInfo.setEmail(params.email)
+						saleInfo.setPassword(params.password)
+						saleInfo.setUserType(params.userType)
+						if(!saleInfo.save(flush:true)){
+							flash.error =  "Sales Account updation failed"
+							[saleInstance:params]
+						}else{
+							flash.message =  "Sales Account updated successfully"
+							forward(action:"saleuserList")
+						}
+				}
+			[saleInstance:saleInfo]
+			}else{
+				flash.error = "Sale Account doesn't exist"
+				forward(action:"saleuserList")
+			}
+		}catch(Exception e){
+			log.error("Exception in create Sale User ==>"+e.getMessage())
+		}
+	}
+	
+	def deleteSaleUser(){
+		try{
+			def saleInfo = AdminUser.get(params.id)
+			if(saleInfo){
+				saleInfo.delete(flush:true)
+				flash.message =  "Sales Account deleted successfully"
+				forward(action:"saleuserList")
+			}else{
+				flash.error = "Sale Account doesn't exist"
+				forward(action:"saleuserList")
+			}
+		}catch(Exception e){
+			log.error("Exception in create Sale User ==>"+e.getMessage())
+		}
+	}
+
 
 	def logout(){
 		if(session.user){
