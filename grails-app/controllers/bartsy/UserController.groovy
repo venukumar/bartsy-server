@@ -24,13 +24,13 @@ class UserController {
 	def saveUserProfile = {
 		//defining a map to return as a response for this syscall
 		def response = [:]
-		
+
 		try{
 			//parse the request sent as input to the syscall
 			def json = JSON.parse(params.details)
 			/*if(json.encryptedCreditCard){
-				println "sdfsf " +getDecryptCredit(json.encryptedCreditCard)
-			}*/
+			 println "sdfsf " +getDecryptCredit(json.encryptedCreditCard)
+			 }*/
 			//varibale to check if email is updated
 			def emailUpdated = false
 			def sessionCode = System.currentTimeMillis().toString()
@@ -166,6 +166,14 @@ class UserController {
 							userProfileToSave.setExpYear(json.expYear.toString() ?: "")
 							userProfileToSave.setSessionCode(sessionCode)
 							userProfileToSave.setEmailVerified("false")
+							userProfileToSave.setAdminUser(0)
+//							def admin = AdminUser.findByPromoterCode(json.has("promoCode")?json.promoCode:"")
+//							if(admin){
+//								userProfileToSave.setAdminUser(admin.id)
+//							}
+//							else{
+//								userProfileToSave.setAdminUser(0)
+//							}
 							//retrieve the max bartsyId from DB and increment it by 1
 							def maxId = UserProfile.createCriteria().get { projections { max "bartsyId" } } as Long
 							if(maxId){
@@ -190,7 +198,7 @@ class UserController {
 							if(userProfileToSave.save()){
 								def paymentCheck
 								if(json.has("creditCardNumber")&&json.has("expMonth")&&json.has("expYear")){
-									
+
 									paymentCheck = paymentService.authorizePaymentInSaveUserProfile(userProfileToSave,"0.01",userProfileToSave.bartsyId)
 								}
 								response.put("bartsyId",maxId)
@@ -244,7 +252,7 @@ class UserController {
 	def randomTest = {
 		println" randomTest "
 		CommonMethods common = new CommonMethods()
-		String sessionCode = common.randomNumString(3)
+		String sessionCode = common.promoCode(6)
 		println "sessionCode "+sessionCode
 	}
 
@@ -1142,13 +1150,14 @@ class UserController {
 	/**
 	 * This method used to send bartsy verification mail to user email
 	 */
-	def sendVerificationMailToUser(String emailId,String bartsyId){
+	def sendVerificationMailToUser(String emailId,String bartsyId){	
 		try{
 			def userId = bartsyId.bytes.encodeBase64().toString()
 			String url =  request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+"/"+grailsApplication.getMetadata().getApplicationName()
 			sendMail {
+				from "Bartsy <accounts-do-not-replay@bartsy.vendsy.com>"
 				to emailId.trim()
-				subject "Bartsy Verification"
+				subject "Bartsy email verification"
 				html g.render(template:'/user/mailTemplate', model:[url:url,userId:userId])
 			}
 		}catch(Exception e){
@@ -1191,8 +1200,8 @@ class UserController {
 		CryptoUtil.createCSR(cryptoPath+privateKeyFile,cryptoPath+csrFile,subj1)
 		CryptoUtil.createUserSignedCert(cryptoPath+csrFile,cryptoPath+certFile,cryptoPath+caCert,cryptoPath+caPrivKey)
 	}
-	
-	
+
+
 
 	def getServerPublicKey(){
 		def json = JSON.parse(request)
