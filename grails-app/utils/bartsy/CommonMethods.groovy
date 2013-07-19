@@ -1,6 +1,7 @@
 package bartsy
 
 import java.text.SimpleDateFormat
+import org.apache.commons.lang.RandomStringUtils
 import org.codehaus.groovy.grails.web.json.JSONArray
 
 class CommonMethods {
@@ -22,6 +23,24 @@ class CommonMethods {
 		response.put("errorCode",200)
 		response.put("errorMessage",e.getMessage())
 	}
+
+	/* Checking String is Integer or not*/
+
+	public boolean isInteger(String integerString){
+
+		try{
+			if(integerString.indexOf(".") > 0 ){
+				Double.parseDouble(integerString);
+				return true;
+			}else{
+				Integer.parseInt(integerString);
+				return true;
+			}
+		} catch (NumberFormatException nfe) {
+			return false;
+		}
+	}
+
 
 	/**
 	 * 
@@ -56,15 +75,25 @@ class CommonMethods {
 	}
 	static final String num = "123456789";
 	static Random rnum = new Random()
+	/* 
+	 * This is the method used for to generate random number
+	 * 
+	 */
 	String randomNumString( int len ) {
 		StringBuilder sb = new StringBuilder( len );
 		for( int i = 0; i < len; i++ ){
-			println "i "+i
 			sb.append( num.charAt( rnum.nextInt(num.length()) ) );}
 		return sb.toString();
 	}
-
-
+	/*
+	 * This is the method used for to generate promoter code
+	 *
+	 */
+	String promoCode(int length) {
+		String charset = (('A'..'Z') + ('0'..'0')).join()
+		String randomString = RandomStringUtils.random(length, charset.toCharArray())
+		return randomString
+	}
 
 	/**
 	 * 
@@ -145,28 +174,29 @@ class CommonMethods {
 	 */
 	def calculateRewardPoints(Orders order){
 
+		if(order.user.emailVerified.toString().equalsIgnoreCase("true")){
+			int rewards=1
+			if(order.itemsList){
+				def itemsListStr = new JSONArray(order.itemsList)
+				rewards = itemsListStr.size()
+			}
 
-		int rewards=1
-		if(order.itemsList){
-			def itemsListStr = new JSONArray(order.itemsList)
-			rewards = itemsListStr.size()
+
+			def userRewardsPoints
+			//userRewardsPoints =  UserRewardPoints.findByUserAndVenue(user,venue)
+
+			//if(userRewardsPoints){
+			//	int existingPoints = getUserPoints.rewardPoints
+			//	rewards = existingPoints+rewards;
+			//}
+			//else{
+			userRewardsPoints = new UserRewardPoints()
+			//}
+			userRewardsPoints.setVenue(order.venue)
+			userRewardsPoints.setUser(order.user)
+			userRewardsPoints.setOrder(order)
+			userRewardsPoints.setRewardPoints(rewards)
+			userRewardsPoints.save(flush:true)
 		}
-
-
-		def userRewardsPoints
-		//userRewardsPoints =  UserRewardPoints.findByUserAndVenue(user,venue)
-
-		//if(userRewardsPoints){
-		//	int existingPoints = getUserPoints.rewardPoints
-		//	rewards = existingPoints+rewards;
-		//}
-		//else{
-		userRewardsPoints = new UserRewardPoints()
-		//}
-		userRewardsPoints.setVenue(order.venue)
-		userRewardsPoints.setUser(order.user)
-		userRewardsPoints.setOrder(order)
-		userRewardsPoints.setRewardPoints(rewards)
-		userRewardsPoints.save(flush:true)
 	}
 }
