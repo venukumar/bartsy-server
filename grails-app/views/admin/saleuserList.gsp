@@ -16,6 +16,7 @@
         <th width="20%"><g:message code="sale.label.name" default="Name" /></th>
 		<th width="20%"><g:message code="sale.label.email" default="Email" /></th>
 		<th width="20%"><g:message code="sale.label.utype" default="Account Type" /></th>
+		<th width="15%">Promo Code</th>	
 		<th width="15%"><g:message code="page.list.actions" default="Actions" /></th>	
         </tr>
     <% if(salesCnt>0){%>
@@ -24,6 +25,7 @@
           <td><div style="width:250px;word-wrap:break-word;display:block;">${sales?.firstName} ${sales?.lastName}</div></td>
           <td>${sales?.email}</td>
 		  <td>${sales?.userType}</td>
+	      <td>${sales?.promoterCode}</td>
           <td style="text-align:center"><table width="100%" border="0" cellspacing="0" cellpadding="0" class="actions-tbl">
  			 <tr>
    				 <td width="42%"><g:link class="edit" action="editSaleUser" id="${sales.id}"><g:message code="editbutton.title" default="Edit" /></g:link></td>
