@@ -25,10 +25,14 @@ class PaymentService {
 		def venueList = CheckedInUsers.findByUserProfile(userprofile)
 		def venueInfo = Venue.get(venueList.venue.id)
 		// create credit card
+	
+			String credit = getDecryptCredit(userprofile.getCreditCardNumber())
+			if(!credit.equals("1")){
 		CreditCard creditCard = CreditCard.createCreditCard();
-		creditCard.setCreditCardNumber(getDecryptCredit(userprofile.getCreditCardNumber()));
+		creditCard.setCreditCardNumber(credit);
 		creditCard.setExpirationMonth(userprofile.getExpMonth());
 		creditCard.setExpirationYear(userprofile.getExpYear());
+		
 		// create transaction
 		Transaction authCaptureTransaction = merchant.createAIMTransaction(
 				TransactionType.AUTH_ONLY, new BigDecimal(price));
@@ -66,6 +70,12 @@ class PaymentService {
 			response.put("authApproved","false")
 			response.put("authErrorMessage",result.getResponseText())
 		}
+		}else{
+		
+		response.put("authApproved","false")
+		response.put("authErrorMessage","Credit Card processor error")
+		}
+			
 		println response
 		return response
 	}
@@ -75,8 +85,10 @@ class PaymentService {
 		Merchant merchant = Merchant.createMerchant(Environment.SANDBOX,
 				"75x2yLLj", "5Lq4dG24m63qncQ4");
 		// create credit card
+			String credit = getDecryptCredit(userprofile.getCreditCardNumber())
+			if(!credit.equals("1")){
 		CreditCard creditCard = CreditCard.createCreditCard();
-		creditCard.setCreditCardNumber(getDecryptCredit(userprofile.getCreditCardNumber()));
+		creditCard.setCreditCardNumber(credit);
 		creditCard.setExpirationMonth(userprofile.getExpMonth());
 		creditCard.setExpirationYear(userprofile.getExpYear());
 		// create transaction
@@ -96,6 +108,11 @@ class PaymentService {
 			response.put("authApproved","false")
 			response.put("authErrorMessage",result.getResponseText())
 		}
+		}else{
+		
+		response.put("authApproved","false")
+		response.put("authErrorMessage","Credit Card processor error")
+		}
 		println response
 		return response
 	}
@@ -106,9 +123,11 @@ class PaymentService {
 
 		def venueList = CheckedInUsers.findByUserProfile(userprofile)
 		def venueInfo = Venue.get(venueList.venue.id)
+		String credit = getDecryptCredit(userprofile.getCreditCardNumber())
+		if(!credit.equals("1")){
 		// create credit card
 		CreditCard creditCard = CreditCard.createCreditCard();
-		creditCard.setCreditCardNumber(getDecryptCredit(userprofile.getCreditCardNumber()));
+		creditCard.setCreditCardNumber(credit);
 		creditCard.setExpirationMonth(userprofile.getExpMonth());
 		creditCard.setExpirationYear(userprofile.getExpYear());
 		// create transaction
@@ -149,6 +168,11 @@ class PaymentService {
 			response.put("captureApproved","false")
 			response.put("captureErrorMessage",result.getResponseText())
 		}
+	}else{
+	
+	response.put("authApproved","false")
+	response.put("authErrorMessage","Credit Card processor error")
+	}
 		println response
 		return response
 	}
@@ -168,6 +192,7 @@ class PaymentService {
 	}
 	
 	def getDecryptCredit(String encCard){
+		try{
 		def baseFolder = org.codehaus.groovy.grails.web.context.ServletContextHolder.getServletContext().getRealPath("/")
 		PrivateKey bartsyPrivateKey=AsymmetricCipherTest.getPemPrivateKey(baseFolder+"images/bartsy_privateKey.pem","RSA")
 		Base64 b64 = new Base64();
@@ -179,6 +204,9 @@ class PaymentService {
 		String decCredit = new String(bDecryptedKey, "UTF8")
 		decCredit = decCredit.trim();
 		return decCredit
+		}catch(Exception e){
+			return "1"
+		}
 	}
 
 }
