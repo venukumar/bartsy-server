@@ -259,8 +259,9 @@ class VenueController {
 						venue.locuId =json.locuId
 					else
 						venue.locuId =parsedData?parsedData.objects[0].id:""
-					if(json.has("openHours")&&json.openHours)
-						venue.openHours =json.openHours
+						println "open"
+					if(json.has("open_hours")&&json.open_hours)
+						venue.openHours =json.open_hours.toString()
 					else
 						venue.openHours =parsedData?parsedData.objects[0].open_hours:""
 
