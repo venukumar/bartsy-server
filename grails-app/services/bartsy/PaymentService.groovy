@@ -2,6 +2,8 @@ package bartsy
 
 
 import grails.converters.JSON
+import com.sun.org.apache.xerces.internal.impl.dv.util.Base64
+import java.security.PrivateKey
 import net.authorize.Merchant
 import net.authorize.data.Order
 import net.authorize.data.Customer
@@ -24,7 +26,7 @@ class PaymentService {
 		def venueInfo = Venue.get(venueList.venue.id)
 		// create credit card
 		CreditCard creditCard = CreditCard.createCreditCard();
-		creditCard.setCreditCardNumber(userprofile.getCreditCardNumber());
+		creditCard.setCreditCardNumber(getDecryptCredit(userprofile.getCreditCardNumber()));
 		creditCard.setExpirationMonth(userprofile.getExpMonth());
 		creditCard.setExpirationYear(userprofile.getExpYear());
 		// create transaction
@@ -74,7 +76,7 @@ class PaymentService {
 				"75x2yLLj", "5Lq4dG24m63qncQ4");
 		// create credit card
 		CreditCard creditCard = CreditCard.createCreditCard();
-		creditCard.setCreditCardNumber(userprofile.getCreditCardNumber());
+		creditCard.setCreditCardNumber(getDecryptCredit(userprofile.getCreditCardNumber()));
 		creditCard.setExpirationMonth(userprofile.getExpMonth());
 		creditCard.setExpirationYear(userprofile.getExpYear());
 		// create transaction
@@ -106,7 +108,7 @@ class PaymentService {
 		def venueInfo = Venue.get(venueList.venue.id)
 		// create credit card
 		CreditCard creditCard = CreditCard.createCreditCard();
-		creditCard.setCreditCardNumber(userprofile.getCreditCardNumber());
+		creditCard.setCreditCardNumber(getDecryptCredit(userprofile.getCreditCardNumber()));
 		creditCard.setExpirationMonth(userprofile.getExpMonth());
 		creditCard.setExpirationYear(userprofile.getExpYear());
 		// create transaction
@@ -163,6 +165,20 @@ class PaymentService {
 			order.setCaptureErrorMessage(captureResponse.get("captureErrorMessage"))
 		}
 		return order
+	}
+	
+	def getDecryptCredit(String encCard){
+		def baseFolder = org.codehaus.groovy.grails.web.context.ServletContextHolder.getServletContext().getRealPath("/")
+		PrivateKey bartsyPrivateKey=AsymmetricCipherTest.getPemPrivateKey(baseFolder+"images/bartsy_privateKey.pem","RSA")
+		Base64 b64 = new Base64();
+		//def hexMesg=b64.encode(hexOficeAES.getBytes());
+		byte[] bb=b64.decode(encCard)
+		log.info("decode with base 64")
+		byte[] bDecryptedKey = AsymmetricCipherTest.decrypt(bb,bartsyPrivateKey)
+		log.info("decrypt with Bartsy private key")
+		String decCredit = new String(bDecryptedKey, "UTF8")
+		decCredit = decCredit.trim();
+		return decCredit
 	}
 
 }
