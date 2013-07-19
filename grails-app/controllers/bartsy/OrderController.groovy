@@ -47,168 +47,179 @@ class OrderController {
 				Venue venue = Venue.findByVenueId(json.venueId)
 				if(userprofile && venue){
 					if(venue.status.equals("OPEN")){
-						def maxId = Orders.createCriteria().get { projections { max "orderId" } } as Long
-						if(maxId){
-							maxId = maxId+1
-						}
-						else{
-							maxId = 100001
-						}
+						CommonMethods common = new CommonMethods()
+						if(json.("totalPrice")&&common.isInteger(json.totalPrice)){
+							def maxId = Orders.createCriteria().get { projections { max "orderId" } } as Long
+							if(maxId){
+								maxId = maxId+1
+							}
+							else{
+								maxId = 100001
+							}
 
-						if(json.has("itemsList")){
+							if(json.has("itemsList")){
 
-							order.setItemsList(json.itemsList.toString())
-						}
+								order.setItemsList(json.itemsList.toString())
+							}
 
 
-						order.setOrderId(maxId)
-						order.setBasePrice(json.basePrice)
-						order.setItemId(json.itemId.toString())
-						order.setItemName(json.itemName)
-						order.setTipPercentage(json.tipPercentage)
-						order.setTotalPrice(json.totalPrice)
-						order.setDescription(json.description)
-						order.setSpecialInstructions(json.specialInstructions)
-						order.setDateOffered(new Date())
-						// Receiver bartsy id
-						order.setReceiverProfile(recieverUserprofile)
-						order.setUser(userprofile)
-						order.setVenue(venue)
-						if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
-							order.setDrinkOffered(true)
-							order.setOrderStatus("9")
-						}else {
-							order.setOrderStatus("0")
-						}
-						order.setAuthApproved("false")
-						order.save(flush:true)
-						Orders orderUpdate = Orders.findByOrderId(order.orderId)
-						def authorizeResponse = paymentService.authorizePayment(userprofile,json.totalPrice,orderUpdate?.orderId)
-						//order.setAuthTransactionId(authorizeResponse.transactionId as long)
-
-						if(authorizeResponse.get("authApproved").toBoolean()){
-
+							order.setOrderId(maxId)
+							order.setBasePrice(json.basePrice)
+							order.setItemId(json.itemId.toString())
+							order.setItemName(json.itemName)
+							order.setTipPercentage(json.tipPercentage)
+							order.setTotalPrice(json.totalPrice)
+							order.setDescription(json.description)
+							order.setSpecialInstructions(json.specialInstructions)
+							order.setDateOffered(new Date())
+							// Receiver bartsy id
+							order.setReceiverProfile(recieverUserprofile)
+							order.setUser(userprofile)
+							order.setVenue(venue)
 							if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
-
-								orderUpdate.setOrderStatus("9")
-							}else{
-
-								orderUpdate.setOrderStatus("0")
-
+								order.setDrinkOffered(true)
+								order.setOrderStatus("9")
+							}else {
+								order.setOrderStatus("0")
 							}
+							order.setAuthApproved("false")
+							order.save(flush:true)
+							Orders orderUpdate = Orders.findByOrderId(order.orderId)
+							def authorizeResponse = paymentService.authorizePayment(userprofile,json.totalPrice,orderUpdate?.orderId)
+							//order.setAuthTransactionId(authorizeResponse.transactionId as long)
 
-							orderUpdate.setAuthApproved("true")
-							orderUpdate.setAuthCode(authorizeResponse.get("authCode"))
-							orderUpdate.setAuthTransactionNumber(authorizeResponse.get("authTransactionNumber"))
-						}
-						else{
+							if(authorizeResponse.get("authApproved").toBoolean()){
 
-							orderUpdate.setOrderStatus("7")
-							orderUpdate.setAuthApproved("false")
-							orderUpdate.setAuthErrorMessage(authorizeResponse.get("authErrorMessage"))
-							orderUpdate.setLastState("0")
-							orderUpdate.setErrorReason("Payment Auth Failed")
+								if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
 
-							orderUpdate.save(flush:true)
-							response.put("errorCode",1)
-							response.put("errorMessage",authorizeResponse.get("authErrorMessage"))
-							render(text:response as JSON,contentType:"application/json")
-							return
-						}
+									orderUpdate.setOrderStatus("9")
+								}else{
 
-						if(orderUpdate.save(flush:true)){
-							//create the place order notification
-							def notification = new Notifications()
-							notification.setUser(userprofile)
-							notification.setVenue(venue)
-							notification.setOrder(orderUpdate)
-							notification.setType("placeOrder")
-							if(json.has("type") && json.type.equals("custom")){
-								addDrinkIngredients(json.ingredients,orderUpdate)
-							}
-							def openOrdersCriteria = Orders.createCriteria()
-							def openOrders = openOrdersCriteria.list {
-								eq("venue",venue)
-								and{ eq("user",userprofile) }
-								and{
-									'in'("orderStatus",[
-										"0",
-										"1",
-										"2",
-										"3",
-										"4",
-										"5",
-										"6",
-										"7",
-										"8",
-										"9"
-									])
+									orderUpdate.setOrderStatus("0")
+
 								}
-							}
-							Map pnMessage = new HashMap()
-							if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
-								pnMessage.put("orderStatus","9")
-							}else{
-								pnMessage.put("orderStatus","0")
-							}
-							pnMessage.put("orderId",orderUpdate?.orderId?.toString())
-							pnMessage.put("itemName",json.itemName)
-							pnMessage.put("orderTime",orderDate.toGMTString())
-							pnMessage.put("basePrice",json.basePrice)
-							pnMessage.put("tipPercentage",json.tipPercentage)
-							pnMessage.put("totalPrice", json.totalPrice)
-							pnMessage.put("description",json.description)
-							pnMessage.put("updateTime",orderDate.toGMTString())
-							pnMessage.put("orderTimeout",venue.cancelOrderTime)
-							pnMessage.put("specialInstructions",json.specialInstructions ?: "")
-							pnMessage.put("itemsList",json.has("itemsList")?json.itemsList.toString():"")
-							if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
 
-								def body="You have been offered a drink "+json.itemName+" by "+orderUpdate.user.nickName
-								pnMessage.put("messageType","DrinkOffered")
-								pnMessage.put("bartsyId",json.recieverBartsyId)
-								pnMessage.put("senderBartsyId",json.bartsyId)
-								pnMessage.put("orderTimeout",venue.cancelOrderTime)
-								pnMessage.put("body",body)
-								response.put("orderCount",openOrders.size())
-								response.put("orderId",maxId)
-								response.put("errorCode","0")
-								response.put("errorMessage","Drink Sent")
-								response.put("orderTimeout",venue.cancelOrderTime)
-								if(recieverUserprofile.deviceType == 1 ){
-									try{
-										applePNService.sendPN(pnMessage,recieverUserprofile.deviceToken, "1",body)
-									}catch(Exception e){
+								orderUpdate.setAuthApproved("true")
+								orderUpdate.setAuthCode(authorizeResponse.get("authCode"))
+								orderUpdate.setAuthTransactionNumber(authorizeResponse.get("authTransactionNumber"))
+							}
+							else{
 
-										log.info("Exception "+e.getMessage())
+								orderUpdate.setOrderStatus("7")
+								orderUpdate.setAuthApproved("false")
+								orderUpdate.setAuthErrorMessage(authorizeResponse.get("authErrorMessage"))
+								orderUpdate.setLastState("0")
+								orderUpdate.setErrorReason("Payment Auth Failed")
+
+								orderUpdate.save(flush:true)
+								response.put("errorCode",1)
+								response.put("errorMessage",authorizeResponse.get("authErrorMessage"))
+								render(text:response as JSON,contentType:"application/json")
+								return
+							}
+
+							if(orderUpdate.save(flush:true)){
+								//create the place order notification
+								def notification = new Notifications()
+								notification.setUser(userprofile)
+								notification.setVenue(venue)
+								notification.setOrder(orderUpdate)
+								notification.setType("placeOrder")
+								if(json.has("type") && json.type.equals("custom")){
+									addDrinkIngredients(json.ingredients,orderUpdate)
+								}
+								def openOrdersCriteria = Orders.createCriteria()
+								def openOrders = openOrdersCriteria.list {
+									eq("venue",venue)
+									and{ eq("user",userprofile) }
+									and{
+										'in'("orderStatus",[
+											"0",
+											"1",
+											"2",
+											"3",
+											"4",
+											"5",
+											"6",
+											"7",
+											"8",
+											"9"
+										])
 									}
 								}
-								else{
-									androidPNService.sendPN(pnMessage,recieverUserprofile.deviceToken)
+								Map pnMessage = new HashMap()
+								if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
+									pnMessage.put("orderStatus","9")
+								}else{
+									pnMessage.put("orderStatus","0")
 								}
-							}else{
-								pnMessage.put("bartsyId",json.bartsyId)
-								pnMessage.put("messageType","placeOrder")
-								def map=[:]
-								CommonMethods common = new CommonMethods()
-								common.getUserOrderAndChekedInDetails(venue, orderUpdate.user, map)
-								pnMessage.put("checkInAndOrderDetailsOfUser",map)
-								response.put("orderCount",openOrders.size())
-								response.put("orderId",orderUpdate?.orderId)
-								response.put("errorCode","0")
-								response.put("orderStatus",orderUpdate.getOrderStatus())
-								response.put("errorMessage","Order Placed")
-								response.put("orderTimeout",venue.cancelOrderTime)
-								androidPNService.sendPN(pnMessage, venue.deviceToken)
-								//save the place order for self notification
-								notification.setOrderType("self")
-								notification.setMessage("you ordered a drink "+ orderUpdate.getItemName())
-								notification.save(flush:true)
+								pnMessage.put("orderId",orderUpdate?.orderId?.toString())
+								pnMessage.put("itemName",json.itemName)
+								pnMessage.put("orderTime",orderDate.toGMTString())
+								pnMessage.put("basePrice",json.basePrice)
+								pnMessage.put("tipPercentage",json.tipPercentage)
+								pnMessage.put("totalPrice", json.totalPrice)
+								pnMessage.put("description",json.description)
+								pnMessage.put("updateTime",orderDate.toGMTString())
+								pnMessage.put("orderTimeout",venue.cancelOrderTime)
+								pnMessage.put("specialInstructions",json.specialInstructions ?: "")
+								pnMessage.put("itemsList",json.has("itemsList")?json.itemsList.toString():"")
+								if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
+
+									def body="You have been offered a drink "+json.itemName+" by "+orderUpdate.user.nickName
+									pnMessage.put("messageType","DrinkOffered")
+									pnMessage.put("bartsyId",json.recieverBartsyId)
+									pnMessage.put("senderBartsyId",json.bartsyId)
+									pnMessage.put("orderTimeout",venue.cancelOrderTime)
+									pnMessage.put("body",body)
+									response.put("orderCount",openOrders.size())
+									response.put("orderId",maxId)
+									response.put("errorCode","0")
+									response.put("errorMessage","Drink Sent")
+									response.put("orderTimeout",venue.cancelOrderTime)
+									if(recieverUserprofile.deviceType == 1 ){
+										try{
+											applePNService.sendPN(pnMessage,recieverUserprofile.deviceToken, "1",body)
+										}catch(Exception e){
+
+											log.info("Exception "+e.getMessage())
+										}
+									}
+									else{
+										androidPNService.sendPN(pnMessage,recieverUserprofile.deviceToken)
+									}
+								}else{
+									pnMessage.put("bartsyId",json.bartsyId)
+									pnMessage.put("messageType","placeOrder")
+									def map=[:]
+									common.getUserOrderAndChekedInDetails(venue, orderUpdate.user, map)
+									pnMessage.put("checkInAndOrderDetailsOfUser",map)
+									response.put("orderCount",openOrders.size())
+									response.put("orderId",orderUpdate?.orderId)
+									if(orderUpdate.user.emailVerified.toString().equalsIgnoreCase("true")){
+										response.put("errorCode","0")
+										response.put("errorMessage","Order Placed")
+									}else{
+										response.put("errorCode","99")
+										response.put("errorMessage","Order Placed. Please verify your account to start collecting rewards")
+
+									}
+									response.put("orderStatus",orderUpdate.getOrderStatus())
+									response.put("orderTimeout",venue.cancelOrderTime)
+									androidPNService.sendPN(pnMessage, venue.deviceToken)
+									//save the place order for self notification
+									notification.setOrderType("self")
+									notification.setMessage("you ordered a drink "+ orderUpdate.getItemName())
+									notification.save(flush:true)
+								}
 							}
-						}
-						else{
-							response.put("errorCode","1")
-							response.put("errorMessage","Order placing Failed")
+							else{
+								response.put("errorCode","1")
+								response.put("errorMessage","Order placing Failed")
+							}
+						}else{
+							response.put("errorCode","2")
+							response.put("errorMessage","Total price contains not a valid data")
 						}
 					}
 
