@@ -1205,10 +1205,7 @@ class UserController {
 
 
 	def getServerPublicKey(){
-		def json = JSON.parse(request)
-		def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
-		if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
-			try{
+		try{
 				def pubKeyFile = grailsApplication.mainContext.getResource("images/bartsy_publicKey.pem").getFile()
 				def pubKeyFileStream= new FileInputStream(pubKeyFile)
 				response.setHeader("Content-disposition", "filename=bartsyPublicKey.pem")
@@ -1217,12 +1214,8 @@ class UserController {
 			}catch(Exception e){
 				log.error(e.getMessage())
 			}
-		}else{
-			def response = [:]
-			response.put("errorCode", 1)
-			response.put("errorMessage","API version do not match")
-			render(text:response as JSON ,  contentType:"application/json")
-		}
+		
+		
 	}
 
 	def getDecryptCredit(String encCard){

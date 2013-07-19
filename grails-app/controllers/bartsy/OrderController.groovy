@@ -48,7 +48,7 @@ class OrderController {
 				if(userprofile && venue){
 					if(venue.status.equals("OPEN")){
 						CommonMethods common = new CommonMethods()
-						if(json.("totalPrice")&&common.isInteger(json.totalPrice)){
+						if(json.has("totalPrice") && common.isInteger(json.totalPrice)){
 							def maxId = Orders.createCriteria().get { projections { max "orderId" } } as Long
 							if(maxId){
 								maxId = maxId+1
@@ -76,12 +76,7 @@ class OrderController {
 							order.setReceiverProfile(recieverUserprofile)
 							order.setUser(userprofile)
 							order.setVenue(venue)
-							if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
-								order.setDrinkOffered(true)
-								order.setOrderStatus("9")
-							}else {
-								order.setOrderStatus("0")
-							}
+							order.setOrderStatus("100")
 							order.setAuthApproved("false")
 							order.save(flush:true)
 							Orders orderUpdate = Orders.findByOrderId(order.orderId)
