@@ -23,7 +23,10 @@ class UserRewardsController {
 						if(json.has("bartsyId")){
 							boolean bartsyId = common.verifyBartsyId(json.bartsyId)
 							if(bartsyId){
-								response=userService.getuserRewards(json.bartsyId,response)
+								def user = UserProfile.findByBartsyId(json.bartsyId)
+								if(user.emailVerified.toString().equalsIgnoreCase("true")){
+									response=userService.getuserRewards(json.bartsyId,response)
+								}
 							}
 						}
 						else{
