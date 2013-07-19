@@ -5,6 +5,7 @@ import org.hsqldb.util.CSVWriter
 class AdminController {
 
 	def index() {
+		println"index"
 		if(session.user){
 			forward(action:"ordersList")
 		}
@@ -12,16 +13,27 @@ class AdminController {
 
 	def adminLogin(){
 		try{
+			println "admin login "+params
 			if(params){
+				println"params "+params.username
+				println "pass "+params.password
 				def adminInstance = AdminUser.findByUsernameAndPassword(params.username, params.password)
+				println"adminInstance 11111111"
+				println"adminInstance "+adminInstance
+				if(adminInstance)
+					println "adminInstance ok"
+				else
+					println "adminInstance not ok"
 				if(!adminInstance){
 					flash.errors = message(code:"default.admin.not.exists", default:"Invalid Username/Password")
 					render(view:"index", model: [adminUserInstance:params])
 					return
 				}
-
+				println"admin login"
 				session.user = adminInstance
 				forward(action:"ordersList")
+			}else{
+				println"params else"
 			}
 		}catch(Exception e){
 			log.error("Exception found in admin login =====>"+ e.getMessage())
@@ -62,12 +74,12 @@ class AdminController {
 					lastOrderState = Integer.parseInt(lastState)
 				else
 					lastOrderState = 0
-					
+
 				def orderStatus = orderStatusArr[orderStatusNumber]
 				def orderLastState = orderStatusArr[lastOrderState]
 
 				render(view:"orderDetails",model:[selectedOrder:order,orderStatus:orderStatus,orderLastState:orderLastState])
-				
+
 			}
 		}catch(Exception e){
 			log.error("Error in order details ==>"+e.getMessage())
@@ -204,17 +216,16 @@ class AdminController {
 
 	def saleuserList(){
 		try{
-			def salesList = AdminUser.findAllByUserTypeInList(["SalesUser","SalesManager"])
+			def salesList = AdminUser.findAllByUserTypeInList(["SalesUser", "SalesManager"])
 			def salesCnt = salesList.size()
 			[salesList:salesList, salesCnt:salesCnt]
 		}catch(Exception e){
 			log.error("Error in sales user list"+e.getMessage())
 		}
 	}
-	
+
 	def createSaleUser(){
 		try{
-			
 			if(params.act){
 				def saleInfo = AdminUser.findAllByUsernameAndUserType(params.username,params.userType)
 				if(!saleInfo){
@@ -225,6 +236,9 @@ class AdminController {
 					saleAcc.setUsername(params.username)
 					saleAcc.setPassword(params.password)
 					saleAcc.setUserType(params.userType)
+					def promoCode = generatePromoCode()
+					println "promoCode "+promoCode
+					saleAcc.setPromoterCode(promoCode)
 					saleAcc.save(flush:true)
 					flash.message =  "Sales Account created successfully"
 					forward(action:"saleuserList")
@@ -232,34 +246,34 @@ class AdminController {
 					flash.error = "Sales Account already exists with the same Username"
 					[saleInstance:params]
 				}
-				
+
 			}
 			[saleInstance:params]
-			
+
 		}catch(Exception e){
 			log.error("Exception in create Sale User ==>"+e.getMessage())
 		}
 	}
-	
+
 	def editSaleUser(){
 		try{
 			def saleInfo = AdminUser.get(params.id)
 			if(saleInfo){
 				if(params.act){
-						saleInfo.setFirstName(params.firstName)
-						saleInfo.setLastName(params.lastName)
-						saleInfo.setEmail(params.email)
-						saleInfo.setPassword(params.password)
-						saleInfo.setUserType(params.userType)
-						if(!saleInfo.save(flush:true)){
-							flash.error =  "Sales Account updation failed"
-							[saleInstance:params]
-						}else{
-							flash.message =  "Sales Account updated successfully"
-							forward(action:"saleuserList")
-						}
+					saleInfo.setFirstName(params.firstName)
+					saleInfo.setLastName(params.lastName)
+					saleInfo.setEmail(params.email)
+					saleInfo.setPassword(params.password)
+					saleInfo.setUserType(params.userType)
+					if(!saleInfo.save(flush:true)){
+						flash.error =  "Sales Account updation failed"
+						[saleInstance:params]
+					}else{
+						flash.message =  "Sales Account updated successfully"
+						forward(action:"saleuserList")
+					}
 				}
-			[saleInstance:saleInfo]
+				[saleInstance:saleInfo]
 			}else{
 				flash.error = "Sale Account doesn't exist"
 				forward(action:"saleuserList")
@@ -268,7 +282,7 @@ class AdminController {
 			log.error("Exception in create Sale User ==>"+e.getMessage())
 		}
 	}
-	
+
 	def deleteSaleUser(){
 		try{
 			def saleInfo = AdminUser.get(params.id)
@@ -284,7 +298,81 @@ class AdminController {
 			log.error("Exception in create Sale User ==>"+e.getMessage())
 		}
 	}
+	def venueConfig(){
+		try{
+			if(params){
+				def venueId = params.id
+				def venue = Venue.findByVenueId(venueId)
+				def configList= VenueConfig.findAllByVenue(venue)
+				def configListSize = configList.size()
+				println "configListSize "+configListSize
+				if(venue){
+					[venue:venue,venueList:configList,configListSize:configListSize]
 
+				}else{
+					flash.message = "Venue Not Found"
+				}
+			}
+
+		}catch(Exception e){
+			log.error("Exception in create Sale User ==>"+e.getMessage())
+		}
+	}
+	def saveVenueConfig(){
+		try{
+			println"saveVenueConfig saveVenueConfig"
+			println"params "+params
+			def rewardPoints
+			def description
+			def type
+			def value
+			def venueId
+			if(params.rewardPoints){
+				rewardPoints=params.rewardPoints}
+			if(params.description){
+				description=params.description}
+			if(params.type){
+				type=params.type}
+			if(params.value){
+				value=params.value
+			}
+			if(params.venue){
+				venueId=params.venue}
+			def venue = Venue.findByVenueId(venueId)
+			println "venue "+venue
+			if(rewardPoints && description && type && venue){
+				VenueConfig configVenue = new VenueConfig()
+				configVenue.setRewardPoints(Integer.parseInt(rewardPoints))
+				configVenue.setDescription(description)
+				configVenue.setValue(value)
+				configVenue.setType(type)
+				configVenue.setVenue(venue)
+				if(!configVenue.save(flush:true)){
+					flash.message = "Please try again"
+				}
+			}else{
+				println "else "
+				flash.message = "Please fill all the fields"
+			}
+			redirect(action:"venueConfig",id:venue.venueId)
+		}catch(Exception e){
+
+			log.error("Exception found "+e.getMessage())
+
+		}
+	}
+	def generatePromoCode(){
+		CommonMethods common = new CommonMethods()
+		String promoCode = common.promoCode(8)
+
+		def user = AdminUser.findAllByPromoterCode(promoCode)
+		if(user.size()>0){
+			generatePromoCode()
+		}
+		else{
+			return promoCode
+		}
+	}
 
 	def logout(){
 		if(session.user){
