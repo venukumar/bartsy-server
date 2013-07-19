@@ -708,7 +708,7 @@ class DataController {
 						//eq("venue",venue)
 						eq("sender",senderProfile)
 						eq("receiver",receiverProfile)
-						order("dateCreated","desc")
+						order("dateCreated","asc")
 
 					}
 					def messagesRec = Messages.createCriteria().list(criteriaParams){
@@ -716,7 +716,7 @@ class DataController {
 						//eq("venue",venue)
 						eq("sender",receiverProfile)
 						eq("receiver",senderProfile)
-						order("dateCreated","desc")
+						order("dateCreated","asc")
 					}
 					def compList = []
 
