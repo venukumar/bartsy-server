@@ -808,15 +808,17 @@ a.skip {
 }
 
 .navi_links {
-	width: 208px;
-	height: 30px;
-	padding: 0px;
-	margin: 0px;
-	background: #2c2c2c;
-	overflow: hidden;
-	position: absolute;
-	top: 26px;
-	right: 20px;
+
+ width:260px;
+ height:30px;
+ padding:0px;
+ margin:0px;
+ background:#2c2c2c;
+ overflow:hidden;
+  position:absolute; 
+  top:26px; 
+  right:20px;
+
 }
 
 .navi_links ul {
