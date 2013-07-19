@@ -37,7 +37,12 @@
 				if (description != null && description != "") {
 					var value = jQuery(".value").val();
 					if (value != null && value != "") {
-						return true
+
+						if (isNaN(value) || value <= 0) {
+							alert("value should be number");
+							return false;
+						}
+						else{return true}
 					} else {
 						alert("Value should not be empty");
 						return false;
@@ -47,7 +52,6 @@
 					alert("Descriptions should not be empty");
 					return false;
 				}
-
 			}
 		} else {
 			alert("No value in Reward Points field");
