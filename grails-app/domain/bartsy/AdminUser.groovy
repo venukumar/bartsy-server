@@ -11,8 +11,8 @@ class AdminUser {
 		userType(inList: ["Admin","SalesUser","SalesManager"])
 		dateCreated()
 		lastUpdated()
+		promoterCode(nullable:true)
     }
-	
 	String firstName
 	String lastName
 	String email
@@ -21,6 +21,7 @@ class AdminUser {
 	String userType
 	Date dateCreated
 	Date lastUpdated
+	String promoterCode
 	
 	static mapping={
 		version false
