@@ -28,9 +28,6 @@ class UserController {
 		try{
 			//parse the request sent as input to the syscall
 			def json = JSON.parse(params.details)
-			/*if(json.encryptedCreditCard){
-			 println "sdfsf " +getDecryptCredit(json.encryptedCreditCard)
-			 }*/
 			//varibale to check if email is updated
 			def emailUpdated = false
 			def sessionCode = System.currentTimeMillis().toString()
@@ -939,6 +936,7 @@ class UserController {
 		try{
 			//parse the request sent as input to the syscall
 			def json = JSON.parse(request)
+			def sessionCode = System.currentTimeMillis().toString()
 			//check to make sure the apiVersion sent in the request matches the correct apiVersion
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
@@ -951,8 +949,11 @@ class UserController {
 						//if bartsyLogin and bartsyLogin not null retrieve the user profile based on those details
 						def userProfile = UserProfile.findByBartsyLoginAndBartsyPassword(bartsyLogin, bartsyPassword)
 						if(userProfile){
+							userProfile.setSessionCode(sessionCode)
+							userProfile.save(flush:true)
 							//if user profile exists return the bartsyId of the user along with error code 0
 							response.put("bartsyId",userProfile.bartsyId)
+							response.put("oauthCode", userProfile.sessionCode)
 							response.put("errorCode","0")
 							response.put("errorMessage","User Profile Exists")
 							//check if user checked into any venue as per server
@@ -1252,6 +1253,7 @@ class UserController {
 		log.info("decrypt with Bartsy private key")
 		String decCredit = new String(bDecryptedKey, "UTF8")
 		decCredit = decCredit.trim();
+		println "zxzx "+decCredit
 	}
 
 }
