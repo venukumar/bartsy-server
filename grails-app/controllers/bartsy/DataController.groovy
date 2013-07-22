@@ -42,7 +42,7 @@ class DataController {
 					//def openOrdersCriteria = Orders.createCriteria()
 					//def openOrders = openOrdersCriteria.list {
 					def openOrders = Orders.createCriteria().list {
-						/*'in'("orderStatus",[
+						'in'("orderStatus",[
 						 "0",
 						 "1",
 						 "2",
@@ -53,8 +53,8 @@ class DataController {
 						 "7",
 						 "8",
 						 "9"
-						 ])*/
-						ne("orderStatus", "10")
+						 ])
+						//ne("orderStatus", "10")
 						or{
 							eq("user",userProfile)
 							eq("receiverProfile",userProfile)
