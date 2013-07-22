@@ -26,6 +26,9 @@ class UserRewardsController {
 								def user = UserProfile.findByBartsyId(json.bartsyId)
 								if(user.emailVerified.toString().equalsIgnoreCase("true")){
 									response=userService.getuserRewards(json.bartsyId,response)
+								}else{
+									response.put("errorCode","99")
+									response.put("errorMessage","Please verify your account to start collecting rewards")
 								}
 							}
 						}
