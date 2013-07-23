@@ -205,6 +205,34 @@ class AdminController {
 					err++
 				}
 			}
+			
+			if(params.payment){
+				def paymentreq = BartsyConfiguration.findByConfigName("payment")
+				paymentreq.value = params.payment
+				if(!paymentreq.save(flush:true)){
+					log.error("payment setting update failed ==>"+paymentreq.errors)
+					err++
+				}
+			}
+			
+			if(params.authId){
+				def authIdreq = BartsyConfiguration.findByConfigName("authId")
+				authIdreq.value = params.authId
+				if(!authIdreq.save(flush:true)){
+					log.error("authId update failed ==>"+authIdreq.errors)
+					err++
+				}
+			}
+			
+			if(params.authPwd){
+				def authPwdreq = BartsyConfiguration.findByConfigName("authPassword")
+				authPwdreq.value = params.authPwd
+				if(!authPwdreq.save(flush:true)){
+					log.error("authPwd update failed ==>"+authPwdreq.errors)
+					err++
+				}
+			}
+			
 			if(err > 0){
 				flash.errors = "App Settings saving failed"
 			}else{
