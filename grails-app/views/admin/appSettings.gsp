@@ -41,6 +41,44 @@
         <input type="radio" name="timer" id="false" value="false" ${Nchecked}><g:message code="appsettings.label.no" default="False"/>
       </div>
     </div>
+    
+    <div id="payment" class="label-row">
+      <label style="line-height:20px;width:145px;">
+        <g:message code="appsettings.label.payment" default="Payment Mode"/>
+      </label>
+      <%
+      def paymentreq = BartsyConfiguration.findByConfigName("payment")
+      def Prodchecked=""
+      def Sandchecked=""
+      if(paymentreq.value.toString().equals("Environment.PRODUCTION")){
+        Prodchecked = "checked"
+      }else{
+        Sandchecked = "checked"
+      }
+      
+      %>
+      <div style="float:left;line-height:18px">
+        <input type="radio" name="payment" id="true" value="Environment.SANDBOX" ${Sandchecked}/><span><g:message code="appsettings.label.sandbox" default="SandBox"/></span>
+      </div>
+      <div style="float:right;padding-right:173px;line-height:18px">
+        <input type="radio" name="payment" id="false" value="Environment.PRODUCTION" ${Prodchecked}/><g:message code="appsettings.label.production" default="Production"/>
+      </div>
+    </div>
+    <div id="authId" class="label-row">
+      <label style="line-height:20px;width:145px;">
+        <g:message code="appsettings.authId" default="Authorize.net Id" />
+      </label>
+      <% def authIds = BartsyConfiguration.findByConfigName("authId") %>
+      <input type="text" name="authId" id="userTimeout" value="${authIds.value }"  class="txt-field">
+    </div>
+    <div id="authPwd" class="label-row">
+      <label style="line-height:20px;width:145px;">
+        <g:message code="appsettings.authPwd" default="Authorize.net Password" />
+      </label>
+      <% def authpwds = BartsyConfiguration.findByConfigName("authPassword") %>
+      <input type="text" name="authPwd" id="userTimeout" value="${authpwds.value }"  class="txt-field">
+    </div>
+    
     <div id="userTimeout" class="label-row">
       <label style="line-height:20px;width:145px;">
         <g:message code="appsettings.usertimeout" default="User Timeout" />
