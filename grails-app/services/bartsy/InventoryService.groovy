@@ -21,7 +21,7 @@ class InventoryService {
 				menusMap.put("menu_name","Bar")
 				def sections=[]
 				def sectionsMap=[:]
-				sectionsMap.put("section_name","Mixed Drinks")
+				sectionsMap.put("section_name","Cocktails")
 				def contents=[]
 				cocktails.each {
 					def cocktail=it
