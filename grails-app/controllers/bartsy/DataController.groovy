@@ -618,15 +618,18 @@ class DataController {
 					//save the message
 					if(message.save(flush:true)){
 						def pnMessage = [:]
+						def body = "Message Form "+senderProfile.nickName
 						pnMessage.put("message",json.message)
 						pnMessage.put("senderId",senderProfile.bartsyId)
+						pnMessage.put("senderNickName",senderProfile.nickName)
+						pnMessage.put("senderImage",senderProfile.userImage)
 						pnMessage.put("messageType","message")
 						pnMessage.put("receiverId",receiverProfile.bartsyId)
 						pnMessage.put("currentTime",new Date().toGMTString())
-						pnMessage.put("body","You have recieved a new message")
+						pnMessage.put("body",body)
 						//send PN to receiver device
 						if(receiverProfile.deviceType == 1){
-							applePNService.sendPN(pnMessage, receiverProfile.deviceToken, "1" , "You have recieved a new message")
+							applePNService.sendPN(pnMessage, receiverProfile.deviceToken, "1" ,body)
 						}
 						else{
 							androidPNService.sendPN(pnMessage, receiverProfile.deviceToken)
@@ -736,7 +739,7 @@ class DataController {
 							messageMap.put("message",message.message)
 							messageMap.put("senderId",message.sender.bartsyId)
 							messageMap.put("receiverId",message.receiver.bartsyId)
-							messageMap.put("date",message.dateCreated)
+							messageMap.put("date",message.dateCreated.toGMTString())
 							messageMap.put("currentTime",new Date().toGMTString())
 							messagesList.add(messageMap)
 
