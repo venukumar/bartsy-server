@@ -1,5 +1,6 @@
 package bartsy
 
+import javassist.bytecode.stackmap.BasicBlock.Catch;
 import grails.converters.JSON
 
 class FavoritesController {
@@ -95,6 +96,36 @@ class FavoritesController {
 		response.put("errorCode", 1)
 		response.put("errorMessage", message)
 		return response
+	}
+
+
+	def saveFavoriteDrink={
+		def response=[:]
+		try{
+			def json = JSON.parse(request)
+			if(json){
+				def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+				if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
+					
+					
+					
+					
+					
+				}else{
+					response.put("errorCode",100)
+					response.put("errorMessage","API version do not match")
+				}
+			}
+		}catch(Exception e){
+			log.info("Exception found in saveFavoriteDrink "+e.getMessage())
+			println"Exception found in saveFavoriteDrink "+e.getMessage()
+			response.put("errorCode",200)
+			response.put("errorMessage","Error occured while processing your request. Please verify json")
+		}
+		finally{
+			response.put("currentTime",new Date().toGMTString())
+			render(text:response as JSON,contentType:"application/json")
+		}
 	}
 
 	def favoriteVenues={
