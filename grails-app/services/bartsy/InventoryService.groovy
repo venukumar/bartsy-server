@@ -39,8 +39,13 @@ class InventoryService {
 								def category=IngredientCategory.findById(categoryId)
 								if(category){
 									String name =category.category
-									if(!option_group.contains(categoryId))
-										option_group.add(categoryId)
+									if(!option_group.contains(categoryId)){
+										def map=[:]
+										map.put("categoryId",categoryId)
+										map.put("ingredients",cocktail.ingredients)
+										option_group.add(map)
+									}
+										
 									if(!options.contains(name))
 										options.add("option_"+name)
 								}
@@ -53,16 +58,17 @@ class InventoryService {
 				sectionsMap.put("contents",contents)
 				if(option_group && option_group.size()>0){
 					option_group.each {
-						def categoryId = it
+						def optionMap = it
+						def categoryId=optionMap.categoryId
+						def ingredients=optionMap.ingredients
 						def category=IngredientCategory.findById(categoryId)
-						def ing = Ingredients.findAllByVenueAndCategory(venue,category)
-						if(ing){
-							String key="option_"+category.category
+						def ingObjs = Ingredients.findAllByVenueAndCategory(venue,category)
+						if(ingObjs){
 							def categoryIngredients=[]
 							def detailsOfIngList=[]
 							def detailsOfIng=[:]
 							detailsOfIng.put("name",category.category)
-							ing.each {
+							ingObjs.each {
 								def ingObj=it
 								def option_group_map=[:]
 								option_group_map.put("ingredientId",ingObj.ingredientId)
