@@ -90,7 +90,11 @@ class UserController {
 							userProfile.setGender(json.gender ?: "")
 							userProfile.setDeviceToken(json.deviceToken ?: "")
 							userProfile.setDeviceType(json.deviceType as int)
-							userProfile.setCreditCardNumber(json.creditCardNumber.toString() ?: "")
+
+							if(json.creditCardNumber && json.creditCardNumber.toString().length()>0)
+							{
+								userProfile.setCreditCardNumber(json.creditCardNumber.toString())
+							}
 							userProfile.setEncryptedCreditCard(json.encryptedCreditCard.toString() ?: "")
 							userProfile.setExpMonth(json.expMonth.toString() ?: "")
 							userProfile.setExpYear(json.expYear.toString() ?: "")
@@ -164,13 +168,13 @@ class UserController {
 							userProfileToSave.setSessionCode(sessionCode)
 							userProfileToSave.setEmailVerified("false")
 							userProfileToSave.setAdminUser(0)
-//							def admin = AdminUser.findByPromoterCode(json.has("promoCode")?json.promoCode:"")
-//							if(admin){
-//								userProfileToSave.setAdminUser(admin.id)
-//							}
-//							else{
-//								userProfileToSave.setAdminUser(0)
-//							}
+							//							def admin = AdminUser.findByPromoterCode(json.has("promoCode")?json.promoCode:"")
+							//							if(admin){
+							//								userProfileToSave.setAdminUser(admin.id)
+							//							}
+							//							else{
+							//								userProfileToSave.setAdminUser(0)
+							//							}
 							//retrieve the max bartsyId from DB and increment it by 1
 							def maxId = UserProfile.createCriteria().get { projections { max "bartsyId" } } as Long
 							if(maxId){
@@ -1151,7 +1155,7 @@ class UserController {
 	/**
 	 * This method used to send bartsy verification mail to user email
 	 */
-	def sendVerificationMailToUser(String emailId,String bartsyId){	
+	def sendVerificationMailToUser(String emailId,String bartsyId){
 		try{
 			def userId = bartsyId.bytes.encodeBase64().toString()
 			String url =  request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+"/"+grailsApplication.getMetadata().getApplicationName()
@@ -1206,16 +1210,16 @@ class UserController {
 
 	def getServerPublicKey(){
 		try{
-				def pubKeyFile = grailsApplication.mainContext.getResource("images/bartsy_publicKey.pem").getFile()
-				def pubKeyFileStream= new FileInputStream(pubKeyFile)
-				response.setHeader("Content-disposition", "filename=bartsyPublicKey.pem")
-				response.outputStream << pubKeyFileStream
-				response.outputStream.flush()
-			}catch(Exception e){
-				log.error(e.getMessage())
-			}
-		
-		
+			def pubKeyFile = grailsApplication.mainContext.getResource("images/bartsy_publicKey.pem").getFile()
+			def pubKeyFileStream= new FileInputStream(pubKeyFile)
+			response.setHeader("Content-disposition", "filename=bartsyPublicKey.pem")
+			response.outputStream << pubKeyFileStream
+			response.outputStream.flush()
+		}catch(Exception e){
+			log.error(e.getMessage())
+		}
+
+
 	}
 
 	def getDecryptCredit(String encCard){
