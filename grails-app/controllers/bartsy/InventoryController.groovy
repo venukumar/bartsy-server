@@ -81,41 +81,66 @@ class InventoryController {
 		try{
 			def json =  JSON.parse(request)
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
-			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
+			if(apiVersion.value.toInteger() == Integer.parseInt(json.apiVersion)){
 				def venue = Venue.findByVenueId(json.venueId)
 				if(venue) {
 					def cocktails = json.cocktails
+					println "cocktails "+cocktails
 					if(cocktails) {
+						def failedcocks=[]
 						cocktails.each{
 							def cocktail =  it
-							def cocktailsToSave = Cocktails.findByCocktailIdAndVenue(cocktail.cocktailId as long,venue)
+							def cocktailsToSave = Cocktails.findByCocktailIdAndVenue(Long.parseLong(cocktail.cocktailId),venue)
 							if(cocktailsToSave){
-								cocktailsToSave.setPrice(cocktail.price as int)
+								cocktailsToSave.setPrice(Integer.parseInt(cocktail.price))
 								cocktailsToSave.setAvailable(cocktail.available)
 							}
 							else{
-								cocktailsToSave =  new Cocktails()
-								cocktailsToSave.setCocktailId(cocktail.cocktailId as long)
-								cocktailsToSave.setName(cocktail.name)
-								cocktailsToSave.setCategory(cocktail.category)
-								cocktailsToSave.setGlass(cocktail.glass)
-								cocktailsToSave.setAlcohol(cocktail.alcohol)
-								cocktailsToSave.setIngredients(cocktail.ingredients)
-								cocktailsToSave.setInstructions(cocktail.instructions)
-								cocktailsToSave.setPrice(cocktail.price as int)
-								cocktailsToSave.setAvailable(cocktail.available)
-								cocktailsToSave.setVenue(venue)
+								if(cocktail.ingredients && cocktail.shopping){
+									//def strIngr = cocktail.ingredients.trim().split(",")
+									def categoryList = cocktail.shopping.trim().split(",")
+									def categories = checkForCategorys(categoryList)
+									if(categories){
+										//def ingForcheck = Ingredients.findByName(ingredint)
+										cocktailsToSave =  new Cocktails()
+										cocktailsToSave.setCocktailId(cocktail.name?Long.parseLong(cocktail.cocktailId):0.0)
+										cocktailsToSave.setName(cocktail.name?cocktail.name:"")
+										cocktailsToSave.setCategory(cocktail.category?cocktail.category:"")
+										cocktailsToSave.setGlass(cocktail.glass?cocktail.glass:"")
+										cocktailsToSave.setAlcohol(cocktail.alcohol?cocktail.alcohol:"")
+										cocktailsToSave.setInstructions(cocktail.instructions?cocktail.instructions:"")
+										cocktailsToSave.setPrice(cocktail.price?Integer.parseInt(cocktail.price):0.0)
+										cocktailsToSave.setAvailable(cocktail.available?cocktail.available:"false")
+										cocktailsToSave.setIngredients(cocktail.ingredients)
+										cocktailsToSave.setDescription(categories.description?categories.description:"")
+										cocktailsToSave.setShopping(categories.categorys?categories.categorys:"")
+										cocktailsToSave.setVenue(venue)
+
+										if(!cocktailsToSave.save(flush:true)) {
+											failedcocks.add(cocktail.cocktailId)
+										}
+									}
+								}else{
+									failedcocks.add(cocktail.cocktailId)
+								}
 							}
-							if(cocktailsToSave.save(flush:true)) {
-								response.put("errorCode","0")
-								response.put("errorMessage","Cocktails saved successfully")
-							}
+						}
+						if(failedcocks && failedcocks.size()>0){
+							response.put("errorCode","1")
+							response.put("errorMessage","Cocktails not saved successfully")
+							response.put("failedCocktails",failedcocks)
+						}else{
+							response.put("errorCode","0")
+							response.put("errorMessage","Cocktails saved successfully")
 						}
 					}
 					else{
 						response.put("errorCode","1")
 						response.put("errorMessage","No Cocktails to Save")
 					}
+				}else{
+					response.put("errorCode","1")
+					response.put("errorMessage","Venue does not exists")
 				}
 			}
 			else{
@@ -129,7 +154,38 @@ class InventoryController {
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
 		}
+		println "response "+response
 		render(text:response as JSON, contentType:"application/json")
+	}
+	/*
+	 * Checking for all ingredients are available or not
+	 * 
+	 */
+	def checkForCategorys(ingredients){
+		def result=[:]
+		String description
+		String categorys
+		if(ingredients && ingredients.size()>0){
+			ingredients.each {
+				def ingredient=it
+				def ingForcheck = IngredientCategory.findByCategory(ingredient.toString().trim())
+				println "ingForcheck "+ingForcheck
+				if(ingForcheck){
+					if(!categorys)
+						categorys=ingForcheck.id
+					else
+						categorys=categorys+","+ingForcheck.id
+				}else{
+					if(!description)
+						description=ingredient
+					else
+						description=description+","+ingredient
+				}
+			}
+			result.put("description",description)
+			result.put("categorys",categorys)
+		}
+		return result
 	}
 
 	def getIngredients = {
@@ -215,7 +271,7 @@ class InventoryController {
 			def json = JSON.parse(request)
 			try{
 				def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
-				if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
+				if(Integer.parseInt(apiVersion.value) == Integer.parseInt(json.apiVersion)){
 					// get requested venue id from the json
 					def venueId=json.venueId.toString();
 					// created a map object for returning the response
