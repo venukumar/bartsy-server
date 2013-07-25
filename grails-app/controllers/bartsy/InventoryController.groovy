@@ -34,14 +34,14 @@ class InventoryController {
 							def ingredient =  it
 							def ingredientToSave = Ingredients.findByIngredientIdAndVenue(ingredient.ingredientId as long,venue)
 							if(ingredientToSave){
-								ingredientToSave.setPrice(ingredient.price as int)
+								ingredientToSave.setPrice(Long.parseLong(ingredient.price))
 								ingredientToSave.setAvailable(ingredient.available)
 							}
 							else{
 								ingredientToSave =  new Ingredients()
 								ingredientToSave.setIngredientId(ingredient.ingredientId as long)
 								ingredientToSave.setName(ingredient.name)
-								ingredientToSave.setPrice(ingredient.price as int)
+								ingredientToSave.setPrice(Long.parseLong(ingredient.price))
 								ingredientToSave.setAvailable(ingredient.available)
 								ingredientToSave.setCategory(category)
 								ingredientToSave.setVenue(venue)
@@ -80,23 +80,24 @@ class InventoryController {
 		def response = [:]
 		try{
 			def json =  JSON.parse(request)
+			println"json "+json
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
-			if(apiVersion.value.toInteger() == Integer.parseInt(json.apiVersion)){
+			if(Integer.parseInt(apiVersion.value) == Integer.parseInt(json.apiVersion.toString())){
 				def venue = Venue.findByVenueId(json.venueId)
 				if(venue) {
 					def cocktails = json.cocktails
-					println "cocktails "+cocktails
 					if(cocktails) {
 						def failedcocks=[]
 						cocktails.each{
 							def cocktail =  it
 							def cocktailsToSave = Cocktails.findByCocktailIdAndVenue(Long.parseLong(cocktail.cocktailId),venue)
 							if(cocktailsToSave){
-								cocktailsToSave.setPrice(Integer.parseInt(cocktail.price))
+								cocktailsToSave.setPrice(Long.parseLong(cocktail.price))
 								cocktailsToSave.setAvailable(cocktail.available)
 							}
 							else{
 								if(cocktail.ingredients && cocktail.shopping){
+									println"cocktail.shopping "+cocktail.shopping
 									//def strIngr = cocktail.ingredients.trim().split(",")
 									def categoryList = cocktail.shopping.trim().split(",")
 									def categories = checkForCategorys(categoryList)
@@ -109,7 +110,7 @@ class InventoryController {
 										cocktailsToSave.setGlass(cocktail.glass?cocktail.glass:"")
 										cocktailsToSave.setAlcohol(cocktail.alcohol?cocktail.alcohol:"")
 										cocktailsToSave.setInstructions(cocktail.instructions?cocktail.instructions:"")
-										cocktailsToSave.setPrice(cocktail.price?Integer.parseInt(cocktail.price):0.0)
+										cocktailsToSave.setPrice(cocktail.price?Long.parseLong(cocktail.price):0.0)
 										cocktailsToSave.setAvailable(cocktail.available?cocktail.available:"false")
 										cocktailsToSave.setIngredients(cocktail.ingredients)
 										cocktailsToSave.setDescription(categories.description?categories.description:"")
@@ -169,7 +170,6 @@ class InventoryController {
 			ingredients.each {
 				def ingredient=it
 				def ingForcheck = IngredientCategory.findByCategory(ingredient.toString().trim())
-				println "ingForcheck "+ingForcheck
 				if(ingForcheck){
 					if(!categorys)
 						categorys=ingForcheck.id
@@ -187,6 +187,36 @@ class InventoryController {
 		}
 		return result
 	}
+	/*
+	 * This method used to get the ingredients in locu format
+	 */
+	def getIngredientsInLocuFormat={
+		def response = [:]
+		try{
+			def json = JSON.parse(request)
+			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
+				def venue = Venue.findByVenueId(json.venueId.toString())
+				if(venue){
+					response.put("venueId", json.venueId)
+					response=inventoryService.getIngredients(venue)
+				}else{
+					response.put("errorCode","1")
+					response.put("errorMessage","Venue Does not exist")
+				}
+			}else{
+				response.put("errorCode","100")
+				response.put("errorMessage","API version do not match")
+			}
+			response.put("currentTime",new Date().toGMTString())
+		}catch(Exception e){
+			log.info("Exception is ===> "+e.getMessage())
+			response.put("errorCode",200)
+			response.put("errorMessage",e.getMessage())
+		}
+		render(text:response as JSON, contentType:"application/json")
+	}
+
 
 	def getIngredients = {
 		def response = [:]
