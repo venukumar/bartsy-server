@@ -34,14 +34,14 @@ class InventoryController {
 							def ingredient =  it
 							def ingredientToSave = Ingredients.findByIngredientIdAndVenue(ingredient.ingredientId as long,venue)
 							if(ingredientToSave){
-								ingredientToSave.setPrice(Long.parseLong(ingredient.price))
+								ingredientToSave.setPrice(Float.parseFloat(ingredient.price))
 								ingredientToSave.setAvailable(ingredient.available)
 							}
 							else{
 								ingredientToSave =  new Ingredients()
 								ingredientToSave.setIngredientId(ingredient.ingredientId as long)
 								ingredientToSave.setName(ingredient.name)
-								ingredientToSave.setPrice(Long.parseLong(ingredient.price))
+								ingredientToSave.setPrice(Float.parseFloat(ingredient.price))
 								ingredientToSave.setAvailable(ingredient.available)
 								ingredientToSave.setCategory(category)
 								ingredientToSave.setVenue(venue)
@@ -92,7 +92,7 @@ class InventoryController {
 							def cocktail =  it
 							def cocktailsToSave = Cocktails.findByCocktailIdAndVenue(Long.parseLong(cocktail.cocktailId),venue)
 							if(cocktailsToSave){
-								cocktailsToSave.setPrice(Long.parseLong(cocktail.price))
+								cocktailsToSave.setPrice(Float.parseFloat(cocktail.price))
 								cocktailsToSave.setAvailable(cocktail.available)
 							}
 							else{
@@ -110,7 +110,7 @@ class InventoryController {
 										cocktailsToSave.setGlass(cocktail.glass?cocktail.glass:"")
 										cocktailsToSave.setAlcohol(cocktail.alcohol?cocktail.alcohol:"")
 										cocktailsToSave.setInstructions(cocktail.instructions?cocktail.instructions:"")
-										cocktailsToSave.setPrice(cocktail.price?Long.parseLong(cocktail.price):0.0)
+										cocktailsToSave.setPrice(cocktail.price?Float.parseFloat(cocktail.price):0.0)
 										cocktailsToSave.setAvailable(cocktail.available?cocktail.available:"false")
 										cocktailsToSave.setIngredients(cocktail.ingredients)
 										cocktailsToSave.setDescription(categories.description?categories.description:"")
