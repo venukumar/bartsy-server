@@ -26,7 +26,7 @@ class Cocktails {
 	String glass
 	String ingredients
 	String instructions
-	int price
+	long price
 	String available
 	Date dateCreated
 	Date lastUpdated
