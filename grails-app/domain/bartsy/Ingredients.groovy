@@ -11,7 +11,7 @@ class Ingredients {
     
 	long ingredientId
     String name
-    int price
+    long price
 	String available
 	Date dateCreated
 	Date lastUpdated

@@ -18,7 +18,10 @@ class Cocktails {
 		shopping(nullable:true)
 	}
 	static belongsTo =[venue:Venue]
-
+	static mapping = {
+		instructions type:'text'
+		ingredients type:'text'
+	}
 	long cocktailId
 	String name
 	String category
