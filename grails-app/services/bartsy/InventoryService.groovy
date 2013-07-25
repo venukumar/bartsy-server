@@ -110,6 +110,71 @@ class InventoryService {
 		}
 	}
 
+	/*
+	 * This is the method used to create locu format of ingredients
+	 */
+	def getIngredients(Venue venue){
+		def output=[:]
+		try{
+			def types =  IngredientType.getAll()
+			if(types){
+				def menus=[]
+				def menusMap=[:]
+				menusMap.put("menu_name","Bar")
+				def sectionsList=[]
+				types.each {
+					def type=it
+					def sectionsMap=[:]
+					sectionsMap.put("section_name",type.type)
+					def categories =  IngredientCategory.findAllByType(type)
+					if(categories){
+						def subSectionList=[]
+						categories.each {
+							def category =it
+							def subSectionMap=[:]
+							subSectionMap.put("subsection_name",category.category)
+							def ingredients = Ingredients.findAllByCategoryAndVenue(category,venue)
+							if(ingredients){
+								def ingredientsList=[]
+								ingredients.each{
+									def ingredient = it
+									def ingredientMap = [:]
+									if(ingredient.available.equals("true")){
+										ingredientMap.put("ingredientId",ingredient.id)
+										ingredientMap.put("name",ingredient.name)
+										ingredientMap.put("price",ingredient.price.toString())
+										ingredientsList.add(ingredientMap)
+									}
+								}
+								subSectionMap.put("contents",ingredientsList)
+							}
+							subSectionList.add(subSectionMap)
+						}
+						sectionsMap.put("subsections",subSectionList)
+					}else{
+					}
+					sectionsList.add(sectionsMap)
+				}
+				menusMap.put("sections",sectionsList)
+				output.put("menus", menusMap)
+				output.put("errorCode", 0)
+				output.put("errorMessage", "Ingredients are available")
+				return output
+			}
+			else{
+				output.put("errorCode","1")
+				output.put("errorMessage","No Types Available")
+				return output
+			}
+		}catch(Exception e){
+			log.info("Exception is ===> "+e.getMessage())
+			output.put("errorCode",200)
+			output.put("errorMessage",e.getMessage())
+			return output
+		}
+	}
+
+
 	def getCocktailMap(Cocktails cocktail){
 		def contentsMap=[:]
 		contentsMap.put("id",cocktail.id)
