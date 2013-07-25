@@ -29,7 +29,7 @@ class Cocktails {
 	String glass
 	String ingredients
 	String instructions
-	long price
+	float price
 	String available
 	Date dateCreated
 	Date lastUpdated
