@@ -210,17 +210,21 @@ class PaymentService {
 		def authPwd = BartsyConfiguration.findByConfigName("authPassword").value
 		def Merchant merchant
 		
-		merchant = Merchant.createMerchant(paymentMode,
-			authId, authPwd);
 		
-		/*if(paymentMode.equalsIgnoreCase("SandBox")){
+		println"paymentMode "+paymentMode
+		println "authId "+authId
+		println"authPwd "+authPwd
+		
+//		merchant = Merchant.createMerchant(Environment.SANDBOX,
+//			authId, authPwd);
+		if(paymentMode.equalsIgnoreCase("Environment.SANDBOX")){
 			merchant = Merchant.createMerchant(Environment.SANDBOX,
 					authId, authPwd);
 		}
 		else{
 			merchant = Merchant.createMerchant(Environment.PRODUCTION,
 					authId, authPwd);
-		}*/
+		}
 		return merchant
 	}
 
