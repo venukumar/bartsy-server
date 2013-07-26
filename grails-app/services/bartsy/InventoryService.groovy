@@ -23,6 +23,8 @@ class InventoryService {
 				def sectionsMap=[:]
 				sectionsMap.put("section_name","Cocktails")
 				def contents=[]
+				def subSections=[]
+				def subSectionsMap=[:]
 				cocktails.each {
 					def cocktail=it
 					if(cocktail.available && cocktail.available.equalsIgnoreCase("true")){
@@ -63,7 +65,10 @@ class InventoryService {
 						contents.add(contentsMap)
 					}
 				}
-				sectionsMap.put("contents",contents)
+				subSectionsMap.put("contents",contents)
+				subSectionsMap.put("subsection_name","")
+				subSections.add(subSectionsMap)
+				sectionsMap.put("subsections",subSections)
 				//				if(option_group && option_group.size()>0){
 				//					option_group.each {
 				//						def optionMap = it
@@ -96,7 +101,10 @@ class InventoryService {
 				menusMap.put("sections",sections)
 				output.put("menus", menusMap)
 				output.put("errorCode", 0)
-				output.put("errorMessage", "Cocktails are available")
+				if(contents.size()>0)
+					output.put("errorMessage", "Cocktails are available")
+				else
+					output.put("errorMessage", "contents are not available")
 				return output
 			}
 			else{
