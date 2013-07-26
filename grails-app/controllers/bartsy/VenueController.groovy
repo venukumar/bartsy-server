@@ -17,117 +17,6 @@ class VenueController {
 	def venueService
 
 	/**
-	 * This is a test webservice to save venue details from a hardcoded locu response. To be removed later. 
-	 */
-	def saveVenueDetailsTest = {
-		def response = [:]
-		try{
-			def json = JSON.parse(request)
-			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
-			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
-				def resources = grailsApplication.mainContext.getResource("response.txt").file
-				def fileContents = resources.text
-				def parsedData = JSON.parse(fileContents)
-				def hasBarSection = 0
-				def menu
-				Venue venue = Venue.getAll()
-				//Venue venue = Venue.findByLocuId(json.locuId)
-				if(venue){
-					venue.cancelOrderTime = json.cancelOrderTime as int
-					venue.deviceToken = json.deviceToken
-					venue.lastHBResponse =  new Date()
-					venue.save()
-					response.put("venueId",venue.getVenueId())
-					response.put("venueName",venue.getVenueName())
-					response.put("errorCode","1")
-					response.put("errorMessage","Venue Details Updated")
-				}
-				else{
-					parsedData.objects.menus.each {
-						def parsedData1 = it
-						parsedData1.each{
-							def parsedData2 = it
-							if("Bar".equals(parsedData2.menu_name.toString()))
-							{
-								hasBarSection = 1
-								menu = URLEncoder.encode(parsedData2.sections.toString(),"UTF-8")
-								//saveDrinks(menu.toString())
-							}
-						}
-					}
-					venue= new Venue()
-					venue.venueName = parsedData.objects[0].name
-					venue.lat = parsedData.objects[0].lat
-					venue.longtd = parsedData.objects[0].long
-					venue.phone = parsedData.objects[0].phone
-					venue.region = parsedData.objects[0].region
-					venue.locuId = parsedData.objects[0].id
-					venue.postalCode = parsedData.objects[0].postal_code
-					venue.locality = parsedData.objects[0].locality
-					venue.streetAddress = parsedData.objects[0].street_address
-					venue.websiteURL = parsedData.objects[0].website_url
-					venue.country = parsedData.objects[0].country
-					venue.hasLocuMenu = parsedData.objects[0].has_menu
-					venue.hasBarSection = hasBarSection
-					venue.twitterId = parsedData.objects[0].twitter_id
-					venue.facebookURL = parsedData.objects[0].facebook_url
-					venue.openHours = parsedData.objects[0].open_hours
-					venue.cancelOrderTime = json.cancelOrderTime as int
-					venue.wifiPresent = json.wifiPresent
-					if(json.wifiPresent == 1){
-						venue.wifiName = json.wifiName
-						venue.wifiPassword = json.wifiPassword
-						venue.typeOfAuthentication = json.typeOfAuthentication
-					}
-					else{
-						venue.wifiName = "XYZ"
-						venue.wifiPassword = "XYZ"
-						venue.typeOfAuthentication = "XYZ"
-					}
-					if(hasBarSection){
-						venue.menu = menu
-					}
-					venue.deviceToken = json.deviceToken
-					venue.deviceType = json.deviceType
-					venue.status = "OPEN"
-					venue.lastHBResponse = new Date()
-					venue.lastActivity =  new Date()
-					def maxId = Venue.createCriteria().get { projections { max "venueId" } } as Long
-					if(maxId){
-						maxId = maxId+1
-					}
-					else{
-						maxId = 100001
-					}
-					venue.venueId = maxId
-
-					if(venue.save()){
-						response.put("venueId",maxId)
-						response.put("venueName",venue.getVenueName())
-						response.put("errorCode","0")
-						response.put("errorMessage","Save Successful")
-					}
-					else{
-						response.put("errorCode","1")
-						response.put("errorMessage","Save not Successful")
-					}
-				}
-			}
-			else{
-				response.put("errorCode","100")
-				response.put("errorMessage","API version do not match")
-			}
-		}
-		catch(Exception e){
-			//if an exception occurs send errorCode 200 along with the exception message
-			log.info("Exception is ===> "+e.getMessage())
-			response.put("errorCode",200)
-			response.put("errorMessage",e.getMessage())
-		}
-		render(text:response as JSON ,  contentType:"application/json")
-	}
-
-	/**
 	 * This is the webservice to save the venue registration details received from the bartender application.
 	 * 
 	 * @author Swetha Bhatnagar
@@ -174,8 +63,10 @@ class VenueController {
 					def fileContents = new File('/usr/response.txt').getText('UTF-8')
 					parsedData = JSON.parse(fileContents)
 				}
+				def locuMenu
 				if(parsedData){
 					//The following group of code is to parse the locu response and identify if it has a BAR section in its menu
+					locuMenu=URLEncoder.encode(parsedData.objects.toString(),"UTF-8")
 					parsedData.objects.menus.each {
 						def parsedData1 = it
 						parsedData1.each{
@@ -210,6 +101,7 @@ class VenueController {
 					else{
 						venue.setVenueImagePath(null)
 					}
+					venue.locuMenu=locuMenu
 					venue.hasBarSection = hasBarSection
 					if(hasBarSection){
 						venue.menu = menu
@@ -259,7 +151,7 @@ class VenueController {
 						venue.locuId =json.locuId
 					else
 						venue.locuId =parsedData?parsedData.objects[0].id:""
-						println "open"
+					println "open"
 					if(json.has("open_hours")&&json.open_hours)
 						venue.openHours =json.open_hours.toString()
 					else
@@ -312,6 +204,7 @@ class VenueController {
 					if(hasBarSection){
 						venue.menu = menu
 					}
+					venue.locuMenu=locuMenu
 					venue.cancelOrderTime = json.cancelOrderTime as int
 					//set the values received in the request to this syscall
 					/*	venue.cancelOrderTime = json.cancelOrderTime as int
@@ -454,18 +347,39 @@ class VenueController {
 			def json = JSON.parse(request)
 			//check to make sure the apiVersion sent in the request matches the correct apiVersion
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
-			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
+			if(apiVersion.value.toInteger() == Integer.parseInt(json.apiVersion.toString())){
 				//retrieve the venueId from the parsed request and retrieve the venue based on venueId
 				def venueId = json.venueId
 				def venue = Venue.findByVenueId(venueId)
 				//check if venue exists with that venueId
 				if(venue){
-					//if venue exists retrieve the menu from that venue object and decode it to get the menu in JSON format
-					def menuJson = JSON.parse(URLDecoder.decode(venue.menu))
-					//send back the menu as response along with errorCode 0
-					response.put("menu",menuJson)
-					response.put("errorCode","0")
-					response.put("errorMessage",message(code:'venue.exists'))
+					venue.locuSection="bar"
+					if(venue.locuSection){
+						def sections = venue.locuSection.trim().split(",")
+						if(sections){
+							def menuJson=[]
+							def locuMenu = JSON.parse(URLDecoder.decode(venue.locuMenu))
+							sections.each {
+								def sectionName = it
+								locuMenu.menus.each {
+									def  menuName= it
+									if(sectionName.trim().equalsIgnoreCase(menuName.menu_name[0].trim()))
+									{
+										def menu = menuName
+										menuJson.add(menu)
+									}
+								}
+							}
+							//send back the menu as response along with errorCode 0
+							response.put("menus",menuJson)
+							response.put("errorCode","0")
+							response.put("errorMessage","Menu sections available")
+						}
+					}else{
+						//if venue does not exist then send back errorCode 1
+						response.put("errorCode","2")
+						response.put("errorMessage","No locu sections available for this venue")
+					}
 				}
 				else{
 					//if venue does not exist then send back errorCode 1
@@ -565,7 +479,7 @@ class VenueController {
 			if(json){
 
 				def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
-				if(json.has("apiVersion")&&apiVersion.value.toInteger() == json.apiVersion.toInteger()){
+				if(json.has("apiVersion") && apiVersion.value.toInteger() == json.apiVersion.toInteger()){
 					venueService.getLocuMenu(json,response)
 				}else{
 					response.put("errorCode", 2)
@@ -577,6 +491,8 @@ class VenueController {
 			}
 		}catch(Exception e){
 			log.info("Exception found in getLocuMenuHeaders sys call "+e.getMessage())
+			println"Exception found in getLocuMenuHeaders sys call "+e.getMessage()
+			println "e "+e.printStackTrace()
 			response.put("errorCode", 200)
 			response.put("errorMessage",e.getMessage())
 		}finally{
@@ -594,7 +510,7 @@ class VenueController {
 			def json = JSON.parse(request)
 			if(json){
 				def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
-				if(json.has("apiVersion")&&apiVersion.value.toInteger() == json.apiVersion.toInteger()){
+				if(json.has("apiVersion") && apiVersion.value.toInteger() == Integer.parseInt(json.apiVersion.toString())){
 					venueService.getLocuMenuHeaders(json,response)
 				}else{
 					response.put("errorCode", 2)
@@ -608,6 +524,8 @@ class VenueController {
 			log.info("Exception found in getLocuMenuHeaders sys call "+e.getMessage())
 			response.put("errorCode", 200)
 			response.put("errorMessage",e.getMessage())
+			println"e "+e.printStackTrace()
+
 		}finally{
 			render(text:response as JSON,contentType:"application/json")
 		}
