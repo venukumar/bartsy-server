@@ -99,7 +99,9 @@ class InventoryService {
 				//				}
 				sections.add(sectionsMap)
 				menusMap.put("sections",sections)
-				output.put("menus", menusMap)
+				def menuJson=[]
+				menuJson.add(menusMap)
+				output.put("menus", menuJson)
 				output.put("errorCode", 0)
 				if(contents.size()>0)
 					output.put("errorMessage", "Cocktails are available")
