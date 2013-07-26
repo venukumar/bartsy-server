@@ -353,7 +353,6 @@ class VenueController {
 				def venue = Venue.findByVenueId(venueId)
 				//check if venue exists with that venueId
 				if(venue){
-					venue.locuSection="bar"
 					if(venue.locuSection){
 						def sections = venue.locuSection.trim().split(",")
 						if(sections){
