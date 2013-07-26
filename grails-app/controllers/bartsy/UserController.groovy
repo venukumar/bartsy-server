@@ -679,6 +679,14 @@ class UserController {
 								response.put("orderCount",ordersList.size())
 								response.put("checkedInUsersList",checkedInUsersList)
 								response.put("currentTime",new Date().toGMTString())
+
+								def unReadNotifications = Notifications.findAllByUserAndStatus(userProfile,0)
+								if(unReadNotifications){
+									response.put("unReadNotifications",unReadNotifications.size())
+								}else{
+									response.put("unReadNotifications",0)
+								}
+
 							}
 						}
 						//send the error code 0 acknowleding the request received
