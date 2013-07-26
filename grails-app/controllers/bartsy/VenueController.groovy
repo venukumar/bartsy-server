@@ -58,9 +58,9 @@ class VenueController {
 				def menu
 				// if menu not found then reading menu from file
 				if(!parsedData.objects?.menus){
-					//def resources = grailsApplication.mainContext.getResource("response.txt").file
-					//def fileContents = resources.text
-					def fileContents = new File('/usr/response.txt').getText('UTF-8')
+					def resources = grailsApplication.mainContext.getResource("response.txt").file
+					def fileContents = resources.text
+					//def fileContents = new File('/usr/response.txt').getText('UTF-8')
 					parsedData = JSON.parse(fileContents)
 				}
 				def locuMenu
@@ -362,10 +362,13 @@ class VenueController {
 								def sectionName = it
 								locuMenu.menus.each {
 									def  menuName= it
-									if(sectionName.trim().equalsIgnoreCase(menuName.menu_name[0].trim()))
-									{
-										def menu = menuName
-										menuJson.add(menu)
+									menuName.each{
+										def nameMenu =it
+										if(sectionName.trim().equalsIgnoreCase(nameMenu.menu_name.trim()))
+										{
+											def menu = nameMenu
+											menuJson.add(menu)
+										}
 									}
 								}
 							}
