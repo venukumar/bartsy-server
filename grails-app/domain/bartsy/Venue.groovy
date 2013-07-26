@@ -5,8 +5,15 @@ class Venue {
 	static constraints = {
 		menu(nullable:true)
 		venueImagePath(nullable:true)
+		locuMenu(nullable:true)
+		phoneNumber(nullable:true)
+		description(nullable:true)
+		communityRating(nullable:true)
 	}
-	static mapping = { menu type:"text" }
+	static mapping = {
+		menu type:"text"
+		locuMenu type:"text"
+	}
 	String venueName
 	String country
 	String hasLocuMenu
@@ -30,6 +37,7 @@ class Venue {
 	String twitterId
 	String venueId
 	String menu
+	String locuMenu
 	String wifiName
 	String wifiPassword
 	String typeOfAuthentication
@@ -49,4 +57,7 @@ class Venue {
 	String venuePassword
 	Date lastActivity
 	String venueImagePath
+	String phoneNumber
+	String description
+	String communityRating
 }
