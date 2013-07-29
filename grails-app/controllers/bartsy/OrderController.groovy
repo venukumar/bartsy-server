@@ -9,6 +9,7 @@ class OrderController {
 	def applePNService
 	def androidPNService
 	def paymentService
+	def orderService
 
 	/**
 	 * This is the webservice to be called to place an order
@@ -37,7 +38,12 @@ class OrderController {
 	def placeOrder = {
 		def response = [:]
 		try{
-			def json = JSON.parse(request)
+			def json
+			if(params.orderId){
+				json=params
+			}else{
+				json = JSON.parse(request)
+			}
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
 				Orders order = new Orders()
@@ -48,7 +54,9 @@ class OrderController {
 				if(userprofile && venue){
 					if(venue.status.equals("OPEN")){
 						CommonMethods common = new CommonMethods()
-						if(json.has("totalPrice") && common.isInteger(json.totalPrice)){
+						
+						if(json.totalPrice && common.isInteger(json.totalPrice)){
+							
 							def maxId = Orders.createCriteria().get { projections { max "orderId" } } as Long
 							if(maxId){
 								maxId = maxId+1
@@ -57,7 +65,7 @@ class OrderController {
 								maxId = 100001
 							}
 
-							if(json.has("itemsList")){
+							if(json.itemsList){
 
 								order.setItemsList(json.itemsList.toString())
 							}
@@ -120,7 +128,7 @@ class OrderController {
 								notification.setVenue(venue)
 								notification.setOrder(orderUpdate)
 								notification.setType("placeOrder")
-								if(json.has("type") && json.type.equals("custom")){
+								if(json.type && json.type.equals("custom")){
 									addDrinkIngredients(json.ingredients,orderUpdate)
 								}
 								def openOrdersCriteria = Orders.createCriteria()
@@ -158,7 +166,7 @@ class OrderController {
 								pnMessage.put("updateTime",orderDate.toGMTString())
 								pnMessage.put("orderTimeout",venue.cancelOrderTime)
 								pnMessage.put("specialInstructions",json.specialInstructions ?: "")
-								pnMessage.put("itemsList",json.has("itemsList")?json.itemsList.toString():"")
+								pnMessage.put("itemsList",json.itemsList?json.itemsList.toString():"")
 								if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
 
 									def body="You have been offered a drink "+json.itemName+" by "+orderUpdate.user.nickName
@@ -235,7 +243,8 @@ class OrderController {
 			response.put("currentTime",new Date().toGMTString())
 		}
 		catch(Exception e){
-			log.info("Exception is ===> "+e.getMessage())
+			log.info("Exception in place order ===> "+e.getMessage())
+			println"Exception in place order "+e.getMessage()
 			response.put("errorCode",200)
 			response.put("errorMessage","Error occured while processing your request. Please verify json")
 		}
@@ -582,110 +591,6 @@ class OrderController {
 		}
 		render(text:response as JSON,contentType:"application/json")
 	}
-
-	def placeOrderOld = {
-		try{
-			def json = JSON.parse(request)
-			Map response = new HashMap()
-			Orders order = new Orders()
-			Date orderDate = new Date()
-			UserProfile userprofile = UserProfile.findByBartsyId(json.bartsyId)
-			Venue venue = Venue.findByVenueId(json.venueId)
-			if(userprofile && venue){
-				if(venue.status.equals("OPEN")){
-					//def authorizeResponse = paymentService.authorizePayment()
-					//def authorizeResponseParsed = JSON.parse(authorizeResponse)
-					//println authorizeResponse.responseCodeText
-					//authorizeResponse.responseCodeText.equals("Approved")
-					if(true	){
-						def maxId = Orders.createCriteria().get { projections { max "orderId" } } as Long
-						if(maxId){
-							maxId = maxId+1
-						}
-						else{
-							maxId = 100001
-						}
-						//order.setAuthTransactionId(authorizeResponse.transactionId as long)
-						order.setOrderId(maxId)
-						order.setBasePrice(json.basePrice)
-						order.setItemId(json.itemId.toString())
-						order.setItemName(json.itemName)
-						order.setTipPercentage(json.tipPercentage)
-						order.setOrderStatus("0")
-						order.setTotalPrice(json.totalPrice)
-						order.setDescription(json.description)
-						order.setUser(userprofile)
-						order.setVenue(venue)
-						if(order.save()){
-							if(json.type != null && json.type.equals("custom")){
-								addDrinkIngredients(json.ingredients,order)
-							}
-							def openOrdersCriteria = Orders.createCriteria()
-							def openOrders = openOrdersCriteria.list {
-								eq("venue",venue)
-								and{ eq("user",userprofile) }
-								and{
-									'in'("orderStatus",[
-										"0",
-										"1",
-										"2",
-										"3",
-										"4",
-										"5",
-										"6",
-										"7",
-										"8",
-										"9"
-									])
-								}
-							}
-							response.put("orderCount",openOrders.size())
-							response.put("orderId",maxId)
-							response.put("errorCode","0")
-							response.put("errorMessage","Order Placed")
-							Map pnMessage = new HashMap()
-							pnMessage.put("bartsyId",json.bartsyId)
-							pnMessage.put("orderStatus","0")
-							pnMessage.put("orderId",maxId.toString())
-							pnMessage.put("itemName",json.itemName)
-							pnMessage.put("orderTime",orderDate.toGMTString())
-							pnMessage.put("basePrice",json.basePrice)
-							pnMessage.put("tipPercentage",json.tipPercentage)
-							pnMessage.put("totalPrice", json.totalPrice)
-							pnMessage.put("messageType","placeOrder")
-							pnMessage.put("description",json.description)
-							pnMessage.put("updateTime",orderDate.toGMTString())
-							androidPNService.sendPN(pnMessage, venue.deviceToken)
-						}
-						else{
-							response.put("errorCode","1")
-							response.put("errorMessage","Order placing Failed")
-
-						}
-					}
-					else{
-						response.put("errorCode","1")
-						response.put("errorMessage","Card not authorized")
-					}
-
-				}
-				else{
-					response.put("errorCode","1")
-					response.put("errorMessage","Venue is CLOSED or OFFLINE")
-				}
-			}
-			else{
-				response.put("errorCode","1")
-				response.put("errorMessage","Venue Id or User Id does not exists")
-			}
-			render(text:response as JSON,contentType:"application/json")
-		}
-		catch(Exception e){
-			log.info("error Message"+e.getMessage())
-		}
-	}
-
-
 	def addDrinkIngredients(ingredients,order){
 		ingredients.each{
 			def ingredientId =  it
@@ -859,4 +764,73 @@ class OrderController {
 		}
 		render(text:response as JSON,contentType:"application/json")
 	}
+
+	def reOrder={
+		def response = [:]
+		try{
+			def json = JSON.parse(request)
+			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+			if(json.apiVersion && apiVersion.value.toInteger() == Integer.parseInt(json.apiVersion.toString())){
+				if(json.has("bartsyId") && json.has("venueId")){
+					def venue = Venue.findByVenueId(json.venueId)
+					if(venue){
+						def user = UserProfile.findByBartsyId(json.bartsyId)
+						def reciever = UserProfile.findByBartsyId(json.recieverBatsyId)
+						if(user && reciever){
+							if(json.has("orderId")){
+								def order = Orders.findByOrderId(json.orderId)
+								if(order){
+									def orderId = order.orderId
+									def specialInstructions = order.specialInstructions
+									def bartsyId = order.user.bartsyId
+									def tipPercentage = order.tipPercentage
+									def itemName=order.itemName
+									def description=order.description
+									def recieverBartsyId =json.recieverBatsyId
+									def venueId=json.venueId
+									def orderStatus="0"
+									def basePrice=order.basePrice
+									def totalPrice=order.totalPrice
+									def itemsList=order.itemsList
+									params:[orderId:orderId,bartsyId:bartsyId]
+									boolean validate=orderService.reOrder(order,venue,user)
+									if(validate){
+										forward(controller:'order',action:'placeOrder',params:[orderId:orderId,bartsyId:bartsyId,specialInstructions:specialInstructions,apiVersion:json.apiVersion,tipPercentage:tipPercentage,itemName:itemName,description:description,recieverBartsyId:recieverBartsyId,venueId:venueId,orderStatus:orderStatus,basePrice:basePrice,totalPrice:totalPrice,itemsList:itemsList])
+									}else{
+										response.put("errorCode","10")
+										response.put("errorMessage","Your order doesn't exists in this venue : "+venue.venueName)
+									}
+								}else{
+									response.put("errorCode","5")
+									response.put("errorMessage","Your order doesn't exists.")
+								}
+							}else{
+								response.put("errorCode","4")
+								response.put("errorMessage","OrderId is missing in your request. Please check for same.")
+							}
+						}else{
+							response.put("errorCode","3")
+							response.put("errorMessage","Sender User or Reciever User doesn't exists.")
+						}
+					}else{
+						response.put("errorCode","2")
+						response.put("errorMessage","Venue doesn't exists.")
+					}
+
+				}else{
+					response.put("errorCode","1")
+					response.put("errorMessage","VenueId or BartsyId is missing in your request. Please check for same.")
+				}
+			}else{
+				response.put("errorCode","100")
+				response.put("errorMessage","API version do not match")
+			}
+		}catch(Exception e){
+			log.info("Exception in reOrder ===> "+e.getMessage())
+			response.put("errorCode",200)
+			response.put("errorMessage",e.getMessage())
+		}
+		render(text:response as JSON,contentType:"application/json")
+	}
+
 }
