@@ -54,10 +54,11 @@ class OrderController {
 				if(userprofile && venue){
 					if(venue.status.equals("OPEN")){
 						CommonMethods common = new CommonMethods()
-						
+
 						if(json.totalPrice && common.isInteger(json.totalPrice)){
-							
-							def maxId = Orders.createCriteria().get { projections { max "orderId" } } as Long
+
+							def maxId = Orders.createCriteria().get { projections { max "orderId"
+								} } as Long
 							if(maxId){
 								maxId = maxId+1
 							}
@@ -780,21 +781,20 @@ class OrderController {
 							if(json.has("orderId")){
 								def order = Orders.findByOrderId(json.orderId)
 								if(order){
-									def orderId = order.orderId
-									def specialInstructions = order.specialInstructions
-									def bartsyId = order.user.bartsyId
-									def tipPercentage = order.tipPercentage
-									def itemName=order.itemName
-									def description=order.description
-									def recieverBartsyId =json.recieverBatsyId
-									def venueId=json.venueId
-									def orderStatus="0"
-									def basePrice=order.basePrice
-									def totalPrice=order.totalPrice
-									def itemsList=order.itemsList
-									params:[orderId:orderId,bartsyId:bartsyId]
 									boolean validate=orderService.reOrder(order,venue,user)
 									if(validate){
+										def orderId = order.orderId
+										def specialInstructions = order.specialInstructions
+										def bartsyId = json.bartsyId
+										def tipPercentage = json.tipPercentage
+										def itemName=order.itemName
+										def description=json.description
+										def recieverBartsyId =json.recieverBatsyId
+										def venueId=json.venueId
+										def orderStatus="0"
+										def basePrice=json.basePrice
+										def totalPrice=json.totalPrice
+										def itemsList=order.itemsList
 										forward(controller:'order',action:'placeOrder',params:[orderId:orderId,bartsyId:bartsyId,specialInstructions:specialInstructions,apiVersion:json.apiVersion,tipPercentage:tipPercentage,itemName:itemName,description:description,recieverBartsyId:recieverBartsyId,venueId:venueId,orderStatus:orderStatus,basePrice:basePrice,totalPrice:totalPrice,itemsList:itemsList])
 									}else{
 										response.put("errorCode","10")
