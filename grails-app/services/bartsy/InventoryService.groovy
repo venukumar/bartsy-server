@@ -61,7 +61,7 @@ class InventoryService {
 						options_groups_map.put("text","")
 						options_groups_map.put("options",options)
 						options_groups.add(options_groups_map)
-						contentsMap.put("options_groups",options_groups)
+						contentsMap.put("option_groups",options_groups)
 						contents.add(contentsMap)
 					}
 				}
