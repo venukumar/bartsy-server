@@ -58,9 +58,9 @@ class VenueController {
 				def menu
 				// if menu not found then reading menu from file
 				if(!parsedData.objects?.menus){
-					def resources = grailsApplication.mainContext.getResource("response.txt").file
-					def fileContents = resources.text
-					//def fileContents = new File('/usr/response.txt').getText('UTF-8')
+					//def resources = grailsApplication.mainContext.getResource("response.txt").file
+					//def fileContents = resources.text
+					def fileContents = new File('/usr/response.txt').getText('UTF-8')
 					parsedData = JSON.parse(fileContents)
 				}
 				def locuMenu
@@ -106,6 +106,12 @@ class VenueController {
 					if(hasBarSection){
 						venue.menu = menu
 					}
+					if(json.phoneNumber)
+						venue.phoneNumber=json.phoneNumber
+					if(json.description)
+						venue.description=json.description
+					if(json.communityRating)
+						venue.communityRating=json.communityRating
 
 					//venue.venueImagePath=venueImagePath
 
@@ -204,6 +210,12 @@ class VenueController {
 					if(hasBarSection){
 						venue.menu = menu
 					}
+					if(json.phoneNumber)
+						venue.phoneNumber=json.phoneNumber
+					if(json.description)
+						venue.description=json.description
+					if(json.communityRating)
+						venue.communityRating=json.communityRating
 					venue.locuMenu=locuMenu
 					venue.cancelOrderTime = json.cancelOrderTime as int
 					//set the values received in the request to this syscall
