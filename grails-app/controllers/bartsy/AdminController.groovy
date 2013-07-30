@@ -1,5 +1,6 @@
 package bartsy
 
+import org.codehaus.groovy.grails.web.json.JSONArray
 import org.hsqldb.util.CSVWriter
 
 class AdminController {
@@ -77,8 +78,22 @@ class AdminController {
 
 				def orderStatus = orderStatusArr[orderStatusNumber]
 				def orderLastState = orderStatusArr[lastOrderState]
+				
+				def itemName = order.itemName
+				def itemsList = order.itemsList
+				if(itemsList){
+					def listOfItems = new JSONArray(itemsList)
+					listOfItems.each{
+						def item = it
+						if(itemName){
+							itemName=itemName+","+item.itemName
+						}else{
+							itemName=item.itemName
+						}
+					}
+				}
 
-				render(view:"orderDetails",model:[selectedOrder:order,orderStatus:orderStatus,orderLastState:orderLastState])
+				render(view:"orderDetails",model:[selectedOrder:order,orderStatus:orderStatus,orderLastState:orderLastState,itemName:itemName])
 
 			}
 		}catch(Exception e){
@@ -102,7 +117,31 @@ class AdminController {
 		try{
 			def orderslist = Orders.createCriteria().list(params){ order "id", "desc" }
 			def orderlistTotal = Orders.count()
-			[ordersList:orderslist, ordersTotal:orderlistTotal]
+			def orders=[:]
+			if(orderslist){
+				orderslist.each {
+					def order=it
+					def key = order.orderId
+					def itemName = order.itemName
+					def itemsList = order.itemsList
+					if(itemsList){
+						def listOfItems = new JSONArray(itemsList)
+						listOfItems.each{
+							def item = it
+							if(itemName){
+								itemName=itemName+","+item.itemName
+							}else{
+								itemName=item.itemName
+							}
+						}
+					}
+
+
+					orders.put(key,itemName)
+				}
+			}
+			println"orders "+orders
+			[ordersList:orderslist, ordersTotal:orderlistTotal, itemsNames:orders]
 		}catch(Exception e){
 			log.error("Error in Orders List ==>"+e.getMessage())
 		}
@@ -205,7 +244,7 @@ class AdminController {
 					err++
 				}
 			}
-			
+
 			if(params.payment){
 				def paymentreq = BartsyConfiguration.findByConfigName("payment")
 				paymentreq.value = params.payment
@@ -214,7 +253,7 @@ class AdminController {
 					err++
 				}
 			}
-			
+
 			if(params.authId){
 				def authIdreq = BartsyConfiguration.findByConfigName("authId")
 				authIdreq.value = params.authId
@@ -223,7 +262,7 @@ class AdminController {
 					err++
 				}
 			}
-			
+
 			if(params.authPwd){
 				def authPwdreq = BartsyConfiguration.findByConfigName("authPassword")
 				authPwdreq.value = params.authPwd
@@ -232,7 +271,7 @@ class AdminController {
 					err++
 				}
 			}
-			
+
 			if(err > 0){
 				flash.errors = "App Settings saving failed"
 			}else{
