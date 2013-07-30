@@ -5,6 +5,8 @@ import grails.converters.JSON
 
 class FavoritesController {
 
+	def favoriteService
+
 	def saveUserFavoritePeople={
 		def response=[:]
 		try{
@@ -104,13 +106,29 @@ class FavoritesController {
 		try{
 			def json = JSON.parse(request)
 			if(json){
-				def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
-				if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
-					
-					
-					
-					
-					
+				def serverApiVersion = BartsyConfiguration.findByConfigName("apiVersion").value
+				def apiVersion=json.apiVersion.toString().trim()
+				if(serverApiVersion.toString().trim().equalsIgnoreCase(apiVersion)){
+					def userId = json.bartsyId
+					def venueId = json.venueId
+					if(userId && venueId){
+						def venue = Venue.findByVenueId(venueId)
+						if(venue){
+							def user = UserProfile.findByBartsyId(userId)
+							if(user){
+								response = favoriteService.saveFavoriteDrink(user,venue,json)
+							}else{
+								response.put("errorCode",3)
+								response.put("errorMessage","User doesn't exists")
+							}
+						}else{
+							response.put("errorCode",2)
+							response.put("errorMessage","Venue doesn't exists")
+						}
+					}else{
+						response.put("errorCode",1)
+						response.put("errorMessage","VenueId or UserId is missing")
+					}
 				}else{
 					response.put("errorCode",100)
 					response.put("errorMessage","API version do not match")
@@ -127,6 +145,53 @@ class FavoritesController {
 			render(text:response as JSON,contentType:"application/json")
 		}
 	}
+
+
+	def getFavoriteDrinks={
+		def response=[:]
+		try{
+			def json = JSON.parse(request)
+			if(json){
+				def serverApiVersion = BartsyConfiguration.findByConfigName("apiVersion").value
+				def apiVersion=json.apiVersion.toString().trim()
+				if(serverApiVersion.toString().trim().equalsIgnoreCase(apiVersion)){
+					def venueId = json.venueId
+					def userId = json.bartsyId
+					if(userId && venueId){
+						def venue = Venue.findByVenueId(venueId)
+						if(venue){
+							def user = UserProfile.findByBartsyId(userId)
+							if(user){
+								response = favoriteService.getFavoriteDrinks(user,venue)
+							}else{
+								response.put("errorCode",2)
+								response.put("errorMessage","User doesn't exists")
+							}
+						}else{
+							response.put("errorCode",2)
+							response.put("errorMessage","Venue doesn't exists")
+						}
+					}else{
+						response.put("errorCode",1)
+						response.put("errorMessage","VenueId or BartsyId is missing")
+					}
+				}else{
+					response.put("errorCode",100)
+					response.put("errorMessage","API version do not match")
+				}
+			}
+		}catch(Exception e){
+			log.info("Exception found in getFavoriteDrink "+e.getMessage())
+			println"Exception found in getFavoriteDrink "+e.getMessage()
+			response.put("errorCode",200)
+			response.put("errorMessage","Error occured while processing your request. Please verify json")
+		}
+		finally{
+			response.put("currentTime",new Date().toGMTString())
+			render(text:response as JSON,contentType:"application/json")
+		}
+	}
+
 
 	def favoriteVenues={
 		def response=[:]
