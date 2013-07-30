@@ -166,7 +166,8 @@ class InventoryService {
 					sectionsList.add(sectionsMap)
 				}
 				menusMap.put("sections",sectionsList)
-				output.put("menus", menusMap)
+				menus.add(menusMap)
+				output.put("menus", menus)
 				output.put("errorCode", 0)
 				output.put("errorMessage", "Ingredients are available")
 				return output
