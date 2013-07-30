@@ -39,7 +39,7 @@
 			<td>:</td><td>${selectedOrder.itemId}
 			</td>
 			<td>Item Name</td>
-			<td>:</td><td>${selectedOrder.itemName}
+			<td>:</td><td>${itemName}
 			</td>
 		</tr>
 
