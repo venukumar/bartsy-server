@@ -54,6 +54,7 @@ class TimeoutService {
 								if(!order.save(flush:true)){
 									println "order timeout error"
 								}else{
+								CommonMethods common = new CommonMethods()
 									def pnMessage = [:]
 									pnMessage.put("orderStatus","7")
 									pnMessage.put("cancelledOrder",order.orderId)
@@ -64,6 +65,7 @@ class TimeoutService {
 										androidPNService.sendPN(pnMessage,order.user.deviceToken)
 									}
 									else{
+										pnMessage.put("unReadNotifications",common.getNotifictionCount(order.user))
 										applePNService.sendPNOrderTimeout(pnMessage, order.user.deviceToken, "1","Your Order "+order.orderId+" has been cancelled due to timeout")
 									}
 									if(order.getDrinkOffered()){
@@ -71,6 +73,7 @@ class TimeoutService {
 											androidPNService.sendPN(pnMessage,order.receiverProfile.deviceToken)
 										}
 										else{
+											pnMessage.put("unReadNotifications",common.getNotifictionCount(order.user))
 											applePNService.sendPNOrderTimeout(pnMessage, order.receiverProfile.deviceToken, "1","Your Order "+order.orderId+" has been cancelled due to timeout")
 										}
 									}
