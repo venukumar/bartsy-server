@@ -183,6 +183,7 @@ class OrderController {
 									response.put("orderTimeout",venue.cancelOrderTime)
 									if(recieverUserprofile.deviceType == 1 ){
 										try{
+											pnMessage.put("unReadNotifications",common.getNotifictionCount(recieverUserprofile))
 											applePNService.sendPN(pnMessage,recieverUserprofile.deviceToken, "1",body)
 										}catch(Exception e){
 
@@ -377,10 +378,13 @@ class OrderController {
 									pnMessage.put("currentTime",new Date().toGMTString())
 									pnMessage.put("body",body)
 									pnMessage.put("orderTimeout",order.venue.cancelOrderTime)
+									CommonMethods common = new CommonMethods()
 									if(order.receiverProfile.bartsyId && !order.receiverProfile.bartsyId.equals(order.user.bartsyId))
 									{
 										def recieverUser = UserProfile.findByBartsyId(order.receiverProfile.bartsyId)
 										if(recieverUser.deviceType == 1 ){
+
+											pnMessage.put("unReadNotifications",common.getNotifictionCount(recieverUser))
 											applePNService.sendPN(pnMessage, recieverUser.deviceToken, "1",body)
 										}
 										else{
@@ -398,6 +402,7 @@ class OrderController {
 										notification.save(flush:true)
 									}
 									if(order.user.deviceType == 1 ){
+										pnMessage.put("unReadNotifications",common.getNotifictionCount(order.user))
 										applePNService.sendPN(pnMessage, order.user.deviceToken, "1",body)
 									}
 									else{
@@ -474,6 +479,7 @@ class OrderController {
 				def recieveUser = UserProfile.findByBartsyId(json.bartsyId)
 				// checking the order is empty
 				if(order) {
+					CommonMethods common = new CommonMethods()
 					if(json.orderStatus){
 						order.setOrderStatus(json.orderStatus.toString())
 						def body
@@ -495,6 +501,8 @@ class OrderController {
 									pnMessage.put("body",body)
 									// checking deviceType android is 0 and iphone is 1
 									if(order.user.deviceType == 1 ){
+
+										pnMessage.put("unReadNotifications",common.getNotifictionCount(order.user))
 										// Sending push notification to the iphone
 										applePNService.sendPN(pnMessage, order.user.deviceToken, "1",body)
 									}
@@ -545,6 +553,7 @@ class OrderController {
 									if(order.user.deviceType == 1 ){
 										//sending PN to iphone device
 										pnMessage.put("messageType","DrinkOfferAccepted")
+										pnMessage.put("unReadNotifications",common.getNotifictionCount(order.user))
 										applePNService.sendPN(pnMessage, order.user.deviceToken, "1",body)
 									}
 									else{
