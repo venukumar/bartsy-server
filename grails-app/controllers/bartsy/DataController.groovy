@@ -43,17 +43,17 @@ class DataController {
 					//def openOrders = openOrdersCriteria.list {
 					def openOrders = Orders.createCriteria().list {
 						'in'("orderStatus",[
-						 "0",
-						 "1",
-						 "2",
-						 "3",
-						 "4",
-						 "5",
-						 "6",
-						 "7",
-						 "8",
-						 "9"
-						 ])
+							"0",
+							"1",
+							"2",
+							"3",
+							"4",
+							"5",
+							"6",
+							"7",
+							"8",
+							"9"
+						])
 						//ne("orderStatus", "10")
 						or{
 							eq("user",userProfile)
@@ -413,6 +413,11 @@ class DataController {
 							ordersMap.put("recipientImagePath",order.receiverProfile.userImage)
 							ordersMap.put("orderStatus",order.orderStatus)
 							ordersMap.put("orderId",order.orderId)
+							if(order.lastState){
+								ordersMap.put("lastState",order.lastState)}
+							else{
+								ordersMap.put("lastState","0")
+							}
 							def itemsListStr
 							if(order.itemsList){
 								itemsListStr = new JSONArray(order.itemsList)
@@ -629,6 +634,8 @@ class DataController {
 						pnMessage.put("body",body)
 						//send PN to receiver device
 						if(receiverProfile.deviceType == 1){
+							CommonMethods common = new CommonMethods()
+							pnMessage.put("unReadNotifications",common.getNotifictionCount(receiverProfile))
 							applePNService.sendPN(pnMessage, receiverProfile.deviceToken, "1" ,body)
 						}
 						else{
