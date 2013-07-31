@@ -93,6 +93,7 @@ class VenueController {
 					venue.longtd = json.has("longitude")?json.longitude:venue.longtd
 					venue.phone = json.has("phone")?json.phone:venue.phone
 					venue.locuId = json.has("locuId")?json.locuId:venue.locuId
+					venue.wifiNetworkType=json.has("wifiNetworkType")?json.wifiNetworkType:""
 					setValuesToVenue(venue,json)
 					if(venueImageFile){
 						def venueImagePath = saveVenueImage(venueImageFile, venue.venueId)
@@ -162,6 +163,7 @@ class VenueController {
 						venue.openHours =json.open_hours.toString()
 					else
 						venue.openHours =parsedData?parsedData.objects[0].open_hours:""
+					venue.wifiNetworkType=json.has("wifiNetworkType")?json.wifiNetworkType:""
 
 					/*	venue.venueName = json.has("venueName")?(json.venueName?json.venueName:parsedData?parsedData.objects[0].name:""):(parsedData?parsedData.objects[0].name:"")
 					 venue.venueName = json.has("venueName")?json.venueName:(parsedData?parsedData.objects[0].name:"")
@@ -618,6 +620,7 @@ class VenueController {
 						venueMap.put("cancelOrderTime",venue.getCancelOrderTime())
 						venueMap.put("totalTaxRate",venue.totalTaxRate)
 						venueMap.put("currentTime",new Date().toGMTString())
+						venueMap.put("wifiNetworkType",venue.wifiNetworkType)
 						//add the venue object to the list defined earlier
 						totalVenueList.add(venueMap)
 					}
@@ -819,6 +822,8 @@ class VenueController {
 										androidPNService.sendPN(pnMessage,order.user.deviceToken)
 									}
 									else{
+										CommonMethods common = new CommonMethods()
+										pnMessage.put("unReadNotifications",common.getNotifictionCount(order.user))
 										applePNService.sendPNOrderTimeout(pnMessage, order.user.deviceToken, "1","Your Order "+order.orderId+" has been cancelled as the Venue is closed")
 									}
 									if(order.getDrinkOffered()){
