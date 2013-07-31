@@ -24,6 +24,17 @@ class CommonMethods {
 		response.put("errorMessage",e.getMessage())
 	}
 
+	
+	def getNotifictionCount(UserProfile user){
+		def unReadNotifications = Notifications.findAllByUserAndStatus(user,0)
+		if(unReadNotifications){
+			return unReadNotifications.size()
+		}else{
+			return 0
+		}
+	}
+	
+	
 	/* Checking String is Integer or not*/
 
 	public boolean isInteger(String integerString){
