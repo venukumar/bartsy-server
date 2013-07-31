@@ -83,6 +83,7 @@ class UserController {
 							userProfile.setGoogleUserName(json.googleUserName ?: "")
 							userProfile.setBartsyPassword(json.bartsyPassword.toString() ?: "")
 							userProfile.setBartsyLogin(json.bartsyLogin ?: "")
+							userProfile.setRedactedCardNumber(json.has("redactedCardNumber")?json.redactedCardNumber:"")
 							if(json.has("email") && !json.email.equals(userProfile.email)){
 								userProfile.setEmail(json.email ?: "")
 								emailUpdated = true
@@ -167,6 +168,7 @@ class UserController {
 							userProfileToSave.setExpYear(json.expYear.toString() ?: "")
 							userProfileToSave.setSessionCode(sessionCode)
 							userProfileToSave.setEmailVerified("false")
+							userProfileToSave.setRedactedCardNumber(json.has("redactedCardNumber")?json.redactedCardNumber:"")
 							userProfileToSave.setAdminUser(0)
 							//							def admin = AdminUser.findByPromoterCode(json.has("promoCode")?json.promoCode:"")
 							//							if(admin){
@@ -243,6 +245,7 @@ class UserController {
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
 			log.info("Exception is ===> "+e.getMessage())
+			println"excep "+e.getMessage()
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
 		}
@@ -618,7 +621,7 @@ class UserController {
 			def json = JSON.parse(request)
 			//check to make sure the apiVersion sent in the request matches the correct apiVersion
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
-			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
+			if(apiVersion.value.toString().equalsIgnoreCase(json.apiVersion.toString())){
 				//retrieve the user profile and venue objects based on the bartsyId sent in the syscall request
 				def userProfile = UserProfile.findByBartsyId(json.bartsyId)
 				def venue = Venue.findByVenueId(json.venueId)
@@ -698,7 +701,7 @@ class UserController {
 					}
 				}else{
 					response.put("errorCode","1")
-					response.put("errorMessage","Venue does not exists")
+					response.put("errorMessage","Venue or User does not exists")
 				}
 			}
 			else{
@@ -1136,6 +1139,7 @@ class UserController {
 						response.put("googleId",userProfile.getGoogleId())
 						response.put("googleUserName",userProfile.getGoogleUserName())
 						response.put("oauthCode", userProfile.getSessionCode())
+						response.put("redactedCardNumber",userProfile.getRedactedCardNumber())
 					}
 					else{
 						//if user profile does not exists send error code 1
