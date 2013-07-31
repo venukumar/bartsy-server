@@ -192,6 +192,70 @@ class FavoritesController {
 		}
 	}
 
+	/**
+	 *  To delete favorite drink of the user
+	 */
+	def deleteFavoriteDrink={
+
+		def response=[:]
+		try{
+			def json = JSON.parse(request)
+			if(json){
+				def serverApiVersion = BartsyConfiguration.findByConfigName("apiVersion").value
+				def apiVersion=json.apiVersion.toString().trim()
+				if(serverApiVersion.toString().trim().equalsIgnoreCase(apiVersion)){
+
+					def venueId = json.venueId
+					def userId = json.bartsyId
+					if(userId && venueId){
+						def venue = Venue.findByVenueId(venueId)
+						if(venue){
+							def user = UserProfile.findByBartsyId(userId)
+							if(user){
+								def drinkId=json.favoriteDrinkId
+								if(drinkId){
+									def favoriteDrink = UserFavoriteDrinks.findByIdAndUser(drinkId,user)
+									if(favoriteDrink){
+										println "favoriteDrink.delete() "+favoriteDrink.delete()
+										if(!favoriteDrink.delete()){
+											response.put("errorCode",0)
+											response.put("errorMessage","Favorite drink is deleted.")
+										}
+									}else{
+									response.put("errorCode",5)
+									response.put("errorMessage","Favorite drink is not available in server")
+								}
+								}else{
+									response.put("errorCode",4)
+									response.put("errorMessage","Favorite drink id is missing in your request")
+								}
+							}else{
+								response.put("errorCode",3)
+								response.put("errorMessage","User doesn't exists")
+							}
+						}else{
+							response.put("errorCode",2)
+							response.put("errorMessage","Venue doesn't exists")
+						}
+					}else{
+						response.put("errorCode",1)
+						response.put("errorMessage","VenueId or BartsyId is missing")
+					}
+				}else{
+					response.put("errorCode",100)
+					response.put("errorMessage","API version do not match")
+				}
+			}
+		}catch(Exception e){
+			log.info("Exception found in deleteFavoriteDrink "+e.getMessage())
+			println "Exception found in deleteFavoriteDrink "+e.getMessage()
+			response.put("errorCode",200)
+			response.put("errorMessage","Error occured while processing your request. Please try again")
+		}finally{
+			response.put("currentTime",new Date().toGMTString())
+			render(text:response as JSON,contentType:"application/json")
+		}
+	}
 
 	def favoriteVenues={
 		def response=[:]
