@@ -60,4 +60,5 @@ class Venue {
 	String phoneNumber
 	String description
 	String communityRating
+	String wifiNetworkType
 }
