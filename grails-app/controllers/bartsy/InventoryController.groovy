@@ -190,7 +190,7 @@ class InventoryController {
 	/*
 	 * This method used to get the ingredients in locu format
 	 */
-	def getIngredientsInLocuFormat={
+	def getMixedDrinks={
 		def response = [:]
 		try{
 			def json = JSON.parse(request)
@@ -218,7 +218,7 @@ class InventoryController {
 	}
 
 
-	def getIngredients = {
+	/*def getIngredients = {
 		def response = [:]
 		try{
 			def json = JSON.parse(request)
@@ -290,7 +290,7 @@ class InventoryController {
 		}
 		render(text:response as JSON ,  contentType:"application/json")
 	}
-
+*/
 	/**
 	 * To get the list of cocktails from DB and send to the client
 	 */

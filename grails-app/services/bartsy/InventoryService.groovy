@@ -180,7 +180,7 @@ class InventoryService {
 					}
 					sectionsList.add(sectionsMap)
 				}
-				menusMap.put("sections",sectionsList)
+				menusMap.put("sections",sectionsList.reverse())
 				menus.add(menusMap)
 				output.put("menus", menus)
 				output.put("errorCode", 0)
