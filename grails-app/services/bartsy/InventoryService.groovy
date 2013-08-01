@@ -121,10 +121,10 @@ class InventoryService {
 				def menus=[]
 				types.each {
 					def type=it
-					
+
 					def categories =  IngredientCategory.findAllByType(type)
 					if(categories){
-						
+
 						def menusMap=[:]
 						if(type.type.toString().equalsIgnoreCase("Mixer")){
 							menusMap.put("menu_name","Mixers")
@@ -133,18 +133,18 @@ class InventoryService {
 							menusMap.put("menu_name","Mixed Drinks")
 						}
 						def sectionsList=[]
-						
-						
+
+
 						def sectionsMap=[:]
 						def subSectionList=[]
-					
+
 						sectionsMap.put("section_name","")
 						def subSectionMap=[:]
 						subSectionMap.put("subsection_name","")
 						def ingredientsList=[]
 						categories.each {
 							def category =it
-							
+
 							def ingredients = Ingredients.findAllByCategoryAndVenue(category,venue)
 							if(ingredients){
 								def itemMap=[:]
@@ -178,6 +178,24 @@ class InventoryService {
 									option_Groups_Map.put("text",category.category)
 									option_Groups_Map.put("options",options)
 									option_groups.add(option_Groups_Map)
+									if(!type.type.toString().equalsIgnoreCase("Mixer")){
+										def mixersMap =[:]
+										mixersMap.put("type","OPTION_SELECT")
+										mixersMap.put( "text","Mixers")
+										def mixerOptions=[]
+										def ingTypeObj = IngredientType.findByType("Mixer")
+										if(ingTypeObj){
+											def categorys = IngredientCategory.findAllByType(ingTypeObj)
+											if(categorys){
+												categorys.each{
+													def name = it
+													mixerOptions.add(name.category)
+												}
+											}
+										}
+										mixersMap.put("options",mixerOptions)
+										option_groups.add(mixersMap)
+									}
 									itemMap.put("option_groups",option_groups)
 								}
 								ingredientsList.add(itemMap)
@@ -187,7 +205,7 @@ class InventoryService {
 						subSectionList.add(subSectionMap)
 						sectionsMap.put("subsections",subSectionList)
 						sectionsList.add(sectionsMap)
-						
+
 						menusMap.put("sections",sectionsList)
 						menus.add(menusMap)
 					}else{
