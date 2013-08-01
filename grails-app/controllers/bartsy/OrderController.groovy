@@ -87,6 +87,30 @@ class OrderController {
 							order.setOrderStatus("100")
 							order.setAuthApproved("false")
 							order.save(flush:true)
+							if(order){
+							if(json.itemsList){
+								json.itemsList.each{
+									def itemInfo = it
+									OrderItems orderItem = new OrderItems()
+									orderItem.setVersion(1)
+									orderItem.setItemName(itemInfo.itemName)
+									orderItem.setItemId(itemInfo.itemId)
+									orderItem.setBasePrice(itemInfo.basePrice)
+									orderItem.setDescription(itemInfo.description)
+									orderItem.setOrder(order)
+									orderItem.save(flush:true)
+								}
+									
+							}else{
+								OrderItems orderItem = new OrderItems()
+								orderItem.setItemName(json.itemName)
+								orderItem.setItemId(json.itemId)
+								orderItem.setBasePrice(json.basePrice)
+								orderItem.setDescription(json.description)
+								orderItem.setOrder(order)
+								orderItem.save(flush:true)
+							}
+							}
 							Orders orderUpdate = Orders.findByOrderId(order.orderId)
 							def authorizeResponse = paymentService.authorizePayment(userprofile,json.totalPrice,orderUpdate?.orderId)
 							//order.setAuthTransactionId(authorizeResponse.transactionId as long)
