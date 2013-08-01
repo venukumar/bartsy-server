@@ -113,34 +113,44 @@ class InventoryService {
 	/*
 	 * This is the method used to create locu format of ingredients
 	 */
-	def getIngredients(Venue venue){
+	def getMixedDrinks(Venue venue){
 		def output=[:]
 		try{
 			def types =  IngredientType.getAll()
 			if(types){
 				def menus=[]
-				def menusMap=[:]
-				menusMap.put("menu_name","Mixed Drinks")
-				def sectionsList=[]
 				types.each {
 					def type=it
-					def sectionsMap=[:]
-					sectionsMap.put("section_name",type.type)
+					
 					def categories =  IngredientCategory.findAllByType(type)
 					if(categories){
+						
+						def menusMap=[:]
+						if(type.type.toString().equalsIgnoreCase("Mixer")){
+							menusMap.put("menu_name","Mixers")
+							menusMap.put("show_menu","No")
+						}else{
+							menusMap.put("menu_name","Mixed Drinks")
+						}
+						def sectionsList=[]
+						
+						
+						def sectionsMap=[:]
 						def subSectionList=[]
+					
+						sectionsMap.put("section_name","")
+						def subSectionMap=[:]
+						subSectionMap.put("subsection_name","")
+						def ingredientsList=[]
 						categories.each {
 							def category =it
-							def subSectionMap=[:]
-							subSectionMap.put("subsection_name","")
+							
 							def ingredients = Ingredients.findAllByCategoryAndVenue(category,venue)
 							if(ingredients){
-								def ingredientsList=[]
 								def itemMap=[:]
 								itemMap.put("name", category.category)
 								itemMap.put("type","ITEM_SELECT")
 								itemMap.put("description","")
-								itemMap.put("price","0")
 								def option_groups=[]
 
 								def options=[]
@@ -171,18 +181,19 @@ class InventoryService {
 									itemMap.put("option_groups",option_groups)
 								}
 								ingredientsList.add(itemMap)
-								subSectionMap.put("contents",ingredientsList)
 							}
-							subSectionList.add(subSectionMap)
 						}
+						subSectionMap.put("contents",ingredientsList)
+						subSectionList.add(subSectionMap)
 						sectionsMap.put("subsections",subSectionList)
+						sectionsList.add(sectionsMap)
+						
+						menusMap.put("sections",sectionsList)
+						menus.add(menusMap)
 					}else{
 					}
-					sectionsList.add(sectionsMap)
 				}
-				menusMap.put("sections",sectionsList.reverse())
-				menus.add(menusMap)
-				output.put("menus", menus)
+				output.put("menus", menus.reverse())
 				output.put("errorCode", 0)
 				output.put("errorMessage", "Ingredients are available")
 				return output
