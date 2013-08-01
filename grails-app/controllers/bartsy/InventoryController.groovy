@@ -199,7 +199,7 @@ class InventoryController {
 				def venue = Venue.findByVenueId(json.venueId.toString())
 				if(venue){
 					response.put("venueId", json.venueId)
-					response=inventoryService.getIngredients(venue)
+					response=inventoryService.getMixedDrinks(venue)
 				}else{
 					response.put("errorCode","1")
 					response.put("errorMessage","Venue Does not exist")
