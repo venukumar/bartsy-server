@@ -321,12 +321,15 @@ class InventoryController {
 			}
 			catch(Exception e){
 				log.info("Exception is ===> "+e.getMessage())
+				println "Exception is ===> "+e.getMessage()
 				response.put("errorCode",200)
 				response.put("errorMessage",e.getMessage())
 			}
 		}
 		catch(Exception e){
 			log.info("Exception is ===> "+e.getMessage())
+			
+			println "Exception is ===> "+e.getMessage()
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
 		}

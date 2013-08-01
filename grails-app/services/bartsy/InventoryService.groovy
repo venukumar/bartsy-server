@@ -18,13 +18,15 @@ class InventoryService {
 				def option_group=[]
 				def menus=[]
 				def menusMap=[:]
-				menusMap.put("menu_name","Bar")
+				menusMap.put("menu_name","Cocktails")
 				def sections=[]
 				def sectionsMap=[:]
-				sectionsMap.put("section_name","Cocktails")
+				sectionsMap.put("section_name","")
 				def contents=[]
 				def subSections=[]
 				def subSectionsMap=[:]
+				int price=0
+				int check=0
 				cocktails.each {
 					def cocktail=it
 					if(cocktail.available && cocktail.available.equalsIgnoreCase("true")){
@@ -42,26 +44,41 @@ class InventoryService {
 									def category=IngredientCategory.findById(categoryId)
 									if(category){
 										String name =category.category
-										//									if(!option_group.contains(categoryId)){
-										//										def map=[:]
-										//										map.put("categoryId",categoryId)
-										//										map.put("ingredients",cocktail.ingredients)
-										//										option_group.add(map)
-										//									}
-
 										if(!options.contains(name))
 											options.add(name)
+										def ingredient = Ingredients.findByCategoryAndVenue(category,venue)
+										if(ingredient && check==0){
+											ingredient.each {
+												def ing =it
+												price=ing.price
+												check++
+											}
+										}
 									}
 								}
 							}
 						}
-						def options_groups=[]
-						def options_groups_map=[:]
-						options_groups_map.put("type","OPTION_SELECT")
-						options_groups_map.put("text","")
-						options_groups_map.put("options",options)
-						options_groups.add(options_groups_map)
-						contentsMap.put("option_groups",options_groups)
+						if(options.size()>0)
+						{
+							def options_groups=[]
+							def options_groups_map=[:]
+							options_groups_map.put("type","OPTION_SELECT")
+							options_groups_map.put("text","")
+							def optionsMapList=[]
+							options.each {
+								def name = it
+								def optionMap=[:]
+								optionMap.put("name",name)
+								if(check==1){
+									optionMap.put("price",price)
+								}
+								optionsMapList.add(optionMap)
+							}
+
+							options_groups_map.put("options",optionsMapList)
+							options_groups.add(options_groups_map)
+							contentsMap.put("option_groups",options_groups)
+						}
 						contents.add(contentsMap)
 					}
 				}
@@ -69,34 +86,7 @@ class InventoryService {
 				subSectionsMap.put("subsection_name","")
 				subSections.add(subSectionsMap)
 				sectionsMap.put("subsections",subSections)
-				//				if(option_group && option_group.size()>0){
-				//					option_group.each {
-				//						def optionMap = it
-				//						def categoryId=optionMap.categoryId
-				//						def ingredients=optionMap.ingredients
-				//						def category=IngredientCategory.findById(categoryId)
-				//						def ingObjs = Ingredients.findAllByVenueAndCategory(venue,category)
-				//						String key="option_"+category.category
-				//						if(ingObjs){
-				//							def categoryIngredients=[]
-				//							def detailsOfIngList=[]
-				//							def detailsOfIng=[:]
-				//							detailsOfIng.put("name",category.category)
-				//							ingObjs.each {
-				//								def ingObj=it
-				//								def option_group_map=[:]
-				//								option_group_map.put("ingredientId",ingObj.ingredientId)
-				//								option_group_map.put("name",ingObj.name)
-				//								option_group_map.put("price",ingObj.price)
-				//								option_group_map.put("available",ingObj.available)
-				//								categoryIngredients.add(option_group_map)
-				//							}
-				//							detailsOfIng.put("options", categoryIngredients)
-				//							detailsOfIngList.add(detailsOfIng)
-				//							sectionsMap.put(key,detailsOfIngList)
-				//						}
-				//					}
-				//				}
+
 				sections.add(sectionsMap)
 				menusMap.put("sections",sections)
 				def menuJson=[]
@@ -130,7 +120,7 @@ class InventoryService {
 			if(types){
 				def menus=[]
 				def menusMap=[:]
-				menusMap.put("menu_name","Bar")
+				menusMap.put("menu_name","Mixed Drinks")
 				def sectionsList=[]
 				types.each {
 					def type=it
@@ -152,13 +142,7 @@ class InventoryService {
 								itemMap.put("description","")
 								itemMap.put("price","0")
 								def option_groups=[]
-								def option_Groups_Map=[:]
 
-								if(category.category.toString().contains("Add-ons"))
-									option_Groups_Map.put("type","OPTION_ADD")
-								else
-									option_Groups_Map.put("type","OPTION_CHOOSE")
-								option_Groups_Map.put("text",category.category)
 								def options=[]
 								ingredients.each{
 									def ingredient = it
@@ -174,9 +158,18 @@ class InventoryService {
 										options.add(ingredientMap)
 									}
 								}
-								option_Groups_Map.put("options",options)
-								option_groups.add(option_Groups_Map)
-								itemMap.put("option_groups",option_groups)
+								if(options.size()>0){
+									def option_Groups_Map=[:]
+
+									if(category.category.toString().contains("Add-ons"))
+										option_Groups_Map.put("type","OPTION_ADD")
+									else
+										option_Groups_Map.put("type","OPTION_CHOOSE")
+									option_Groups_Map.put("text",category.category)
+									option_Groups_Map.put("options",options)
+									option_groups.add(option_Groups_Map)
+									itemMap.put("option_groups",option_groups)
+								}
 								ingredientsList.add(itemMap)
 								subSectionMap.put("contents",ingredientsList)
 							}

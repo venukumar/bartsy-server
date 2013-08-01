@@ -65,7 +65,6 @@ class OrderController {
 							else{
 								maxId = 100001
 							}
-
 							if(json.itemsList){
 
 								order.setItemsList(json.itemsList.toString())

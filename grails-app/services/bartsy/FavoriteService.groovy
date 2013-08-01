@@ -18,7 +18,9 @@ class FavoriteService {
 						if(ingredients){
 							def categoryId = ingredients.category.id
 							if(category){
-								if(!category.contains(categoryId))
+								println "category "+category
+								println "categoryId "+categoryId
+								if(!category.contains(categoryId.toString()))
 									category=category+","+categoryId
 							}
 							else
@@ -96,63 +98,73 @@ class FavoriteService {
 
 					def subSections=[]
 					def category = fvrtDrink.categorys
-					def categoryList = category.trim().split(",")
-					if(categoryList){
-						categoryList.each {
-							def categoryId = it
+					if(category){
+						def categoryList = category.trim().split(",")
+						if(categoryList){
+							categoryList.each {
+								def categoryId = it
 
-							def categoryObj=IngredientCategory.findById(categoryId)
-							if(categoryObj){
-								def subSectionsMap=[:]
-								subSectionsMap.put("subsection_name",categoryObj.category)
-								def contents=[]
-								def contentsMap=[:]
-								contentsMap.put("name", categoryObj.category)
-								contentsMap.put("type","ITEM_SELECT")
-								contentsMap.put("description","")
-								contentsMap.put("price","0")
-								def options=[]
-								def ingredients = Ingredients.findAllByCategoryAndVenue(categoryObj,venue)
-								ingredients.each{s
-									def ingredient = it
-									def ingredientMap = [:]
-									if(ingredient.available.equals("true")){
-										ingredientMap.put("id",ingredient.id)
-										ingredientMap.put("name",ingredient.name)
-										ingredientMap.put("price",ingredient.price.toString())
-										if(fvrtDrink.itemsList.contains(ingredient.name)){
-											ingredientMap.put("text","Recommended")
-											ingredientMap.put("selected","true")
+								def categoryObj=IngredientCategory.findById(categoryId)
+								if(categoryObj){
+									def subSectionsMap=[:]
+									subSectionsMap.put("subsection_name",categoryObj.category)
+									def contents=[]
+									def contentsMap=[:]
+									contentsMap.put("name", categoryObj.category)
+									contentsMap.put("type","ITEM_SELECT")
+									contentsMap.put("description","")
+									contentsMap.put("price","0")
+									def options=[]
+									def ingredients = Ingredients.findAllByCategoryAndVenue(categoryObj,venue)
+									ingredients.each{
+										def ingredient = it
+										def ingredientMap = [:]
+										if(ingredient.available.equals("true")){
+											//ingredientMap.put("id",ingredient.id)
+											ingredientMap.put("name",ingredient.name)
+											ingredientMap.put("price",ingredient.price.toString())
+											if(fvrtDrink.itemsList.contains(ingredient.name)){
+												//ingredientMap.put("text","Recommended")
+												ingredientMap.put("selected","true")
+											}
+											options.add(ingredientMap)
 										}
-										options.add(ingredientMap)
 									}
+
+									if(options.size()>0){
+										def options_groups_map=[:]
+										//options_groups_map.put("type","OPTION_SELECT")
+										if(categoryObj.category.toString().contains("Add-ons"))
+											options_groups_map.put("type","OPTION_ADD")
+										else
+											options_groups_map.put("type","OPTION_CHOOSE")
+
+										options_groups_map.put("text","")
+										options_groups_map.put("options",options)
+
+										contentsMap.put("option_groups",options_groups_map)
+									}
+									contents.add(contentsMap)
+
+									subSectionsMap.put("contents",contents)
+									subSections.add(subSectionsMap)
 								}
-								def options_groups_map=[:]
-								//options_groups_map.put("type","OPTION_SELECT")
-								if(categoryObj.category.toString().contains("Add-ons"))
-									options_groups_map.put("type","OPTION_ADD")
-								else
-									options_groups_map.put("type","OPTION_CHOOSE")
-
-								options_groups_map.put("text","")
-								options_groups_map.put("options",options)
-
-								contentsMap.put("option_groups",options_groups_map)
-								contents.add(contentsMap)
-
-								subSectionsMap.put("contents",contents)
-								subSections.add(subSectionsMap)
 							}
 						}
+						sectionMap.put("subsections",subSections)
+						section.add(sectionMap)
 					}
-					sectionMap.put("subsections",subSections)
-					section.add(sectionMap)
 				}
 				menuMap.put("sections",section)
 				menu.add(menuMap)
 				output.put("menus",menu)
-				output.put("errorCode","0")
-				output.put("errorMessage","Favorite Drinks Available")
+				if(section.size()>0){
+					output.put("errorCode","0")
+					output.put("errorMessage","Favorite Drinks Available")
+				}else{
+					output.put("errorCode","3")
+					output.put("errorMessage","No favorite drinks are available")
+				}
 			}else{
 				output.put("errorCode","3")
 				output.put("errorMessage","No favorite drinks are available")
