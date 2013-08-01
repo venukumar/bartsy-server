@@ -39,7 +39,6 @@ class FavoriteService {
 					title=json.title
 				}
 				def usrFvtDrnk = new UserFavoriteDrinks()
-
 				usrFvtDrnk.setItemsList(itemsList.toString())
 				usrFvtDrnk.setCategorys(category)
 				usrFvtDrnk.setDescription(description)
