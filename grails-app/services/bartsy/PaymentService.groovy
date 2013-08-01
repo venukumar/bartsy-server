@@ -21,6 +21,8 @@ class PaymentService {
 	def authorizePayment(UserProfile userprofile,def price,def orderId){
 		def response = [:]
 		Merchant merchant = getMerchant()
+		/*Merchant merchant = Merchant.createMerchant(Environment.PRODUCTION,
+				"493ZG9zm2jH4", "2q7GcGA3h6KD2W2Y");*/
 		def venueList = CheckedInUsers.findByUserProfile(userprofile)
 		def venueInfo = Venue.get(venueList.venue.id)
 		// create credit card
@@ -82,6 +84,8 @@ class PaymentService {
 	def authorizePaymentInSaveUserProfile(UserProfile userprofile,def price,def orderId){
 		def response = [:]
 		Merchant merchant = getMerchant()
+		/*Merchant merchant = Merchant.createMerchant(Environment.PRODUCTION,
+			 "493ZG9zm2jH4", "2q7GcGA3h6KD2W2Y");*/
 		// create credit card
 		String credit = getDecryptCredit(userprofile.getCreditCardNumber())
 		if(!credit.equals("1")){
@@ -116,6 +120,11 @@ class PaymentService {
 	}
 	def capturePayment(def authCode,UserProfile userprofile,def price,def orderId){
 		def response = [:]
+/*		Merchant merchant = Merchant.createMerchant(Environment.SANDBOX,
+				"75x2yLLj", "5Lq4dG24m63qncQ4");
+		Merchant merchant = Merchant.createMerchant(Environment.PRODUCTION,
+			 "493ZG9zm2jH4", "2q7GcGA3h6KD2W2Y");*/
+
 		Merchant merchant = getMerchant()
 		def venueList = CheckedInUsers.findByUserProfile(userprofile)
 		def venueInfo = Venue.get(venueList.venue.id)
@@ -209,14 +218,8 @@ class PaymentService {
 		def authId = BartsyConfiguration.findByConfigName("authId").value
 		def authPwd = BartsyConfiguration.findByConfigName("authPassword").value
 		def Merchant merchant
-		
-		
-		println"paymentMode "+paymentMode
-		println "authId "+authId
-		println"authPwd "+authPwd
-		
-//		merchant = Merchant.createMerchant(Environment.SANDBOX,
-//			authId, authPwd);
+		//		merchant = Merchant.createMerchant(Environment.SANDBOX,
+		//			authId, authPwd);
 		if(paymentMode.equalsIgnoreCase("Environment.SANDBOX")){
 			merchant = Merchant.createMerchant(Environment.SANDBOX,
 					authId, authPwd);
