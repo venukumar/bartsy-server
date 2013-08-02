@@ -1,5 +1,6 @@
 package bartsy
 
+import java.text.DecimalFormat
 import org.codehaus.groovy.grails.web.json.JSONArray
 import org.hsqldb.util.CSVWriter
 
@@ -115,14 +116,26 @@ class AdminController {
 	def ordersList(){
 		params.max = Math.min(params.max ? params.int('max') : 50, 100)
 		try{
+			/*java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
+			Date  startDate = dateFormat.parse("2013-08-01 14:59:03")
+			Date  endDate = dateFormat.parse("2013-08-01 15:05:02")
+			def query = {
+				and{
+						between("dateCreated", startDate, endDate)
+				}
+				order "id", "desc"
+			}*/
+			def orders=[:], itemsGross = [:], orderTax = [:], tipPercentage = [:], comp = [:], net = [:], totalGuests = [:]
+			def grossTotal = [:], taxTotal = [:], compTotal = [:], percentageTotal = [:], netTotal = [:]
+			def guests = 0, grossTot = 0, taxTot = 0, compTot = 0, percentageTot = 0, netTot = 0
+			Set uniqueGuest = new HashSet()
 			def orderslist = Orders.createCriteria().list(params){ order "id", "desc" }
 			def orderlistTotal = Orders.count()
-			def orders=[:]
 			if(orderslist){
 				orderslist.each {
 					def order=it
 					def key = order.orderId
-					def itemName = order.itemName
+					/*def itemName = order.itemName
 					def itemsList = order.itemsList
 					if(itemsList){
 						def listOfItems = new JSONArray(itemsList)
@@ -136,17 +149,106 @@ class AdminController {
 						}
 					}
 
-
-					orders.put(key,itemName)
+					orders.put(key,itemName)*/
+					
+					// To retrieve items from orderItems for each order 
+					def itemNames = "", gross = 0
+					def orderItemsList = OrderItems.createCriteria().list {
+							eq("order", order)
+					}
+					if (orderItemsList){
+						orderItemsList.each {
+							def orderItem = it
+							def finalBasePrice = formatNumStr(orderItem.basePrice)
+							
+							itemNames += orderItem.itemName + " - \$ " + finalBasePrice + "</br>"
+							
+							Double base = new Double(finalBasePrice)
+							gross += base
+						}
+					}
+					def tip = order.tipPercentage
+					// items
+					orders.put(key, itemNames)
+					// gross
+					def formattedGross = formatNumStr(gross.toString())
+					itemsGross.put(key, '$ '+formattedGross)
+					// tax
+					def formattedTax = formatNumStr(order.venue.totalTaxRate)
+					orderTax.put(key, '$ '+formattedTax)
+					// tip
+					tipPercentage.put(key, tip+'%')
+					// comp
+					def compVal = (gross * new Double(tip)) / 100
+					def formattedCompVal = formatNumStr(compVal.toString())
+					comp.put(key, '$ '+formattedCompVal)
+					// net
+					def netVal = new Double(formattedGross) + new Double(formattedTax) + new Double(formattedCompVal)
+					def formattedNetVal = formatNumStr(netVal.toString())
+					net.put(key, '$ '+formattedNetVal)
+					
+					// Total calculation
+					// unique guests
+					if (uniqueGuest.add(order.userId)){
+						guests++
+					}
+					totalGuests.put("totalGuests", guests)
+					// gross total
+					grossTot += new Double(formattedGross)
+					def formattedGrossTotal = formatNumStr(grossTot.toString())
+					grossTotal.put("grossTotal", '$ '+formattedGrossTotal)
+					// tax total
+					taxTot += new Double(formattedTax)
+					def formattedTaxTotal = formatNumStr(taxTot.toString())
+					taxTotal.put("taxTotal", '$ '+formattedTaxTotal)
+					// comp total
+					compTot += compVal
+					def formattedCompTot = formatNumStr(compTot.toString())
+					compTotal.put("compTotal", '$ '+formattedCompTot)
+					// percentage total
+					percentageTot += new Double(tip)
+					def pTot = percentageTot/orderlistTotal
+					percentageTotal.put("percentageTotal", pTot+'%')
+					// net total
+					netTot += netVal
+					def formattedNetTot = formatNumStr(netTot.toString())
+					netTotal.put("netTotal", '$ '+formattedNetTot)
+					
 				}
 			}
-			println"orders "+orders
-			[ordersList:orderslist, ordersTotal:orderlistTotal, itemsNames:orders]
+			
+			[ordersList:orderslist, ordersTotal:orderlistTotal, itemsNames:orders, gross:itemsGross, tax:orderTax, tip:tipPercentage, comp:comp, net:net, 
+				totalGuests:totalGuests, grossTotal:grossTotal, taxTotal:taxTotal, compTotal:compTotal, percentageTotal:percentageTotal, , netTotal:netTotal]
 		}catch(Exception e){
 			log.error("Error in Orders List ==>"+e.getMessage())
 		}
 	}
-
+	
+	/**
+	 * Method to convert a string representing a number to '##.##' format 
+	 * @return formatted string
+	 */
+	def formatNumStr(def inputNumStr) {
+		String tempBasePrice, finalBasePrice
+		DecimalFormat decimalFormat = new DecimalFormat("#.##")
+		
+		if (inputNumStr.contains(".")){
+			tempBasePrice = inputNumStr.substring(inputNumStr.indexOf(".") + 1)
+			if (tempBasePrice.length() == 1){
+				finalBasePrice = inputNumStr + '0'
+			}else if(tempBasePrice.length() > 2){
+				Double basePriceDouble = new Double(inputNumStr)
+				finalBasePrice = decimalFormat.format(basePriceDouble)
+			}else{
+				finalBasePrice = inputNumStr
+			}
+		}else{
+			finalBasePrice = inputNumStr + ".00"
+		}
+		
+		return finalBasePrice
+	}
+	
 	def downloadCSV(){
 		try{
 			def orderslist = Orders.createCriteria().list(params){ order "id", "desc" }
@@ -446,5 +548,17 @@ class AdminController {
 			session.user = null
 		}
 		forward(action:"index")
+	}
+	
+	/**
+	 * Method to retrieve summary like total guests, total checks, guests avg etc..
+	 * @return total guests, total checks etc.. as int
+	 */
+	def summary() {
+		[totalGuests : 159, totalChecks : 87, guestsAvg : 12.26, checksAvg : 22.22]
+	}
+	
+	def categories() {
+		
 	}
 }
