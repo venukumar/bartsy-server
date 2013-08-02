@@ -101,7 +101,7 @@ class FavoritesController {
 	}
 
 
-	def saveFavoriteDrink={
+	def saveFavorite={
 		def response=[:]
 		try{
 			def json = JSON.parse(request)
@@ -147,7 +147,7 @@ class FavoritesController {
 	}
 
 
-	def getFavoriteDrinks={
+	def getFavorite={
 		def response=[:]
 		try{
 			def json = JSON.parse(request)
@@ -195,7 +195,7 @@ class FavoritesController {
 	/**
 	 *  To delete favorite drink of the user
 	 */
-	def deleteFavoriteDrink={
+	def deleteFavorite={
 
 		def response=[:]
 		try{

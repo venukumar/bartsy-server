@@ -51,6 +51,7 @@ class FavoriteService {
 				if(usrFvtDrnk.save(flush:true)) {
 					output.put("errorCode","0")
 					output.put("errorMessage","Your favorite drink is saved successfully")
+					output.put("favoriteDrinkId",usrFvtDrnk.id)
 				}else{
 					output.put("errorCode","5")
 					output.put("errorMessage","Your favorite drink is not saved successfully")
@@ -79,7 +80,7 @@ class FavoriteService {
 			if(favoriteDrinks){
 				def menu=[]
 				def menuMap=[:]
-				menuMap.put("menu_name","Favorite Drinks")
+				menuMap.put("menu_name","Available favorites")
 				def section =[]
 				favoriteDrinks.each {
 					def fvrtDrink=it
