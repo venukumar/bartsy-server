@@ -99,7 +99,6 @@ class OrderController {
 								if(json.itemsList){
 									json.itemsList.each{
 										def itemInfo = it
-										println"each loop "+itemInfo
 										OrderItems orderItem = new OrderItems()
 										orderItem.setVersion(1)
 										orderItem.setItemName(itemInfo.itemName)
@@ -111,7 +110,6 @@ class OrderController {
 									}
 
 								}else{
-									println"else "
 									OrderItems orderItem = new OrderItems()
 									orderItem.setItemName(json.itemName?json.itemName:"")
 									orderItem.setItemId(json.itemId?json.itemId.toString():"")
