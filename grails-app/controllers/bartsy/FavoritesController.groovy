@@ -216,7 +216,6 @@ class FavoritesController {
 								if(drinkId){
 									def favoriteDrink = UserFavoriteDrinks.findByIdAndUser(drinkId,user)
 									if(favoriteDrink){
-										println "favoriteDrink.delete() "+favoriteDrink.delete()
 										if(!favoriteDrink.delete()){
 											response.put("errorCode",0)
 											response.put("errorMessage","Favorite drink is deleted.")

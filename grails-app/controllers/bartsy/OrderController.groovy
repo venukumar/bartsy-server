@@ -69,12 +69,19 @@ class OrderController {
 
 								order.setItemsList(json.itemsList.toString())
 							}
-
+							println "json.itemId  "+json.itemId
+							println"json.itemName "+json.itemName
 
 							order.setOrderId(maxId)
 							order.setBasePrice(json.basePrice)
-							order.setItemId(json.itemId.toString())
-							order.setItemName(json.itemName)
+							if(json.itemId){
+								order.setItemId(json.itemId)
+							}
+							if(json.itemName){
+								order.setItemName(json.itemName)
+							}
+							//order.setItemId(json.itemId?json.itemId.toString():"")
+							//order.setItemName(json.itemName?json.itemName:"")
 							order.setTipPercentage(json.tipPercentage)
 							order.setTotalPrice(json.totalPrice)
 							order.setDescription(json.description)
@@ -87,30 +94,35 @@ class OrderController {
 							order.setOrderStatus("100")
 							order.setAuthApproved("false")
 							order.save(flush:true)
+
 							if(order){
-							if(json.itemsList){
-								json.itemsList.each{
-									def itemInfo = it
+								if(json.itemsList){
+									println "if "+json.itemsList.size()
+									json.itemsList.each{
+										def itemInfo = it
+										println"each loop "+itemInfo
+										OrderItems orderItem = new OrderItems()
+										orderItem.setVersion(1)
+										orderItem.setItemName(itemInfo.itemName)
+										orderItem.setItemId(itemInfo.itemId.toString())
+										orderItem.setBasePrice(itemInfo.basePrice)
+										orderItem.setDescription(itemInfo.description)
+										orderItem.setOrder(order)
+										orderItem.save(flush:true)
+									}
+
+								}else{
+									println"else "
 									OrderItems orderItem = new OrderItems()
-									orderItem.setVersion(1)
-									orderItem.setItemName(itemInfo.itemName)
-									orderItem.setItemId(itemInfo.itemId)
-									orderItem.setBasePrice(itemInfo.basePrice)
-									orderItem.setDescription(itemInfo.description)
+									orderItem.setItemName(json.itemName?json.itemName:"")
+									orderItem.setItemId(json.itemId?json.itemId.toString():"")
+									orderItem.setBasePrice(json.basePrice)
+									orderItem.setDescription(json.description)
 									orderItem.setOrder(order)
 									orderItem.save(flush:true)
 								}
-									
-							}else{
-								OrderItems orderItem = new OrderItems()
-								orderItem.setItemName(json.itemName)
-								orderItem.setItemId(json.itemId)
-								orderItem.setBasePrice(json.basePrice)
-								orderItem.setDescription(json.description)
-								orderItem.setOrder(order)
-								orderItem.save(flush:true)
 							}
-							}
+							println"afefter order save"
 							Orders orderUpdate = Orders.findByOrderId(order.orderId)
 							def authorizeResponse = paymentService.authorizePayment(userprofile,json.totalPrice,orderUpdate?.orderId)
 							//order.setAuthTransactionId(authorizeResponse.transactionId as long)
@@ -181,7 +193,7 @@ class OrderController {
 									pnMessage.put("orderStatus","0")
 								}
 								pnMessage.put("orderId",orderUpdate?.orderId?.toString())
-								pnMessage.put("itemName",json.itemName)
+								pnMessage.put("itemName",json.itemName?json.itemName:"")
 								pnMessage.put("orderTime",orderDate.toGMTString())
 								pnMessage.put("basePrice",json.basePrice)
 								pnMessage.put("tipPercentage",json.tipPercentage)
@@ -192,8 +204,8 @@ class OrderController {
 								pnMessage.put("specialInstructions",json.specialInstructions ?: "")
 								pnMessage.put("itemsList",json.itemsList?json.itemsList.toString():"")
 								if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
-
-									def body="You have been offered a drink "+json.itemName+" by "+orderUpdate.user.nickName
+									def name = json.itemName?json.itemName:""
+									def body="You have been offered a drink "+name+" by "+orderUpdate.user.nickName
 									pnMessage.put("messageType","DrinkOffered")
 									pnMessage.put("bartsyId",json.recieverBartsyId)
 									pnMessage.put("senderBartsyId",json.bartsyId)
