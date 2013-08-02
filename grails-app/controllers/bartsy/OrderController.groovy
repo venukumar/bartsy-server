@@ -97,7 +97,6 @@ class OrderController {
 
 							if(order){
 								if(json.itemsList){
-									println "if "+json.itemsList.size()
 									json.itemsList.each{
 										def itemInfo = it
 										println"each loop "+itemInfo
@@ -122,7 +121,6 @@ class OrderController {
 									orderItem.save(flush:true)
 								}
 							}
-							println"afefter order save"
 							Orders orderUpdate = Orders.findByOrderId(order.orderId)
 							def authorizeResponse = paymentService.authorizePayment(userprofile,json.totalPrice,orderUpdate?.orderId)
 							//order.setAuthTransactionId(authorizeResponse.transactionId as long)
