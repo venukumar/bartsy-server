@@ -125,9 +125,13 @@ class AdminController {
 				}
 				order "id", "desc"
 			}*/
-			def orders=[:], itemsGross = [:], orderTax = [:], tipPercentage = [:], comp = [:], net = [:], totalGuests = [:]
-			def grossTotal = [:], taxTotal = [:], compTotal = [:], percentageTotal = [:], netTotal = [:]
+			def orders=[:], itemsGross = [:], orderTax = [:], tipPercentage = [:], comp = [:], net = [:] 
+			def totalGuests = [:], grossTotal = [:], taxTotal = [:], compTotal = [:], percentageTotal = [:], netTotal = [:]
 			def guests = 0, grossTot = 0, taxTot = 0, compTot = 0, percentageTot = 0, netTot = 0
+			def avgGrossTotal = [:], avgTaxTotal = [:], avgCompTotal = [:], avgNetTotal = [:]
+			def avgGrossTot = 0, avgTaxTot = 0, avgCompTot = 0, avgNetTot = 0
+			def perGuestGrossTotal = [:], perGuestTaxTotal = [:], perGuestCompTotal = [:], perGuestNetTotal = [:]
+			def perGuestGrossTot = 0, perGuestTaxTot = 0, perGuestCompTot = 0, perGuestNetTot = 0
 			Set uniqueGuest = new HashSet()
 			def orderslist = Orders.createCriteria().list(params){ order "id", "desc" }
 			def orderlistTotal = Orders.count()
@@ -214,11 +218,49 @@ class AdminController {
 					def formattedNetTot = formatNumStr(netTot.toString())
 					netTotal.put("netTotal", '$ '+formattedNetTot)
 					
+					// Average calculation
+					// gross total average
+					avgGrossTot = new Double(formattedGrossTotal) / orderlistTotal
+					def formattedAvgGrossTotal = formatNumStr(avgGrossTot.toString())
+					avgGrossTotal.put("avgGrossTotal", '$ '+formattedAvgGrossTotal)
+					// tax total average
+					avgTaxTot = new Double(formattedTaxTotal) / orderlistTotal
+					def formattedAvgTaxTotal = formatNumStr(avgTaxTot.toString())
+					avgTaxTotal.put("avgTaxTotal", '$ '+formattedAvgTaxTotal)
+					// comp total average
+					avgCompTot = new Double(formattedCompTot) / orderlistTotal
+					def formattedAvgCompTotal = formatNumStr(avgCompTot.toString())
+					avgCompTotal.put("avgCompTotal", '$ '+formattedAvgCompTotal)
+					// net total average
+					avgNetTot = new Double(formattedNetTot) / orderlistTotal
+					def formattedAvgNetTotal = formatNumStr(avgNetTot.toString())
+					avgNetTotal.put("avgNetTotal", '$ '+formattedAvgNetTotal)
+					
+					// Per guest calculation
+					// gross total per guest
+					perGuestGrossTot = new Double(formattedGrossTotal) / guests
+					def formattedPerGuestGrossTotal = formatNumStr(perGuestGrossTot.toString())
+					perGuestGrossTotal.put("perGuestGrossTotal", '$ '+formattedPerGuestGrossTotal)
+					// tax total per guest
+					perGuestTaxTot = new Double(formattedTaxTotal) / guests
+					def formattedPerGuestTaxTotal = formatNumStr(perGuestTaxTot.toString())
+					perGuestTaxTotal.put("perGuestTaxTotal", '$ '+formattedPerGuestTaxTotal)
+					// comp total per guest
+					perGuestCompTot = new Double(formattedCompTot) / guests
+					def formattedPerGuestCompTotal = formatNumStr(perGuestCompTot.toString())
+					perGuestCompTotal.put("perGuestCompTotal", '$ '+formattedPerGuestCompTotal)
+					// net total per guest
+					perGuestNetTot = new Double(formattedNetTot) / guests
+					def formattedPerGuestNetTotal = formatNumStr(perGuestNetTot.toString())
+					perGuestNetTotal.put("perGuestNetTotal", '$ '+formattedPerGuestNetTotal)
+					
 				}
 			}
 			
 			[ordersList:orderslist, ordersTotal:orderlistTotal, itemsNames:orders, gross:itemsGross, tax:orderTax, tip:tipPercentage, comp:comp, net:net, 
-				totalGuests:totalGuests, grossTotal:grossTotal, taxTotal:taxTotal, compTotal:compTotal, percentageTotal:percentageTotal, , netTotal:netTotal]
+				totalGuests:totalGuests, grossTotal:grossTotal, taxTotal:taxTotal, compTotal:compTotal, percentageTotal:percentageTotal, netTotal:netTotal, 
+				avgGrossTotal:avgGrossTotal, avgTaxTotal:avgTaxTotal, avgCompTotal:avgCompTotal, avgNetTotal:avgNetTotal,
+				perGuestGrossTotal:perGuestGrossTotal, perGuestTaxTotal:perGuestTaxTotal, perGuestCompTotal:perGuestCompTotal, perGuestNetTotal:perGuestNetTotal]
 		}catch(Exception e){
 			log.error("Error in Orders List ==>"+e.getMessage())
 		}

@@ -87,8 +87,24 @@
       		<% } %>
 		</table>
 		<hr/>
-		<%
+		<%if(ordersTotal>0){
 			def totalGuests = totalGuests.get("totalGuests")
+			// Totals
+			def grossTotal = grossTotal.get("grossTotal")
+			def taxTotal = taxTotal.get("taxTotal")
+			def compTotal = compTotal.get("compTotal")
+			def percentageTotal = percentageTotal.get("percentageTotal")
+			def netTotal = netTotal.get("netTotal")
+			// Average
+			def avgGrossTotal = avgGrossTotal.get("avgGrossTotal")
+			def avgTaxTotal = avgTaxTotal.get("avgTaxTotal")
+			def avgCompTotal = avgCompTotal.get("avgCompTotal")
+			def avgNetTotal = avgNetTotal.get("avgNetTotal")
+			// Per guest
+			def perGuestGrossTotal = perGuestGrossTotal.get("perGuestGrossTotal")
+			def perGuestTaxTotal = perGuestTaxTotal.get("perGuestTaxTotal")
+			def perGuestCompTotal = perGuestCompTotal.get("perGuestCompTotal")
+			def perGuestNetTotal = perGuestNetTotal.get("perGuestNetTotal")
 		%>
 		<table class="tbl-data">
 			<tr>
@@ -97,11 +113,11 @@
 				<td width="20%"></td>
 				<td width="12%"></td>
 				<td width="12%"><g:message code="totals.label" default="Totals" /></td>
-				<td width="8%">${grossTotal.get("grossTotal")}</td>
-				<td width="8%">${taxTotal.get("taxTotal")}</td>
-				<td width="8%">${compTotal.get("compTotal")}</td>
-				<td width="8%">${percentageTotal.get("percentageTotal")}</td>
-				<td width="10%">${netTotal.get("netTotal")}</td>
+				<td width="8%">${grossTotal}</td>
+				<td width="8%">${taxTotal}</td>
+				<td width="8%">${compTotal}</td>
+				<td width="8%">${percentageTotal}</td>
+				<td width="10%">${netTotal}</td>
 			</tr>
 			<tr>
 				<td width="10%"><g:message code="total.guests.label" default="Total Guests" /></td>
@@ -109,11 +125,11 @@
 				<td width="20%"></td>
 				<td width="12%"></td>
 				<td width="12%"><g:message code="average.label" default="Average" /></td>
-				<td width="8%">$ 3434</td>
-				<td width="8%">$ 3434</td>
-				<td width="8%">$ 3434</td>
-				<td width="8%">$ 3434</td>
-				<td width="10%">$ 3434</td>
+				<td width="8%">${avgGrossTotal}</td>
+				<td width="8%">${avgTaxTotal}</td>
+				<td width="8%">${avgCompTotal}</td>
+				<td width="8%">${percentageTotal}</td>
+				<td width="10%">${avgNetTotal}</td>
 			</tr>
 			<tr>
 				<td width="10%"><g:message code="checks.guests.label" default="Checks/Guests" /></td>
@@ -121,13 +137,14 @@
 				<td width="20%"></td>
 				<td width="12%"></td>
 				<td width="12%"><g:message code="per.guest.label" default="Per Guest" /></td>
-				<td width="8%">$ 3434</td>
-				<td width="8%">$ 3434</td>
-				<td width="8%">$ 3434</td>
-				<td width="8%">$ 3434</td>
-				<td width="10%">$ 3434</td>
+				<td width="8%">${perGuestGrossTotal}</td>
+				<td width="8%">${perGuestTaxTotal}</td>
+				<td width="8%">${perGuestCompTotal}</td>
+				<td width="8%">${percentageTotal}</td>
+				<td width="10%">${perGuestNetTotal}</td>
 			</tr>
 		</table>
+		<%}%>
 		<% if(ordersTotal>50){%>
       		<div class="pagination">
        			<g:paginate action="ordersList" total="${ordersTotal}" />
