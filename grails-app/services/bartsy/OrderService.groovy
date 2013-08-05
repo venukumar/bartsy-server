@@ -65,8 +65,12 @@ class OrderService {
 				def sectionMap=[:]
 				sectionMap.put("section_name","")
 				sectionMap.put("orderId",fvrtDrink.orderId)
-				sectionMap.put("description",fvrtDrink.description)
-				sectionMap.put("specialInstructions",fvrtDrink.specialInstructions)
+				if(fvrtDrink.description){
+					sectionMap.put("description",fvrtDrink.description)
+				}
+				if(fvrtDrink.specialInstructions){
+					sectionMap.put("specialInstructions",fvrtDrink.specialInstructions)
+				}
 
 				def subSections=[]
 				String category
@@ -107,11 +111,11 @@ class OrderService {
 								def subSectionsMap=[:]
 								subSectionsMap.put("subsection_name",categoryObj.category)
 								subSectionsMap.put("dateCreated",fvrtDrink.dateCreated.toGMTString())
+								subSectionsMap.put("order_price",fvrtDrink.totalPrice)
 								def contents=[]
 								def contentsMap=[:]
 								contentsMap.put("name", categoryObj.category)
 								contentsMap.put("type","ITEM")
-								contentsMap.put("description","")
 								def options=[]
 								def ingredients = Ingredients.findAllByCategoryAndVenue(categoryObj,venue)
 								ingredients.each{
@@ -120,7 +124,8 @@ class OrderService {
 									if(ingredient.available.equals("true")){
 										//ingredientMap.put("id",ingredient.id)
 										ingredientMap.put("name",ingredient.name)
-										ingredientMap.put("price",ingredient.price.toString())
+										if(ingredient.price && !ingredient.price.toString().equalsIgnoreCase("0"))
+											ingredientMap.put("price",ingredient.price.toString())
 										if(fvrtDrink.itemsList.contains(ingredient.name)){
 											//ingredientMap.put("text","Recommended")
 											ingredientMap.put("selected","true")
@@ -156,6 +161,7 @@ class OrderService {
 						def subSectionMap=[:]
 						subSectionMap.put("subsection_name","Menu Item")
 						subSectionMap.put("dateCreated",fvrtDrink.dateCreated.toGMTString())
+						subSectionMap.put("order_price",fvrtDrink.totalPrice)
 						def contents=[]
 						def itemsList = new JSONArray(fvrtDrink.itemsList)
 						if(itemsList){
