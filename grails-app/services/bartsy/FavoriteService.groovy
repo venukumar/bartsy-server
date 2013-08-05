@@ -1,5 +1,7 @@
 package bartsy
 
+import org.codehaus.groovy.grails.web.json.JSONArray
+
 class FavoriteService {
 
 	def serviceMethod() {
@@ -92,7 +94,7 @@ class FavoriteService {
 					else{
 						title=""
 					}
-					sectionMap.put("section_name",fvrtDrink.title)
+					sectionMap.put("section_name",title)
 					sectionMap.put("favoriteDrinkId",fvrtDrink.id)
 					sectionMap.put("description",fvrtDrink.description)
 					sectionMap.put("specialInstructions",fvrtDrink.specialInstructions)
@@ -112,9 +114,8 @@ class FavoriteService {
 									def contents=[]
 									def contentsMap=[:]
 									contentsMap.put("name", categoryObj.category)
-									contentsMap.put("type","ITEM_SELECT")
+									contentsMap.put("type","ITEM")
 									contentsMap.put("description","")
-									contentsMap.put("price","0")
 									def options=[]
 									def ingredients = Ingredients.findAllByCategoryAndVenue(categoryObj,venue)
 									ingredients.each{
@@ -153,8 +154,30 @@ class FavoriteService {
 							}
 						}
 						sectionMap.put("subsections",subSections)
-						section.add(sectionMap)
+
+					}else{
+						if(fvrtDrink.itemsList){
+							def subSectionMap=[:]
+							subSectionMap.put("subsection_name","Menu Item")
+							def contents=[]
+							def itemsList = new JSONArray(fvrtDrink.itemsList)
+							if(itemsList){
+								itemsList.each{
+									def item = it
+									def contentsMap=[:]
+									contentsMap.put("price",item.basePrice)
+									contentsMap.put("description",item.description)
+									contentsMap.put("name",item.itemName)
+									contentsMap.put("type","ITEM")
+									contents.add(contentsMap)
+								}
+							}
+							subSectionMap.put("contents",contents)
+							subSections.add(subSectionMap)
+							sectionMap.put("subsections",subSections)
+						}
 					}
+					section.add(sectionMap)
 				}
 				menuMap.put("sections",section)
 				menu.add(menuMap)
