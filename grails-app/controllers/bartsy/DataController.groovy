@@ -680,7 +680,7 @@ class DataController {
 			def json = JSON.parse(request)
 			//check to make sure the apiVersion sent in the request matches the correct apiVersion
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
-			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
+			if(apiVersion.value.toString().equalsIgnoreCase(json.apiVersion.toString())){
 				//retrieve the sender and receiver user profiles based on senderId and receiverId sent in the request to syscall
 				def senderProfile = UserProfile.findByBartsyId(json.senderId.toString())
 				def receiverProfile = UserProfile.findByBartsyId(json.receiverId.toString())
