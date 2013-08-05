@@ -15,6 +15,7 @@ class BootStrap {
 			new BartsyConfiguration(configName:'payment',value:'Environment.SANDBOX').save(flush:true)
 			new BartsyConfiguration(configName:'authId',value:'75x2yLLj').save(flush:true)
 			new BartsyConfiguration(configName:'authPassword',value:'5Lq4dG24m63qncQ4').save(flush:true)
+			new BartsyConfiguration(configName:'tradingDay',value:'18').save(flush:true)
 		}
 		if(!AdminUser.count()){
 			new AdminUser(username:'admin',password:'B@rt$y',userType:'Admin').save(flush:true)
