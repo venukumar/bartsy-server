@@ -93,6 +93,13 @@
       <% def venueTime = BartsyConfiguration.findByConfigName("venueTimeout") %>
       <input type="text" name="venueTimeout" id="venueTimeout" value="${venueTime.value }"  class="txt-field">
     </div>
+     <div id="tradingDay" class="label-row">
+      <label style="line-height:20px;width:145px;">
+        <g:message code="appsettings.tradingDay" default="Trading Day Time" />
+      </label>
+      <% def tradeTime = BartsyConfiguration.findByConfigName("tradingDay") %>
+      <input type="text" name="tradingDay" id="tradingDay" value="${tradeTime.value }"  class="txt-field">
+    </div>
     <div class="button-con"> 
       <g:submitButton name="create" class="ybtn" value="${message(code: 'default.button.update.label', default: 'Update')}" />
       <input type="button" name="cancel" class="ybtn" value="${message(code: 'cancelbutton.label', default: 'Cancel')}" onclick="window.location.href='${request.getContextPath()}/admin/venueList'" />

@@ -4,19 +4,32 @@
 <head>
 	<meta name="layout" content="main">
 	<title><g:message code="page.order.list.title" default="Orders List" /></title>
+	<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+  <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+	<script type="text/javascript">
+	$(function() {
+	    $( "#datepicker" ).datepicker();
+	    $( "#datepicker1" ).datepicker();
+	  });
+	</script>
 </head>
 <body>
 	<h2><g:message code="page.order.list.title" default="Orders List" /></h2>
-	<div style="text-align: right;">
+	<!-- <div style="text-align: right;">
 		<g:link action="downloadCSV">Download CSV</g:link>
-	</div>
+	</div> -->
 	<g:if test="${flash.message}">
 		<div class="message" role="status">
 			${flash.message}
 		</div>
 	</g:if>
 	<% flash.clear() %>
-	<div>
+<fieldset>
+ <g:form method="post" controller="admin" action="ordersList">
+Start Date: <input type="text" id="datepicker" name="startDate"  value="${jqStart }"/>&nbsp; End Date: <input type="text" id="datepicker1" name="endDate" value="${jqEnd }" />
+<input type="submit" value="search"> </g:form>
+</fieldset>
+	<!-- <div>
 		<table width="100%" border="0" cellspacing="0" cellpadding="0" class="tbl-data">
 			<tr>
 				<th width="10%"><g:link controller="admin" action="summary"><g:message code="summary.label" default="Summary" /></g:link></th>
@@ -36,8 +49,7 @@
 				</th>
 			</tr>
 		</table>
-	</div>
-	
+	</div> -->
 	<div>
 		<table class="tbl-data">
 			<tr>
@@ -150,6 +162,7 @@
        			<g:paginate action="ordersList" total="${ordersTotal}" />
       		</div>
       	<% } %>
+      		<export:formats formats="['csv', 'excel', 'pdf']" />
 	</div>
 </body>
 </html>
