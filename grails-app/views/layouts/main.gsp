@@ -18,7 +18,9 @@
     <script src="${resource(dir: 'js', file: 'jquery-1.10.2.min.js')}" type="text/javascript"></script>
 	<modalbox:modalIncludes />
  	<g:layoutHead/>
+ <r:require module="export"/>
   	<r:layoutResources />
+  	
   	</head>
   <body>
   <div id="wrappar">
