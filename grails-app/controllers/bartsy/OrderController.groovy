@@ -889,7 +889,7 @@ class OrderController {
 							response=orderService.getRecentOrders(user,venue)
 						}else{
 							response.put("errorCode","3")
-							response.put("errorMessage","Sender User or Reciever User doesn't exists.")
+							response.put("errorMessage","User doesn't exists.")
 						}
 					}else{
 						response.put("errorCode","2")
