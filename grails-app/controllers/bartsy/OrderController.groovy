@@ -872,5 +872,46 @@ class OrderController {
 		}
 		render(text:response as JSON,contentType:"application/json")
 	}
+	/**
+	 * To get the recent orders of the user
+	 */
+	def getRecentOrders={
+		def response = [:]
+		try{
+			def json = JSON.parse(request)
+			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+			if(json.apiVersion && apiVersion.value.toString().equalsIgnoreCase(json.apiVersion.toString())){
+				if(json.has("bartsyId") && json.has("venueId")){
+					def venue = Venue.findByVenueId(json.venueId)
+					if(venue){
+						def user = UserProfile.findByBartsyId(json.bartsyId)
+						if(user){
+							response=orderService.getRecentOrders(user,venue)
+						}else{
+							response.put("errorCode","3")
+							response.put("errorMessage","Sender User or Reciever User doesn't exists.")
+						}
+					}else{
+						response.put("errorCode","2")
+						response.put("errorMessage","Venue doesn't exists.")
+					}
+
+				}else{
+					response.put("errorCode","1")
+					response.put("errorMessage","VenueId or BartsyId is missing in your request. Please check for same.")
+				}
+			}else{
+				response.put("errorCode","100")
+				response.put("errorMessage","API version do not match")
+			}
+		}catch(Exception e){
+			log.info("Exception in getRecentOrders ===> "+e.getMessage())
+			println"Exception in getRecentOrders ===>  "+e.getMessage()
+			response.put("errorCode",200)
+			response.put("errorMessage",e.getMessage())
+		}
+		response.put("currentTime",new Date().toGMTString())
+		render(text:response as JSON,contentType:"application/json")
+	}
 
 }
