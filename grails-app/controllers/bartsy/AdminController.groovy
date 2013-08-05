@@ -1,11 +1,15 @@
 package bartsy
 
+import java.text.DateFormat
 import java.text.DecimalFormat
+import java.text.SimpleDateFormat
 import org.codehaus.groovy.grails.web.json.JSONArray
 import org.hsqldb.util.CSVWriter
 
 class AdminController {
-
+	def exportService
+	def grailsApplication  //inject GrailsApplication
+	
 	def index() {
 		println"index"
 		if(session.user){
@@ -116,15 +120,27 @@ class AdminController {
 	def ordersList(){
 		params.max = Math.min(params.max ? params.int('max') : 50, 100)
 		try{
-			/*java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
-			Date  startDate = dateFormat.parse("2013-08-01 14:59:03")
-			Date  endDate = dateFormat.parse("2013-08-01 15:05:02")
+			Date toDate = new Date()
+			DateFormat jQdateFormat = new SimpleDateFormat("MM/dd/yyyy");
+			DateFormat dateFormatn = new SimpleDateFormat("yyyy-MM-dd");
+			java.util.Date date = new java.util.Date();
+			java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd hh")
+			def tradeTime = BartsyConfiguration.findByConfigName("tradingDay")
+			Date  startDate, endDate
+			if(params.startDate)
+				startDate = dateFormat.parse(dateFormatn.format(new Date(params.startDate))+" "+tradeTime.value)
+			else startDate = dateFormat.parse(dateFormatn.format(date)+" "+tradeTime.value)
+			if(params.endDate)
+				endDate = dateFormat.parse(dateFormatn.format(new Date(params.endDate))+" "+tradeTime.value)
+			else
+				endDate = new Date(startDate.getTime() + (1000 * 60 * 60 * 24));
+			def jqStart = jQdateFormat.format(startDate)
+			def jqEnd = jQdateFormat.format(endDate)
 			def query = {
-				and{
-						between("dateCreated", startDate, endDate)
-				}
+				between("dateCreated", startDate, endDate)
+				
 				order "id", "desc"
-			}*/
+			}			
 			def orders=[:], itemsGross = [:], orderTax = [:], tipPercentage = [:], comp = [:], net = [:] 
 			def totalGuests = [:], grossTotal = [:], taxTotal = [:], compTotal = [:], percentageTotal = [:], netTotal = [:]
 			def guests = 0, grossTot = 0, taxTot = 0, compTot = 0, percentageTot = 0, netTot = 0
@@ -133,8 +149,10 @@ class AdminController {
 			def perGuestGrossTotal = [:], perGuestTaxTotal = [:], perGuestCompTotal = [:], perGuestNetTotal = [:]
 			def perGuestGrossTot = 0, perGuestTaxTot = 0, perGuestCompTot = 0, perGuestNetTot = 0
 			Set uniqueGuest = new HashSet()
-			def orderslist = Orders.createCriteria().list(params){ order "id", "desc" }
-			def orderlistTotal = Orders.count()
+			//def orderslist = Orders.createCriteria().list(params){ order "id", "desc" }
+			//def orderlistTotal = Orders.count()
+			def orderslist = Orders.createCriteria().list(params, query)
+			def orderlistTotal = Orders.createCriteria().count(query)
 			if(orderslist){
 				orderslist.each {
 					def order=it
@@ -257,7 +275,81 @@ class AdminController {
 				}
 			}
 			
-			[ordersList:orderslist, ordersTotal:orderlistTotal, itemsNames:orders, gross:itemsGross, tax:orderTax, tip:tipPercentage, comp:comp, net:net, 
+			if(params?.format && params.format != "html"){
+				response.contentType = grailsApplication.config.grails.mime.types[params.format]
+				response.setHeader("Content-disposition", "attachment; filename=Orders_${jqStart}.${params.extension}")
+				List fields = ["time", "tid", "item", "sender", "receipient","gross","taxl","compl","tipl","nett"]
+				Map labels = ["time": "Time", "tid": "Transaction Id", "item": "Item", "sender":"Sender","receipient":"Receipient","gross":"Gross","taxl":"Tax","compl":"Comp","tipl":"Tip %","nett":"Net"]
+				// Formatter closure
+				def upperCase = { domain, value ->
+					return value.toUpperCase()
+				}
+				def time = { domain, value ->
+					return domain?.dateCreated
+				}
+				def tid = { domain, value ->
+					return domain?.orderId
+				}
+				def sender = { domain, value ->
+					return domain?.user.nickName
+				}
+				def receipient = { domain, value ->
+					return domain?.receiverProfile.nickName
+				}
+				def item = {domain, value ->
+					def listOfItems = new JSONArray(domain?.itemsList)
+					def uniPar=""
+					listOfItems.each{
+						def itemInfo = it
+						def finalBasePrice = formatNumStr(itemInfo.basePrice)
+						uniPar+=itemInfo.itemName + " - \$ " + finalBasePrice + "\n"
+					}
+					return uniPar
+				}
+				def gross = {domain, value ->
+					def listOfItems = new JSONArray(domain?.itemsList)
+					def gross=0
+					listOfItems.each{
+						def itemInfo = it
+						def finalBasePrice = formatNumStr(itemInfo.basePrice)
+						Double base = new Double(finalBasePrice)
+						gross += base
+					}
+					return formatNumStr(gross.toString())
+				}
+				def taxl = {domain, value ->
+					def formattedTax = formatNumStr(domain?.venue?.totalTaxRate)
+					return '$ '+formattedTax
+				}
+				def compl = {domain, value ->
+					def listOfItems = new JSONArray(domain?.itemsList)
+					def grossl=0
+					listOfItems.each{
+						def itemInfo = it
+						def finalBasePrice = formatNumStr(itemInfo.basePrice)
+						Double base = new Double(finalBasePrice)
+						grossl += base
+					}
+					def tipls = domain?.tipPercentage
+					def compVal = (grossl * new Double(tipls)) / 100
+					def formattedCompVal = formatNumStr(compVal.toString())
+					return '$ '+formattedCompVal
+				}
+				def tipl = {domain, value ->
+					def tipL = domain?.tipPercentage
+					return tipL+"%"
+				}
+				def nett = {domain, value->
+					def total = domain?.totalPrice
+					def formattedTotal = formatNumStr(total.toString())
+					return '$ '+formattedTotal
+				}				
+				Map formatters = [time:time,tid:tid,item:item,sender:sender,receipient:receipient,gross:gross,taxl:taxl,compl:compl,tipl:tipl,nett:nett]
+				Map parameters
+				exportService.export(params.format,response.outputStream,orderslist, fields, labels, formatters, parameters)
+			}
+			
+			[jqStart:jqStart,jqEnd:jqEnd,ordersList:orderslist, ordersTotal:orderlistTotal, itemsNames:orders, gross:itemsGross, tax:orderTax, tip:tipPercentage, comp:comp, net:net, 
 				totalGuests:totalGuests, grossTotal:grossTotal, taxTotal:taxTotal, compTotal:compTotal, percentageTotal:percentageTotal, netTotal:netTotal, 
 				avgGrossTotal:avgGrossTotal, avgTaxTotal:avgTaxTotal, avgCompTotal:avgCompTotal, avgNetTotal:avgNetTotal,
 				perGuestGrossTotal:perGuestGrossTotal, perGuestTaxTotal:perGuestTaxTotal, perGuestCompTotal:perGuestCompTotal, perGuestNetTotal:perGuestNetTotal]
@@ -416,6 +508,14 @@ class AdminController {
 				}
 			}
 
+			if(params.tradingDay){
+				def tradingreq = BartsyConfiguration.findByConfigName("tradingDay")
+				tradingreq.value = params.tradingDay
+				if(!tradingreq.save(flush:true)){
+					log.error("Trading time update failed ==>"+tradingreq.errors)
+					err++
+				}
+			}
 			if(err > 0){
 				flash.errors = "App Settings saving failed"
 			}else{
