@@ -981,4 +981,54 @@ class VenueController {
 			render(text:response as JSON ,  contentType:"application/json")
 		}
 	}
+
+	/**
+	 * 
+	 */
+	def venueLogin={
+		def response=[:]
+		try{
+			//parse the request sent as input to the syscall
+			def json = JSON.parse(request)
+			//check to make sure the apiVersion sent in the request matches the correct apiVersion
+			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+			if(apiVersion.value.toString().equalsIgnoreCase(json.apiVersion.toString())){
+
+				def venueLoginId = json.venueLogin
+				def venuePassword = json.venuePassword
+				if(venueLoginId && venuePassword){
+					// get venue based on the venueId
+					def venue = Venue.findByVenueLoginAndVenuePassword(venueLoginId,venuePassword)
+					if(venue){
+						response.put("errorCode","0")
+						response.put("errorMessage","Venue exists")
+						response.put("venueId",venue.venueId)
+					}
+					else{
+						//if UserProfile does not exists send errorCode 1
+						response.put("errorCode","2")
+						response.put("errorMessage","Venue does not exists")
+					}
+
+				}else{
+					response.put("errorCode","1")
+					response.put("errorMessage","Venue login id or venue password is missing in your request")
+				}
+			}else{
+				//if apiVersion do not match send errorCode 100
+				response.put("errorCode","100")
+				response.put("errorMessage","API version do not match")
+			}
+			response.put("currentTime",new Date().toGMTString())
+		}catch(Exception e){
+
+			println "exception found in venueLogin"
+			log.info("exception found in venueLogin")
+			response.put("errorCode",200)
+			response.put("errorMessage",e.getMessage())
+
+		}finally{
+			render(text:response as JSON ,  contentType:"application/json")
+		}
+	}
 }
