@@ -67,11 +67,8 @@ label.error {
 	margin-left: 0px;
 }
 </style>
-
-
 <meta name="layout" content="main">
-<title><g:message code="page.venue.list.title"
-		default="Venue List" /></title>
+	<title><g:message code="page.venue.list.title" default="Venue List" /></title>
 </head>
 <body>
 	<h2>Venue Configuration</h2>
@@ -81,7 +78,7 @@ label.error {
 		</div>
 	</g:if>
 	<% flash.clear() %>
-	<div>
+	<!--  <div>
 		<div>
 			<label class="venueConfigstatic">Venue Id :</label>
 			${venue.venueId}
@@ -191,9 +188,55 @@ label.error {
 		</table>
 	--%>
 	</div>
-
-
-
+	-->
+	
+	<div>
+		<g:form action="saveVenueConfig" method="post">
+			<input type="hidden" name="venue" value='${venue.venueId}'>
+			<table>
+			<tr>
+				<td><g:message code="vendsy.representative.label" default="Vendsy representative" /></td>
+				<td><input type="text" name="vendsyRep" class="txt-field rewards"></td>
+			</tr>
+			<tr>	
+				<td><g:message code="vendsy.manager.label" default="Manager" /></td>
+				<td><input type="text" name="vendsyManager" class="txt-field rewards"></td>
+			</tr>
+			<tr>
+				<td><g:message code="wifi.label" default="Wifi" /></td>
+				<td><input type="text" name="wifi" class="txt-field rewards"></td>
+			</tr>
+			<tr>
+				<td><g:message code="hours.label" default="Hours" /></td>
+				<td><input type="text" name="hours" class="txt-field rewards"></td>
+			</tr>
+			<tr>
+				<td><g:message code="name.label" default="Name" /></td>
+				<td><input type="text" name="venueName" class="txt-field rewards"></td>
+			</tr>
+			<tr>
+				<td><g:message code="address.label" default="Address" /></td>
+				<td><input type="text" name="address" class="txt-field rewards"></td>
+			</tr>
+			<tr>
+				<td><g:message code="picture.label" default="Picture" /></td>
+				<td><input type="text" name="picture" class="txt-field rewards"></td>
+			</tr>
+			<tr>
+				<td><g:message code="bank.info.label" default="Bank Information" /></td>
+				<td><input type="text" name="bankInfo" class="txt-field rewards"></td>
+			</tr>
+			<tr>
+				<td><g:message code="locu.info.label" default="Locu Information" /></td>
+				<td><input type="text" name="locuInfo" class="txt-field rewards"></td>
+			</tr>
+			<tr>
+				<td colspan="2"><g:submitButton name="update" type="button" value="Update" class="venueConfigText" action="saveVenueConfig" /></td>
+			</tr>
+		</table>
+		</g:form>
+	</div>
+	
 
 </body>
 </html>

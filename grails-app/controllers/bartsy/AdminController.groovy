@@ -45,13 +45,61 @@ class AdminController {
 			log.error("Exception found in admin login =====>"+ e.getMessage())
 		}
 	}
-
+	
+	/**
+	 * Service to retrieve venue details
+	 * Like venue Id, name, checkIns, orders, checkIns/orders of last 30 days
+	 * And venue configuration, edit and delete options
+	 * @return venue Id, name, checkIns, orders, checkIns/orders of last 30 days
+	 */
 	def venueList(){
 		try{
+			def currentDate = new Date()
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
+			def  sDate = dateFormat.format(currentDate - 30)
+			def  eDate = dateFormat.format(currentDate)
+			Date startDate = dateFormat.parse(sDate)
+			Date endDate = dateFormat.parse(eDate)
+			
+			def checkInsList, ordersList, checkInsLast30DaysList, ordersLast30DaysList
+			def checkInsMap = [:], ordersMap = [:], checkInsLast30DaysMap = [:], ordersLast30DaysMap = [:]
 			def venuelist = Venue.list()
 			def venuelistTotal = Venue.count()
-
-			[venueList:venuelist, venueTotal:venuelistTotal]
+			
+			venuelist.each {
+				def venueObj = it
+				// Total checkins
+				checkInsList = UserCheckInDetails.createCriteria().list {
+					eq("venue", venueObj)
+				}
+				checkInsMap.put(venueObj.id, checkInsList.size())
+				
+				// Total orders
+				ordersList = Orders.createCriteria().list {
+					eq("venue", venueObj)
+				}
+				ordersMap.put(venueObj.id, ordersList.size())
+				
+				// Total checkins in last 30 days
+				checkInsLast30DaysList = UserCheckInDetails.createCriteria().list {
+					eq("venue", venueObj)
+					and{
+						between("checkedInDate", startDate, endDate)
+					}
+				}
+				checkInsLast30DaysMap.put(venueObj.id, checkInsLast30DaysList.size())
+				
+				// Total orders in last 30 days
+				ordersLast30DaysList = Orders.createCriteria().list {
+					eq("venue", venueObj)
+					and{
+						between("dateCreated", startDate, endDate)
+					}
+				}
+				ordersLast30DaysMap.put(venueObj.id, ordersLast30DaysList.size())
+			}
+				
+			[venueList:venuelist, venueTotal:venuelistTotal, checkIns:checkInsMap, orders:ordersMap, checkInsLast30Days:checkInsLast30DaysMap, , ordersLast30Days:ordersLast30DaysMap]
 		}catch(Exception e){
 			log.error("Error in Venue List ==>"+e.getMessage())
 		}
@@ -116,7 +164,12 @@ class AdminController {
 			log.error("Error in Users List ==>"+e.getMessage())
 		}
 	}
-
+	
+	/**
+	 * Service to retrieve orders details
+	 * Like order Id, item name, sender, recipient, gross, tax, comp, %, net and totals of all. 
+	 * @return each item name, sender, recipient, etc.. 
+	 */
 	def ordersList(){
 		params.max = Math.min(params.max ? params.int('max') : 50, 100)
 		try{
@@ -609,6 +662,11 @@ class AdminController {
 			log.error("Exception in create Sale User ==>"+e.getMessage())
 		}
 	}
+	
+	/**
+	 * Service to retrieve venue details such as rep name, manager, wifi, etc..
+	 * @return venue rep name, manager, wifi, hours, etc..
+	 */
 	def venueConfig(){
 		try{
 			if(params){

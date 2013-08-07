@@ -13,7 +13,7 @@
 	</g:if>
 	<% flash.clear() %>
 	<div>
-		<table width="100%" border="0" cellspacing="0" cellpadding="0" class="tbl-data">
+		<table class="tbl-data">
 			<tr>
 				<th width="10%"><g:link controller="admin" action="summary"><g:message code="summary.label" default="Summary" /></g:link></th>
 				<th width="20%"><g:link controller="admin" action="categories"><g:message code="categories.label" default="Categories" /></g:link></th>
