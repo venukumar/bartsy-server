@@ -983,7 +983,7 @@ class VenueController {
 	}
 
 	/**
-	 * 
+	 *  This sys call used to login the venue based on the venueLogin and venuePassword
 	 */
 	def venueLogin={
 		def response=[:]
@@ -1031,4 +1031,207 @@ class VenueController {
 			render(text:response as JSON ,  contentType:"application/json")
 		}
 	}
+
+	/**
+	 *  This method used to send the message from user to venue or venue to user
+	 */
+	def sendVenueUserMessage = {
+		//defining a map to return as a response for this syscall
+		def response = [:]
+		try{
+			//parse the request sent as input to the syscall
+			def json = JSON.parse(request)
+			//check to make sure the apiVersion sent in the request matches the correct apiVersion
+			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+			if(apiVersion.value.toString().equalsIgnoreCase(json.apiVersion.toString())){
+
+
+				if(json.has("venueId") && json.has("bartsyId") && json.has("isFromVenue")){
+					def venue=Venue.findByVenueId(json.venueId)
+					if(venue){
+						def user = UserProfile.findByBartsyId(json.bartsyId)
+						if(user){
+							def venueUserMessage = new VenueUserMessages()
+							venueUserMessage.setVenue(venue)
+							venueUserMessage.setUser(user)
+							venueUserMessage.setIsFromVenue(json.isFromVenue)
+							venueUserMessage.setMessage(json.message)
+							venueUserMessage.setStatus(0)
+
+							//save the message
+							if(venueUserMessage.save(flush:true)){
+								def pnMessage = [:]
+								pnMessage.put("message",json.message)
+								pnMessage.put("bartsyId",user.bartsyId)
+								pnMessage.put("senderNickName",user.nickName)
+								pnMessage.put("senderImage",user.userImage)
+								pnMessage.put("messageType","message")
+								pnMessage.put("venueId",venue.venueId)
+								pnMessage.put("currentTime",new Date().toGMTString())
+
+								if(json.isFromVenue.equalsIgnoreCase("Yes")){
+									def body = "Message Form "+venue.venueName
+									pnMessage.put("body",body)
+									//send PN to receiver device
+									if(user.deviceType == 1){
+										CommonMethods common = new CommonMethods()
+										pnMessage.put("unReadNotifications",common.getNotifictionCount(user))
+										applePNService.sendPN(pnMessage, user.deviceToken, "1" ,body)
+									}
+									else{
+										androidPNService.sendPN(pnMessage, user.deviceToken)
+									}
+
+								}else{
+									def body = "Message Form "+user.nickName
+									pnMessage.put("body",body)
+									androidPNService.sendPN(pnMessage, venue.deviceToken)
+								}
+
+								response.put("errorCode","0")
+								response.put("errorMessage","Message sent")
+							}
+							else{
+								//if message saving fails
+								response.put("errorCode","1")
+								response.put("errorMessage","Message could not be sent")
+							}
+
+
+						}else{
+							response.put("errorCode","3")
+							response.put("errorMessage","User does not exists")
+						}
+
+					}else{
+						response.put("errorCode","2")
+						response.put("errorMessage","Venue does not exists")
+					}
+
+				}else{
+					response.put("errorCode","1")
+					response.put("errorMessage","venueId or bartsyId or isFromVenue field is missing in your request")
+				}
+			}
+			else{
+				//if apiVersion do not match send errorCode 100
+				response.put("errorCode","100")
+				response.put("errorMessage","API version do not match")
+			}
+			response.put("currentTime",new Date().toGMTString())
+		}
+		catch(Exception e){
+			//if an exception occurs send errorCode 200 along with the exception message
+			log.info("Exception is ===> "+e.getMessage())
+			response.put("errorCode",200)
+			response.put("errorMessage",e.getMessage())
+		}
+		render(text:response as JSON,contentType:"application/json")
+	}
+
+	def getVenueUserMessages = {
+		//defining a map to return as a response for this syscall
+		def response = [:]
+		try{
+			//parse the request sent as input to the syscall
+			def json = JSON.parse(request)
+			//check to make sure the apiVersion sent in the request matches the correct apiVersion
+			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+			if(apiVersion.value.toString().equalsIgnoreCase(json.apiVersion.toString())){
+				//retrieve the sender profiles based on senderId and receiverId sent in the request to syscall
+				def user = UserProfile.findByBartsyId(json.bartsyId.toString())
+				//retrieve the venue based on venueId sent in the request to syscall
+				def venue = Venue.findByVenueId(json.venueId)
+				//check if user profiles and venue both exists
+				if(user && venue){
+					//if user profiles and venue both exists retrieve the messages
+
+					def criteriaParams = [:]
+					int index,noOfResults
+					if(json.has("index")){
+						index =  json.index
+						params.offset = index
+					}
+					if(json.has("noOfResults")){
+						noOfResults =  json.noOfResults
+						params.max = noOfResults
+					}
+					criteriaParams.putAll(params)
+
+
+					/*def query = {
+					 eq("venue",venue)
+					 eq("sender",senderProfile)
+					 eq("receiver",receiverProfile)
+					 }
+					 def queryRec = {
+					 eq("venue",venue)
+					 eq("sender",receiverProfile)
+					 eq("receiver",senderProfile)
+					 }*/
+					def messages = VenueUserMessages.createCriteria().list(criteriaParams){
+
+						//eq("venue",venue)
+						eq("user",user)
+						eq("venue",venue)
+						order("dateCreated","asc")
+
+					}
+
+					def compList = []
+
+					if(messages)
+						compList.addAll(messages.toList())
+
+					if(compList){
+						def messagesList = []
+						response.put("errorCode",0)
+						response.put("errorMessage","Messages sent")
+						compList.each{
+							def message = it
+							def messageMap = [:]
+							messageMap.put("id",message.id)
+							messageMap.put("message",message.message)
+							messageMap.put("bartsyId",message.user.bartsyId)
+							messageMap.put("date",message.dateCreated.toGMTString())
+							messageMap.put("venueId",message.venue.venueId)
+							messageMap.put("currentTime",new Date().toGMTString())
+							messagesList.add(messageMap)
+
+							if(json.bartsyId.trim().equalsIgnoreCase(message.user.bartsyId.trim()))
+							{
+								message.setStatus(1)
+								message.save(flush:true)
+							}
+						}
+						response.put("messages",messagesList)
+					}
+					else{
+						//Add errorcode 1 to response if messages do not exist
+						response.put("errorCode","1")
+						response.put("errorMessage","No Messages to be displayed")
+					}
+				}
+				else{
+					//Add errorcode 1 to response if users or venue does not exist
+					response.put("errorCode","1")
+					response.put("errorMessage","Sender, Receiver or Venue does not exists")
+				}
+			}
+			else{
+				//if apiVersion do not match send errorCode 100
+				response.put("errorCode","100")
+				response.put("errorMessage","API version do not match")
+			}
+		}
+		catch(Exception e){
+			//if an exception occurs send errorCode 200 along with the exception message
+			log.info("Exception is ===> "+e.getMessage())
+			response.put("errorCode",200)
+			response.put("errorMessage",e.getMessage())
+		}
+		render(text:response as JSON,contentType:"application/json")
+	}
+
+
 }
