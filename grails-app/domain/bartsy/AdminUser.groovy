@@ -8,10 +8,11 @@ class AdminUser {
 		email(nullable:true)
 		username()
 		password()
-		userType(inList: ["Admin","SalesUser","SalesManager"])
+		userType(inList: ["Admin","SalesUser","SalesManager","Promoter"])
 		dateCreated()
 		lastUpdated()
 		promoterCode(nullable:true)
+		status()
     }
 	String firstName
 	String lastName
@@ -22,6 +23,7 @@ class AdminUser {
 	Date dateCreated
 	Date lastUpdated
 	String promoterCode
+	int status
 	
 	static mapping={
 		version false
