@@ -594,6 +594,7 @@ class AdminController {
 			if(params.act){
 				def saleInfo = AdminUser.findAllByUsernameAndUserType(params.username,params.userType)
 				if(!saleInfo){
+					int stat = 1
 					def saleAcc = new AdminUser()
 					saleAcc.setFirstName(params.firstName)
 					saleAcc.setLastName(params.lastName)
@@ -601,8 +602,8 @@ class AdminController {
 					saleAcc.setUsername(params.username)
 					saleAcc.setPassword(params.password)
 					saleAcc.setUserType(params.userType)
+					saleAcc.setStatus(stat)
 					def promoCode = generatePromoCode()
-					println "promoCode "+promoCode
 					saleAcc.setPromoterCode(promoCode)
 					saleAcc.save(flush:true)
 					flash.message =  "Sales Account created successfully"
