@@ -161,9 +161,12 @@ Start Date: <input type="text" id="datepicker" name="startDate"  value="${jqStar
 		<% if(ordersTotal>50){%>
       		<div class="pagination">
        			<g:paginate action="ordersList" total="${ordersTotal}" />
+				   
       		</div>
       	<% } %>
-      		<export:formats formats="['csv', 'excel', 'pdf']" />
+      	<%if(ordersTotal>0){ %>
+      	<export:formats formats="['csv', 'excel', 'pdf']" />
+      	<% } %>	
 	</div>
 </body>
 </html>

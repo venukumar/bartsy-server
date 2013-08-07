@@ -10,6 +10,25 @@
     <g:if test="${flash.message}">
       <div class="message" role="status">${flash.message}</div>
     </g:if>	<% flash.clear() %>
+    <div>
+    <g:form method="post" controller="admin" action="saleuserList" name="frm">
+    <select name="userType" id="userType" onchange="javascript:document.frm.submit();">
+    <option value="">All</option>
+    <option value="Admin" <% if(saleParam.userType=="Admin"){ %> selected="selected"<% } %>>Admin</option>
+    <option value="SalesUser" <% if(saleParam.userType=="SalesUser"){ %> selected="selected"<% } %>>SalesUser</option>
+    <option value="SalesManager" <% if(saleParam.userType=="SalesManager"){ %> selected="selected"<% } %>>SalesManager</option>
+     <option value="Promoter" <% if(saleParam.userType=="Promoter"){ %> selected="selected"<% } %>>Promoter</option>
+    </select>
+    &nbsp;&nbsp;
+    <select name="status" id="status" onchange="javascript:document.frm.submit();">
+    <option value="1" <% if(saleParam.status=="1"){ %> selected="selected"<% } %>>Active</option>
+    <option value="0" <% if(saleParam.status=="0"){ %> selected="selected"<% } %>>In-active</option>
+    </select>
+    &nbsp;
+    <input type="text" name="keyword" id="keyword" value="${saleParam.keyword }">
+    <input type="submit" name="search" value="Search">
+    </g:form>
+    </div>
 	<div>
       <table width="100%" border="0" cellspacing="0" cellpadding="0" class="tbl-data">
         <tr>
