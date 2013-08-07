@@ -11,7 +11,6 @@ class AdminController {
 	def grailsApplication  //inject GrailsApplication
 	
 	def index() {
-		println"index"
 		if(session.user){
 			forward(action:"ordersList")
 		}
@@ -19,29 +18,17 @@ class AdminController {
 
 	def adminLogin(){
 		try{
-			println "admin login "+params
 			if(params){
-				println"params "+params.username
-				println "pass "+params.password
 				def adminInstance = AdminUser.findByUsernameAndPassword(params.username, params.password)
-				println"adminInstance 11111111"
-				println"adminInstance "+adminInstance
-				if(adminInstance)
-					println "adminInstance ok"
-				else
-					println "adminInstance not ok"
 				if(!adminInstance){
 					flash.errors = message(code:"default.admin.not.exists", default:"Invalid Username/Password")
 					render(view:"index", model: [adminUserInstance:params])
 					return
 				}
-				println"admin login"
 				session.user = adminInstance
 				forward(action:"ordersList")
-			}else{
-				println"params else"
 			}
-		}catch(Exception e){
+			}catch(Exception e){
 			log.error("Exception found in admin login =====>"+ e.getMessage())
 		}
 	}
@@ -193,7 +180,8 @@ class AdminController {
 				between("dateCreated", startDate, endDate)
 				
 				order "id", "desc"
-			}			
+			}	
+			println "start date "+startDate+" "+endDate		
 			def orders=[:], itemsGross = [:], orderTax = [:], tipPercentage = [:], comp = [:], net = [:] 
 			def totalGuests = [:], grossTotal = [:], taxTotal = [:], compTotal = [:], percentageTotal = [:], netTotal = [:]
 			def guests = 0, grossTot = 0, taxTot = 0, compTot = 0, percentageTot = 0, netTot = 0
@@ -580,9 +568,22 @@ class AdminController {
 
 	def saleuserList(){
 		try{
-			def salesList = AdminUser.findAllByUserTypeInList(["SalesUser", "SalesManager"])
+			def query={
+				if(params.userType)
+					eq("userType",params.userType)
+				if(params.status)
+					eq("status", Integer.parseInt(params.status.toString()))
+				if(params.keyword && (!params.keyword.equals("null") || !params.keyword.equals(""))){
+						or{
+							like("firstName",params.keyword+"%")
+							like("lastName",params.keyword+"%")
+						}
+					}				
+			}
+			//def salesList = AdminUser.findAllByUserTypeInList(["SalesUser", "SalesManager"])
+			def salesList = AdminUser.createCriteria().list(query)
 			def salesCnt = salesList.size()
-			[salesList:salesList, salesCnt:salesCnt]
+			[salesList:salesList, salesCnt:salesCnt, saleParam:params]
 		}catch(Exception e){
 			log.error("Error in sales user list"+e.getMessage())
 		}
