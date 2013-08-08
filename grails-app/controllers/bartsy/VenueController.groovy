@@ -1003,6 +1003,7 @@ class VenueController {
 						response.put("errorCode","0")
 						response.put("errorMessage","Venue exists")
 						response.put("venueId",venue.venueId)
+						response.put("venueName",venue.venueName)
 					}
 					else{
 						//if UserProfile does not exists send errorCode 1
