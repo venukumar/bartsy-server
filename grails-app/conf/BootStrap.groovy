@@ -1,8 +1,8 @@
 import bartsy.BartsyConfiguration
 import bartsy.AdminUser
-import bartsy.BartsyConstants;
 import bartsy.IngredientCategory;
 import bartsy.IngredientType;
+import bartsy.BartsyConstants
 
 class BootStrap {
 
