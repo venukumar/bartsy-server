@@ -147,7 +147,7 @@ class FavoritesController {
 	}
 
 
-	def getFavorite={
+	def getFavorites={
 		def response=[:]
 		try{
 			def json = JSON.parse(request)
@@ -163,6 +163,9 @@ class FavoritesController {
 							def user = UserProfile.findByBartsyId(userId)
 							if(user){
 								response = favoriteService.getFavoriteDrinks(user,venue)
+								response.put("apiVersion",json.apiVersion)
+								response.put("bartsyId",user.bartsyId)
+								response.put("venueId",venue.venueId)
 							}else{
 								response.put("errorCode",2)
 								response.put("errorMessage","User doesn't exists")
