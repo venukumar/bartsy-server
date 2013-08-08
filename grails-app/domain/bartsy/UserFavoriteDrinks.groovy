@@ -8,6 +8,8 @@ class UserFavoriteDrinks {
 		description(nullable:true)
 		categorys(nullable:true)
 		title(nullable:true)
+		basePrice(nullable:true)
+		quantity(nullable:true)
 	}
 
 
@@ -19,5 +21,7 @@ class UserFavoriteDrinks {
 	String specialInstructions
 	String description
 	String categorys
+	String basePrice
+	String quantity
 	Date dateCreated
 }
