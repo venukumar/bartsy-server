@@ -160,7 +160,8 @@ class InventoryService {
 									if(ingredient.available.equals("true")){
 										ingredientMap.put("id",ingredient.id)
 										ingredientMap.put("name",ingredient.name)
-										ingredientMap.put("price",ingredient.price.toString())
+										if(ingredient.price > 0.0){
+											ingredientMap.put("price",ingredient.price.toString())}
 										if(!type.type.toString().equalsIgnoreCase("Mixer") && options.size()==0){
 											ingredientMap.put("text","Recommended")
 											ingredientMap.put("selected","true")

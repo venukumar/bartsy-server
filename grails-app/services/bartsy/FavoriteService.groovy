@@ -20,8 +20,6 @@ class FavoriteService {
 						if(ingredients){
 							def categoryId = ingredients.category.id
 							if(category){
-								println "category "+category
-								println "categoryId "+categoryId
 								if(!category.contains(categoryId.toString()))
 									category=category+","+categoryId
 							}
@@ -33,6 +31,8 @@ class FavoriteService {
 				def description
 				def specialInstructions
 				def title
+				def quantity="1"
+				def basePrice
 				if(json.has("description")){
 					description=json.description
 				}
@@ -42,12 +42,20 @@ class FavoriteService {
 				if(json.has("title")){
 					title=json.title
 				}
+				if(json.has("quantity")){
+					quantity=json.quantity
+				}
+				if(json.has("basePrice")){
+					basePrice=json.basePrice
+				}
 				def usrFvtDrnk = new UserFavoriteDrinks()
 				usrFvtDrnk.setItemsList(itemsList.toString())
 				usrFvtDrnk.setCategorys(category)
 				usrFvtDrnk.setDescription(description)
 				usrFvtDrnk.setSpecialInstructions(specialInstructions)
 				usrFvtDrnk.setTitle(title)
+				usrFvtDrnk.setBasePrice(basePrice)
+				usrFvtDrnk.setQuantity(quantity)
 				usrFvtDrnk.setUser(user)
 				usrFvtDrnk.setVenue(venue)
 				if(usrFvtDrnk.save(flush:true)) {
@@ -76,6 +84,156 @@ class FavoriteService {
 	}
 
 	def getFavoriteDrinks(UserProfile user,Venue venue){
+		def output=[:]
+		try{
+			def favoriteDrinks = UserFavoriteDrinks.findAllByUser(user)
+			if(favoriteDrinks){
+				def menu=[]
+				def menuMap=[:]
+				menuMap.put("menu_name","Available favorites")
+				def section =[]
+				def sectionMap=[:]
+				def subSections=[]
+				def subSectionsMap=[:]
+				def contents=[]
+				println"favoriteDrinks "+favoriteDrinks.size()
+				favoriteDrinks.each {
+					def fvrtDrink=it
+
+					def title
+					if(fvrtDrink.title){
+						title=fvrtDrink.title
+					}
+					else{
+						title=""
+					}
+					def contentsMap=[:]
+					contentsMap.put("type","ITEM")
+					contentsMap.put("favorite_id",fvrtDrink.id)
+					if(fvrtDrink.description){
+						contentsMap.put("options_description",fvrtDrink.description)
+					}
+					if(fvrtDrink.specialInstructions){
+						contentsMap.put("specialInstructions",fvrtDrink.specialInstructions)
+					}
+					if(fvrtDrink.quantity){
+						contentsMap.put("quantity",fvrtDrink.quantity)
+					}
+					contentsMap.put("price","0.0")
+					/*else{
+					 contentsMap.put("order_price","0.0")
+					 }*/
+					def options_group=[]
+					float price=0.0
+
+					def category = fvrtDrink.categorys
+					if(category){
+						def categoryList = category.trim().split(",")
+						if(categoryList){
+							categoryList.each {
+								def categoryId = it
+								def categoryObj=IngredientCategory.findById(categoryId)
+								if(categoryObj){
+									if(!contentsMap.containsKey("name")){
+										contentsMap.put("name", categoryObj.category)
+									}
+									def options=[]
+									def ingredients = Ingredients.findAllByCategoryAndVenue(categoryObj,venue)
+									ingredients.each{
+										def ingredient = it
+										def ingredientMap = [:]
+										if(ingredient.available.equals("true")){
+											//ingredientMap.put("id",ingredient.id)
+											ingredientMap.put("name",ingredient.name)
+											if(ingredient.price > 1.0){
+												ingredientMap.put("price",ingredient.price.toString())
+											}
+											if(fvrtDrink.itemsList.contains(ingredient.name)){
+												//ingredientMap.put("text","Recommended")
+												ingredientMap.put("selected","true".toBoolean())
+												if(ingredient.price)
+													price=price+Float.parseFloat(ingredient.price.toString())
+											}
+											options.add(ingredientMap)
+										}
+									}
+
+									if(options.size()>0){
+										def options_groups_map=[:]
+										//options_groups_map.put("type","OPTION_SELECT")
+										if(categoryObj.category.toString().contains("Add-ons"))
+											options_groups_map.put("type","OPTION_ADD")
+										else
+											options_groups_map.put("type","OPTION_CHOOSE")
+
+										options_groups_map.put("text",categoryObj.category)
+										options_groups_map.put("options",options)
+
+										options_group.add(options_groups_map)
+									}
+								}
+							}
+							contentsMap.put("order_price",price.toString())
+							contentsMap.put("option_groups",options_group)
+							contents.add(contentsMap)
+						}
+					}else{
+						if(fvrtDrink.itemsList){
+							def subSectionMap=[:]
+							subSectionMap.put("subsection_name","Menu Item")
+							def itemsList = new JSONArray(fvrtDrink.itemsList)
+							if(itemsList){
+								itemsList.each{
+									def item = it
+									contentsMap.put("price",item.basePrice)
+									contentsMap.put("description",item.description)
+									contentsMap.put("name",item.itemName)
+									contentsMap.put("type","ITEM")
+									contents.add(contentsMap)
+								}
+							}
+							//subSectionMap.put("contents",contents)
+							//subSections.add(subSectionMap)
+							//sectionMap.put("subsections",subSections)
+						}
+					}
+
+
+				}
+				subSectionsMap.put("contents",contents)
+				subSections.add(subSectionsMap)
+				sectionMap.put("subsections",subSections)
+				section.add(sectionMap)
+				menuMap.put("sections",section)
+				menu.add(menuMap)
+				output.put("menus",menu)
+				if(section.size()>0){
+					output.put("errorCode","0")
+					output.put("errorMessage","Favorite Drinks Available")
+				}else{
+					output.put("errorCode","3")
+					output.put("errorMessage","No favorite drinks are available")
+				}
+			}else{
+				output.put("errorCode","3")
+				output.put("errorMessage","No favorite drinks are available")
+			}
+		}catch(Exception e){
+			log.info("Exception found in getFavoriteDrinks service "+e.getMessage())
+			println"Exception found in getFavoriteDrinks service "+e.getMessage()
+			output.put("errorCode",200)
+			output.put("errorMessage","Error occured while processing your request. Please verify json")
+		}
+
+		return output
+	}
+
+
+
+
+
+
+	def getFavoriteDrinksOld(UserProfile user,Venue venue){
 		def output=[:]
 		try{
 			def favoriteDrinks = UserFavoriteDrinks.findAllByUser(user)

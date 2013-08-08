@@ -43,7 +43,178 @@ class OrderService {
 		}
 	}
 
+
 	def getRecentOrders(UserProfile user,Venue venue){
+		def output=[:]
+
+		def orders = Orders.createCriteria()
+
+		def recentOrders = orders.list(){
+			eq("user",user)
+			eq("orderStatus","10")
+			order("orderId", "desc")
+			maxResults(5)
+		}
+		if(recentOrders && recentOrders.size()>0){
+
+			def menu=[]
+			def menuMap=[:]
+			menuMap.put("menu_name","Recently ordered")
+			def section =[]
+			def sectionMap=[:]
+			def subSections=[]
+			def subSectionsMap=[:]
+			def contents=[]
+
+			recentOrders.each {
+				def fvrtDrink=it
+				String category
+				println"fvrtDrink "+fvrtDrink.orderId
+				def itemsListOfOrder = fvrtDrink.itemsList
+				JSONArray listOfItems = new JSONArray(itemsListOfOrder)
+				contents.add(listOfItems)
+				
+				
+				if(listOfItems){
+					listOfItems.each {
+						
+						def item = it
+						
+						
+						
+						//contents.add(item)
+						
+						
+						
+						/*
+						def item = it
+						def name = item.itemName
+						if(name){
+							def categoryObj = IngredientCategory.findByCategory(name)
+							if(categoryObj){
+								def ingredients = Ingredients.findByCategory(categoryObj)
+								if(ingredients){
+									def categoryId = ingredients.category.id
+
+									if(category){
+										if(!category.contains(categoryId.toString()))
+											category=category+","+categoryId
+									}
+									else
+										category=categoryId
+								}
+							}
+						}
+					*/}
+				}
+				/*def contentsMap=[:]
+				contentsMap.put("price","0.0")
+				contentsMap.put("type","ITEM")
+
+				if(category){
+					println"category "+category
+					def categoryList = category.trim().split(",")
+					if(categoryList){
+						categoryList.each {
+							def categoryId = it
+
+							def categoryObj=IngredientCategory.findById(categoryId)
+							if(categoryObj){
+								if(fvrtDrink.description){
+									contentsMap.put("description",fvrtDrink.description)
+								}
+								if(fvrtDrink.specialInstructions){
+									contentsMap.put("specialInstructions",fvrtDrink.specialInstructions)
+								}
+								contentsMap.put("name", categoryObj.category)
+								float price=0.0
+								def options=[]
+								def ingredients = Ingredients.findAllByCategoryAndVenue(categoryObj,venue)
+								ingredients.each{
+									def ingredient = it
+									def ingredientMap = [:]
+									if(ingredient.available.equals("true")){
+										ingredientMap.put("name",ingredient.name)
+										if(ingredient.price && !ingredient.price.toString().equalsIgnoreCase("0"))
+											ingredientMap.put("price",ingredient.price.toString())
+										if(fvrtDrink.itemsList.contains(ingredient.name)){
+											ingredientMap.put("selected","true".toBoolean())
+											price=price+Float.parseFloat(ingredient.price.toString())
+										}
+										options.add(ingredientMap)
+									}
+								}
+
+								if(options.size()>0){
+									def optionsGroupList=[]
+									def options_groups_map=[:]
+									//options_groups_map.put("type","OPTION_SELECT")
+									if(categoryObj.category.toString().contains("Add-ons"))
+										options_groups_map.put("type","OPTION_ADD")
+									else
+										options_groups_map.put("type","OPTION_CHOOSE")
+
+									options_groups_map.put("text",categoryObj.category)
+									options_groups_map.put("options",options)
+									optionsGroupList.add(options_groups_map)
+									contentsMap.put("option_groups",optionsGroupList)
+								}
+								contentsMap.put("order_price",price.toString())
+								contents.add(contentsMap)
+							}
+						}
+					}
+				}else{
+					if(fvrtDrink.itemsList){
+						def itemsList = new JSONArray(fvrtDrink.itemsList)
+						if(itemsList){
+							def options=[]
+							def map=[:]
+							map.put("orderId",fvrtDrink.orderId)
+							map.put("order_price",fvrtDrink.totalPrice)
+							map.put("type","ITEM")
+							float price=0.0
+
+							itemsList.each{
+								def item = it
+								def optionsGroup=[:]
+								optionsGroup.put("price",item.basePrice)
+								optionsGroup.put("description",item.description)
+								optionsGroup.put("name",item.itemName)
+								options.add(optionsGroup)
+								price=price+Float.parseFloat(item.basePrice.toString())
+							}
+							map.put("price",price.toString())
+							map.put("option_groups",options)
+							contents.add(map)
+						}
+					}
+				}*/
+			}
+
+			subSectionsMap.put("contents",contents)
+			subSections.add(subSectionsMap)
+			sectionMap.put("subsections",subSections)
+			section.add(sectionMap)
+			menuMap.put("sections",section)
+			menu.add(menuMap)
+			output.put("menus",menu)
+			if(section.size()>0){
+				output.put("errorCode","0")
+				output.put("errorMessage","Recent Orders are Available")
+			}else{
+				output.put("errorCode","3")
+				output.put("errorMessage","No Recent orders are available")
+			}
+		}else{
+			output.put("errorCode","5")
+			output.put("errorMessage","Recent orders not available")
+		}
+
+		return output
+	}
+
+	def getRecentOrdersOld(UserProfile user,Venue venue){
 		def output=[:]
 
 		def orders = Orders.createCriteria()
@@ -58,7 +229,7 @@ class OrderService {
 
 			def menu=[]
 			def menuMap=[:]
-			menuMap.put("menu_name","Recent Orders")
+			menuMap.put("menu_name","Recently ordered")
 			def section =[]
 			recentOrders.each {
 				def fvrtDrink=it
