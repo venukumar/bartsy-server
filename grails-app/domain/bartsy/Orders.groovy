@@ -19,13 +19,13 @@ class Orders {
 		itemName(nullable:true)
 		description(nullable:true)
 		itemsList(nullable:true)
-		}
+		dateOrderStatus(nullable:true)
+	}
 	
 	static mapping = {
 		drinkOffered defaultValue: 'false'
 		itemsList type: 'text'
-		
-		}
+	}
     
     static belongsTo = [user:UserProfile,venue:Venue,receiverProfile:UserProfile]
 	
@@ -52,4 +52,5 @@ class Orders {
 	String lastState
 	String errorReason
 	boolean drinkOffered
+	String dateOrderStatus
 }

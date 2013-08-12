@@ -6,7 +6,7 @@ package bartsy;
  * @author Shareef
  *
  */
-public interface BartsyConstants {
+public interface CommonConstants {
 	
 	String TIMER 			= "timer";
 	String HEARTBEAT		= "heartbeat";
@@ -37,6 +37,7 @@ public interface BartsyConstants {
 	
 	// Notification
 	String NOTIFICATION_TYPE_PLACE_ORDER	= "placeOrder";
+	String NOTIFICATION_TYPE_UPDATE_ORDER	= "updateorder";
 	
 	String BASE_PRICE				= "basePrice";
 	String TIP_PERCENTAGE			= "tipPercentage";

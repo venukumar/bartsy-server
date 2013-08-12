@@ -3,6 +3,7 @@ package bartsy
 import grails.converters.JSON
 import java.text.SimpleDateFormat
 import org.codehaus.groovy.grails.web.json.JSONArray
+import org.codehaus.groovy.grails.web.json.JSONObject
 
 class OrderController {
 
@@ -44,21 +45,20 @@ class OrderController {
 			}else{
 				json = JSON.parse(request)
 			}
-			def apiVersion = BartsyConfiguration.findByConfigName(BartsyConstants.API_VERSION)
+			def apiVersion = BartsyConfiguration.findByConfigName(CommonConstants.API_VERSION)
 			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
 				Orders order = new Orders()
 				Date orderDate = new Date()
 				UserProfile userprofile = UserProfile.findByBartsyId(json.bartsyId)
-				UserProfile	recieverUserprofile = UserProfile.findByBartsyId(json.recieverBartsyId)
+				UserProfile	recieverUserprofile = UserProfile.findByBartsyId(json.receiverBartsyId)
 				Venue venue = Venue.findByVenueId(json.venueId)
 				if(userprofile && venue){
-					if(venue.status.equals(BartsyConstants.OPEN)){
+					if(venue.status.equals(CommonConstants.OPEN)){
 						CommonMethods common = new CommonMethods()
 
 						if(json.totalPrice && common.isInteger(json.totalPrice)){
 
-							def maxId = Orders.createCriteria().get { projections { max "orderId"
-								} } as Long
+							def maxId = Orders.createCriteria().get { projections { max "orderId" } } as Long
 							if(maxId){
 								maxId = maxId+1
 							}else{
@@ -88,13 +88,19 @@ class OrderController {
 							order.setUser(userprofile)
 							order.setVenue(venue)
 							order.setOrderStatus(OrderConstants.ORDER_STATUS_100)
-							order.setAuthApproved(BartsyConstants.FALSE)
+							
+							// Save order status date
+							def dateOrderStatus
+							dateOrderStatus = prepareOrderStatusDateResp(OrderConstants.ORDER_STATUS_100, order)
+							order.setDateOrderStatus(dateOrderStatus)
+							
+							order.setAuthApproved(CommonConstants.FALSE)
 							order.save(flush:true)
-
+							
 							if(order){
 								if(json.itemsList){
-									json.itemsList.each{
-										def itemInfo = it
+									//json.itemsList.each{
+										/*def itemInfo = it
 										OrderItems orderItem = new OrderItems()
 										orderItem.setVersion(1)
 										orderItem.setItemName(itemInfo.itemName)
@@ -103,9 +109,10 @@ class OrderController {
 										orderItem.setDescription(itemInfo.description)
 										orderItem.setOrder(order)
 										orderItem.save(flush:true)
-									}
+									}*/
+									parseAndSavePlaceOrderItems(json.itemsList, order)
 
-								}else{
+								}/*else{
 									OrderItems orderItem = new OrderItems()
 									orderItem.setItemName(json.itemName?json.itemName:"")
 									orderItem.setItemId(json.itemId?json.itemId.toString():"")
@@ -113,32 +120,41 @@ class OrderController {
 									orderItem.setDescription(json.description)
 									orderItem.setOrder(order)
 									orderItem.save(flush:true)
-								}
+								}*/
 							}
 							Orders orderUpdate = Orders.findByOrderId(order.orderId)
 							def authorizeResponse = paymentService.authorizePayment(userprofile,json.totalPrice,orderUpdate?.orderId)
 							//order.setAuthTransactionId(authorizeResponse.transactionId as long)
 
-							if(authorizeResponse.get(BartsyConstants.AUTH_APPROVED).toBoolean()){
-
-								if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
+							if(authorizeResponse.get(CommonConstants.AUTH_APPROVED).toBoolean()){
+								
+								if(!json.bartsyId.toString().equals(json.receiverBartsyId.toString())){
 									orderUpdate.setOrderStatus(OrderConstants.ORDER_STATUS_OFFERED_DRINK)
+									
+									dateOrderStatus = prepareOrderStatusDateResp(OrderConstants.ORDER_STATUS_OFFERED_DRINK, orderUpdate)
 								}else{
 									orderUpdate.setOrderStatus(OrderConstants.ORDER_STATUS_NEW)
+									
+									dateOrderStatus = prepareOrderStatusDateResp(OrderConstants.ORDER_STATUS_NEW, orderUpdate)
 								}
-								orderUpdate.setAuthApproved(BartsyConstants.TRUE)
-								orderUpdate.setAuthCode(authorizeResponse.get(BartsyConstants.AUTH_CODE))
-								orderUpdate.setAuthTransactionNumber(authorizeResponse.get(BartsyConstants.AUTH_TRANSACTION_NUMBER))
+								orderUpdate.setDateOrderStatus(dateOrderStatus)
+								orderUpdate.setAuthApproved(CommonConstants.TRUE)
+								orderUpdate.setAuthCode(authorizeResponse.get(CommonConstants.AUTH_CODE))
+								orderUpdate.setAuthTransactionNumber(authorizeResponse.get(CommonConstants.AUTH_TRANSACTION_NUMBER))
 							}else{
 								orderUpdate.setOrderStatus(OrderConstants.ORDER_STATUS_ORDER_TIMEOUT)
-								orderUpdate.setAuthApproved(BartsyConstants.FALSE)
-								orderUpdate.setAuthErrorMessage(authorizeResponse.get(BartsyConstants.AUTH_ERROR_MESSAGE))
-								orderUpdate.setLastState(BartsyConstants.LAST_STATE)
-								orderUpdate.setErrorReason(BartsyConstants.PAYMENT_AUTH_FAILED)
+								
+								dateOrderStatus = prepareOrderStatusDateResp(OrderConstants.ORDER_STATUS_ORDER_TIMEOUT, orderUpdate)
+								orderUpdate.setDateOrderStatus(dateOrderStatus)
+								
+								orderUpdate.setAuthApproved(CommonConstants.FALSE)
+								orderUpdate.setAuthErrorMessage(authorizeResponse.get(CommonConstants.AUTH_ERROR_MESSAGE))
+								orderUpdate.setLastState(CommonConstants.LAST_STATE)
+								orderUpdate.setErrorReason(CommonConstants.PAYMENT_AUTH_FAILED)
 
 								orderUpdate.save(flush:true)
-								response.put(BartsyConstants.ERROR_CODE, BartsyConstants.ERROR_CODE_FAILURE)
-								response.put(BartsyConstants.ERROR_MESSAGE, authorizeResponse.get(BartsyConstants.AUTH_ERROR_MESSAGE))
+								response.put(CommonConstants.ERROR_CODE, CommonConstants.ERROR_CODE_FAILURE)
+								response.put(CommonConstants.ERROR_MESSAGE, authorizeResponse.get(CommonConstants.AUTH_ERROR_MESSAGE))
 								render(text:response as JSON,contentType:"application/json")
 								return
 							}
@@ -149,7 +165,7 @@ class OrderController {
 								notification.setUser(userprofile)
 								notification.setVenue(venue)
 								notification.setOrder(orderUpdate)
-								notification.setType(BartsyConstants.NOTIFICATION_TYPE_PLACE_ORDER)
+								notification.setType(CommonConstants.NOTIFICATION_TYPE_PLACE_ORDER)
 								if(json.type && json.type.equals("custom")){
 									addDrinkIngredients(json.ingredients,orderUpdate)
 								}
@@ -173,7 +189,7 @@ class OrderController {
 									}
 								}
 								Map pnMessage = new HashMap()
-								if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
+								if(!json.bartsyId.toString().equals(json.receiverBartsyId.toString())){
 									pnMessage.put(OrderConstants.ORDER_STATUS, OrderConstants.ORDER_STATUS_OFFERED_DRINK)
 								}else{
 									pnMessage.put(OrderConstants.ORDER_STATUS, OrderConstants.ORDER_STATUS_NEW)
@@ -181,30 +197,30 @@ class OrderController {
 								pnMessage.put(OrderConstants.ORDER_ID, orderUpdate?.orderId?.toString())
 								pnMessage.put(ItemConstants.ITEM_NAME, json.itemName?json.itemName:"")
 								pnMessage.put(OrderConstants.ORDER_TIME, orderDate.toGMTString())
-								pnMessage.put(BartsyConstants.BASE_PRICE, json.basePrice)
-								pnMessage.put(BartsyConstants.TIP_PERCENTAGE, json.tipPercentage)
-								pnMessage.put(BartsyConstants.TOTAL_PRICE, json.totalPrice)
-								pnMessage.put(BartsyConstants.DESCRIPTION, json.description)
-								pnMessage.put(BartsyConstants.UPDATE_TIME, orderDate.toGMTString())
+								pnMessage.put(CommonConstants.BASE_PRICE, json.basePrice)
+								pnMessage.put(CommonConstants.TIP_PERCENTAGE, json.tipPercentage)
+								pnMessage.put(CommonConstants.TOTAL_PRICE, json.totalPrice)
+								pnMessage.put(CommonConstants.DESCRIPTION, json.description)
+								pnMessage.put(CommonConstants.UPDATE_TIME, orderDate.toGMTString())
 								pnMessage.put(OrderConstants.ORDER_TIMEOUT, venue.cancelOrderTime)
-								pnMessage.put(BartsyConstants.SPECIAL_INSTRUCTIONS, json.specialInstructions ?: "")
+								pnMessage.put(CommonConstants.SPECIAL_INSTRUCTIONS, json.specialInstructions ?: "")
 								pnMessage.put(ItemConstants.ITEMS_LIST, json.itemsList?json.itemsList.toString():"")
-								if(!json.bartsyId.toString().equals(json.recieverBartsyId.toString())){
+								if(!json.bartsyId.toString().equals(json.receiverBartsyId.toString())){
 									def name = json.itemName?json.itemName:""
 									def body="You have been offered a drink "+name+" by "+orderUpdate.user.nickName
-									pnMessage.put(BartsyConstants.MESSAGE_TYPE, BartsyConstants.DRINK_OFFERED)
-									pnMessage.put(BartsyConstants.BARTSY_ID, json.recieverBartsyId)
-									pnMessage.put(BartsyConstants.SENDER_BARTSY_ID, json.bartsyId)
+									pnMessage.put(CommonConstants.MESSAGE_TYPE, CommonConstants.DRINK_OFFERED)
+									pnMessage.put(CommonConstants.BARTSY_ID, json.receiverBartsyId)
+									pnMessage.put(CommonConstants.SENDER_BARTSY_ID, json.bartsyId)
 									pnMessage.put(OrderConstants.ORDER_TIMEOUT, venue.cancelOrderTime)
-									pnMessage.put(BartsyConstants.BODY, body)
+									pnMessage.put(CommonConstants.BODY, body)
 									response.put(OrderConstants.ORDER_COUNT, openOrders.size())
 									response.put(OrderConstants.ORDER_ID, maxId)
-									response.put(BartsyConstants.ERROR_CODE, BartsyConstants.ERROR_CODE_SUCCESS)
-									response.put(BartsyConstants.ERROR_MESSAGE, BartsyConstants.DRINK_SENT)
+									response.put(CommonConstants.ERROR_CODE, CommonConstants.ERROR_CODE_SUCCESS)
+									response.put(CommonConstants.ERROR_MESSAGE, CommonConstants.DRINK_SENT)
 									response.put(OrderConstants.ORDER_TIMEOUT, venue.cancelOrderTime)
 									if(recieverUserprofile.deviceType == 1 ){
 										try{
-											pnMessage.put(BartsyConstants.UN_READ_NOTIFICATIONS, common.getNotifictionCount(recieverUserprofile))
+											pnMessage.put(CommonConstants.UN_READ_NOTIFICATIONS, common.getNotifictionCount(recieverUserprofile))
 											applePNService.sendPN(pnMessage, recieverUserprofile.deviceToken, "1", body)
 										}catch(Exception e){
 											log.info("Exception "+e.getMessage())
@@ -213,19 +229,19 @@ class OrderController {
 										androidPNService.sendPN(pnMessage,recieverUserprofile.deviceToken)
 									}
 								}else{
-									pnMessage.put(BartsyConstants.BARTSY_ID, json.bartsyId)
-									pnMessage.put(BartsyConstants.MESSAGE_TYPE, BartsyConstants.NOTIFICATION_TYPE_PLACE_ORDER)
+									pnMessage.put(CommonConstants.BARTSY_ID, json.bartsyId)
+									pnMessage.put(CommonConstants.MESSAGE_TYPE, CommonConstants.NOTIFICATION_TYPE_PLACE_ORDER)
 									def map=[:]
 									common.getUserOrderAndChekedInDetails(venue, orderUpdate.user, map)
-									pnMessage.put(BartsyConstants.CHECK_IN_AND_ORDER_DETAILS_OF_USER, map)
+									pnMessage.put(CommonConstants.CHECK_IN_AND_ORDER_DETAILS_OF_USER, map)
 									response.put(OrderConstants.ORDER_COUNT, openOrders.size())
 									response.put(OrderConstants.ORDER_ID, orderUpdate?.orderId)
-									if(orderUpdate.user.emailVerified.toString().equalsIgnoreCase(BartsyConstants.TRUE)){
-										response.put(BartsyConstants.ERROR_CODE, BartsyConstants.ERROR_CODE_SUCCESS)
-										response.put(BartsyConstants.ERROR_MESSAGE, OrderConstants.ORDER_PLACED)
+									if(orderUpdate.user.emailVerified.toString().equalsIgnoreCase(CommonConstants.TRUE)){
+										response.put(CommonConstants.ERROR_CODE, CommonConstants.ERROR_CODE_SUCCESS)
+										response.put(CommonConstants.ERROR_MESSAGE, OrderConstants.ORDER_PLACED)
 									}else{
-										response.put(BartsyConstants.ERROR_CODE, "99")
-										response.put(BartsyConstants.ERROR_MESSAGE, "Order Placed. Please verify your account to start collecting rewards")
+										response.put(CommonConstants.ERROR_CODE, "99")
+										response.put(CommonConstants.ERROR_MESSAGE, "Order Placed. Please verify your account to start collecting rewards")
 
 									}
 									response.put(OrderConstants.ORDER_STATUS, orderUpdate.getOrderStatus())
@@ -238,49 +254,135 @@ class OrderController {
 								}
 							}
 							else{
-								response.put(BartsyConstants.ERROR_CODE, BartsyConstants.ERROR_CODE_FAILURE)
-								response.put(BartsyConstants.ERROR_MESSAGE, "Order placing Failed")
+								response.put(CommonConstants.ERROR_CODE, CommonConstants.ERROR_CODE_FAILURE)
+								response.put(CommonConstants.ERROR_MESSAGE, "Order placing Failed")
 							}
 						}else{
-							response.put(BartsyConstants.ERROR_CODE, "2")
-							response.put(BartsyConstants.ERROR_MESSAGE, "Total price contains not a valid data")
+							response.put(CommonConstants.ERROR_CODE, "2")
+							response.put(CommonConstants.ERROR_MESSAGE, "Total price contains not a valid data")
 						}
 					}
 
 					else{
-						response.put(BartsyConstants.ERROR_CODE, BartsyConstants.ERROR_CODE_FAILURE)
-						response.put(BartsyConstants.ERROR_MESSAGE, "Venue is CLOSED or OFFLINE")
+						response.put(CommonConstants.ERROR_CODE, CommonConstants.ERROR_CODE_FAILURE)
+						response.put(CommonConstants.ERROR_MESSAGE, "Venue is CLOSED or OFFLINE")
 					}
 				}
 				else{
-					response.put(BartsyConstants.ERROR_CODE, BartsyConstants.ERROR_CODE_FAILURE)
-					response.put(BartsyConstants.ERROR_MESSAGE, "Venue Id or User Id does not exists")
+					response.put(CommonConstants.ERROR_CODE, CommonConstants.ERROR_CODE_FAILURE)
+					response.put(CommonConstants.ERROR_MESSAGE, "Venue Id or User Id does not exists")
 				}
 			}
 			else{
-				response.put(BartsyConstants.ERROR_CODE, "100")
-				response.put(BartsyConstants.ERROR_MESSAGE, "API version do not match")
+				response.put(CommonConstants.ERROR_CODE, "100")
+				response.put(CommonConstants.ERROR_MESSAGE, "API version do not match")
 			}
-			response.put(BartsyConstants.CURRENT_TIME, new Date().toGMTString())
+			response.put(CommonConstants.CURRENT_TIME, new Date().toGMTString())
 		}
 		catch(Exception e){
 			log.info("Exception in place order ===> "+e.getMessage())
-			//println"Exception in place order "+e.getMessage()
-			response.put(BartsyConstants.ERROR_CODE, 200)
-			response.put(BartsyConstants.ERROR_MESSAGE, "Error occured while processing your request. Please verify json")
+			println"Exception in place order "+e.getMessage()
+			response.put(CommonConstants.ERROR_CODE, 200)
+			response.put(CommonConstants.ERROR_MESSAGE, "Error occured while processing your request. Please verify json")
 		}
 		render(text:response as JSON,contentType:"application/json")
 	}
+	
+	/**
+	 * Method to parse 'placeOrder' input JSON and to save each item in 'order_items' table
+	 * @param JSON's itemsList, Order object
+	 */
+	def parseAndSavePlaceOrderItems(def itemsList, Orders order){
+		itemsList.each {
+			def itemDetails = it
+			
+			String category, selectedItems
+			def description
+			
+			def itemName = itemDetails.itemName
+			def title = itemDetails.title
+			def name = itemDetails.name
+			def option_groups = itemDetails.option_groups
+			if(option_groups && option_groups.size()>0){
+				description = itemDetails.options_description
+			}else{
+				description = itemDetails.description
+			}
+			def type = itemDetails.type
+			def order_price = itemDetails.order_price
+			def basePrice = itemDetails.price
+			def quantity = itemDetails.quantity
+
+			if(option_groups && option_groups.size()>0){
+				option_groups.each {
+					def option = it
+					def text = option.text
+					if(text){
+						def categoryObj = IngredientCategory.findByCategory(text.trim())
+						if(category && !category.contains(categoryObj.id.toString())){
+							category = category+","+categoryObj.id
+						}else{
+							category = categoryObj.id
+						}
+					}
+					def options = option.options
+					if(options && options.size()>0){
+						options.each {
+							def ingredient = it
+							def selected = ingredient.selected
+							if(selected){
+								def ingredientName = ingredient.name
+								if(selectedItems){
+									selectedItems = selectedItems+","+ingredientName
+								}else{
+									selectedItems = ingredientName
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			OrderItems orderItem = new OrderItems()
+			orderItem.setVersion(1)
+			orderItem.setItemName(itemName)
+			orderItem.setTitle(title)
+			orderItem.setBasePrice(basePrice)
+			orderItem.setName(name)
+			orderItem.setDescription(description)
+			orderItem.setQuantity(quantity)
+			orderItem.setType(type)
+			orderItem.setCategorys(category)
+			orderItem.setSelectedItems(selectedItems)
+			orderItem.setOrder(order)
+			orderItem.save(flush:true)
+		}
+	}
+	
+	/**
+	 * Method to prepare 'dateOrderStatus' column value of 'Orders' table
+	 * @param order
+	 * @return JSON containing order status as key and date as value
+	 */
+	def prepareOrderStatusDateResp(def status, Orders order){
+		def orderStatusJSON
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
+		if (order.dateOrderStatus){
+			orderStatusJSON = new JSONObject(order.dateOrderStatus)
+			orderStatusJSON.put(status, dateFormat.format(new Date()))
+		}else{
+			orderStatusJSON = new JSONObject()
+			orderStatusJSON.put(status, dateFormat.format(new Date()))
+		}
+		return orderStatusJSON.toString()
+	}
+	
 	/**
 	 * This is the webservice to be called to update the status of the order
-	 *
 	 * @author Swetha Bhatnagar
-	 *
 	 * @errorCodes 1 : failure, 0 : success
-	 *
 	 * @param orderId         		server generated id for order
 	 * @param orderStatus  	 		status to be updated for the order
-	 *
 	 * @return  {
 	 * @return      errorCode 		: success/failure code
 	 * @return      errorMessage 	: success/failure message
@@ -291,7 +393,7 @@ class OrderController {
 		def response = [:]
 		try{
 			def json = JSON.parse(request)
-			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+			def apiVersion = BartsyConfiguration.findByConfigName(CommonConstants.API_VERSION)
 			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
 				def listOfOrders = json.has("orderList")?json.orderList:""
 				if(listOfOrders){
@@ -343,13 +445,18 @@ class OrderController {
 									break;
 							}
 							order.setOrderStatus(orderObject.orderStatus.toString())
+							
+							// Save order status date
+							def dateOrderStatus = prepareOrderStatusDateResp(orderObject.orderStatus.toString(), order)
+							order.setDateOrderStatus(dateOrderStatus)
+							
 							if(order.save()){
 								//create the place order notification
 								def notification = new Notifications()
 								notification.setUser(order.user)
 								notification.setVenue(order.venue)
 								notification.setOrder(order)
-								notification.setType("updateorder")
+								notification.setType(CommonConstants.NOTIFICATION_TYPE_UPDATE_ORDER)
 								if(!orderObject.orderStatus.toString().equals("10")){
 									response.put("orderTimeout",order.venue.cancelOrderTime)
 									if(!orderObject.orderStatus.toString().equals("5") || order.getCaptureApproved().toBoolean()){
@@ -480,10 +587,10 @@ class OrderController {
 		}
 		render(text:response as JSON,contentType:"application/json")
 	}
+	
 	/**
-	 * To Update status of the offered drink order
+	 * This service is to Update status of the offered drink order
 	 */
-
 	def updateOfferedDrinkStatus = {
 		def response = [:]
 		try{
@@ -508,6 +615,11 @@ class OrderController {
 								order.setLastState("9")
 								order.setErrorReason("Offer rejected")
 								order.setDateCreated(new Date())
+								
+								// Save order status date
+								def dateOrderStatus = prepareOrderStatusDateResp(OrderConstants.ORDER_STATUS_OFFERED_DRINK_REJECTION.toString(), order)
+								order.setDateOrderStatus(dateOrderStatus)
+								
 								if(order.save()){
 									response.put("errorCode","0")
 									response.put("errorMessage","Success")
@@ -547,6 +659,11 @@ class OrderController {
 							case "0" :
 								body = "Your offer is accepted by "+recieveUser.nickName
 								order.setOrderStatus("0")
+								
+								// Save order status date
+								def dateOrderStatus = prepareOrderStatusDateResp(OrderConstants.ORDER_STATUS_NEW.toString(), order)
+								order.setDateOrderStatus(dateOrderStatus)
+								
 								if(order.save(flush:true)){
 									response.put("errorCode","0")
 									response.put("errorMessage","Success")
@@ -817,13 +934,13 @@ class OrderController {
 										def tipPercentage = json.tipPercentage
 										def itemName=order.itemName
 										def description=json.description
-										def recieverBartsyId =json.recieverBatsyId
+										def receiverBartsyId =json.receiverBartsyId
 										def venueId=json.venueId
 										def orderStatus="0"
 										def basePrice=json.basePrice
 										def totalPrice=json.totalPrice
 										def itemsList=order.itemsList
-										forward(controller:'order',action:'placeOrder',params:[orderId:orderId,bartsyId:bartsyId,specialInstructions:specialInstructions,apiVersion:json.apiVersion,tipPercentage:tipPercentage,itemName:itemName,description:description,recieverBartsyId:recieverBartsyId,venueId:venueId,orderStatus:orderStatus,basePrice:basePrice,totalPrice:totalPrice,itemsList:itemsList])
+										forward(controller:'order',action:'placeOrder',params:[orderId:orderId,bartsyId:bartsyId,specialInstructions:specialInstructions,apiVersion:json.apiVersion,tipPercentage:tipPercentage,itemName:itemName,description:description,receiverBartsyId:receiverBartsyId,venueId:venueId,orderStatus:orderStatus,basePrice:basePrice,totalPrice:totalPrice,itemsList:itemsList])
 									}else{
 										response.put("errorCode","10")
 										response.put("errorMessage","Your order doesn't exists in this venue : "+venue.venueName)
