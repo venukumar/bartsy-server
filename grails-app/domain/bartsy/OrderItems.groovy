@@ -16,10 +16,13 @@ class OrderItems {
 		type(nullable:true)
 		order_price(nullable:true)
 		selectedItems(nullable:true)
+		itemList(nullable:true)
     }
 	
 	static belongsTo = [order:Orders]
-
+	static mapping = {
+		itemList type: 'text'
+	}
 	//String itemId
 	String title
 	String itemName
@@ -32,4 +35,5 @@ class OrderItems {
 	String type
 	String order_price
 	String selectedItems
+	String itemList
 }
