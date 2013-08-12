@@ -23,6 +23,8 @@ class FavoriteService {
 					def basePrice = itemDetails.price
 					def quantity =itemDetails.quantity
 
+					if(options_description)
+						options_description=itemDetails.description
 
 					def option_groups=itemDetails.option_groups
 					String category
@@ -210,18 +212,18 @@ class FavoriteService {
 								itemsList.each{
 									def item = it
 									if(locuMenu.toString().contains(item.itemName)){
-									contentsMap.put("price",item.price)
-									if(item.description){
-										contentsMap.put("description",item.description)
-									}
-									if(item.itemName){
-										contentsMap.put("name",item.itemName)
-									}
-									contentsMap.put("type","ITEM")
-									contentsMap.put("option_groups",options_group)
+										contentsMap.put("price",item.price)
+										if(item.description){
+											contentsMap.put("description",item.description)
+										}
+										if(item.itemName){
+											contentsMap.put("name",item.itemName)
+										}
+										contentsMap.put("type","ITEM")
+										contentsMap.put("option_groups",options_group)
 
-									contents.add(contentsMap)
-								}
+										contents.add(contentsMap)
+									}
 								}
 							}
 							//subSectionMap.put("contents",contents)
