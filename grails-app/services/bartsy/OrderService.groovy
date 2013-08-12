@@ -46,169 +46,179 @@ class OrderService {
 
 	def getRecentOrders(UserProfile user,Venue venue){
 		def output=[:]
+		try{
+			def orders = Orders.createCriteria()
 
-		def orders = Orders.createCriteria()
+			def recentOrders = orders.list(){
+				eq("user",user)
+				eq("orderStatus","10")
+				order("orderId", "desc")
+				maxResults(5)
+			}
+			if(recentOrders){
+				def menu=[]
+				def menuMap=[:]
+				menuMap.put("menu_name","Recently ordered")
+				def section =[]
+				def sectionMap=[:]
+				def subSections=[]
+				def subSectionsMap=[:]
+				def contents=[]
+				println"recentOrders "+recentOrders.size()
 
-		def recentOrders = orders.list(){
-			eq("user",user)
-			eq("orderStatus","10")
-			order("orderId", "desc")
-			maxResults(5)
-		}
-		if(recentOrders && recentOrders.size()>0){
+				recentOrders.each {
+					def recentOrder=it
+					def itemsOfOrder=OrderItems.findAllByOrder(recentOrder)
+					println "itemsOfOrder "+itemsOfOrder.size()
+					if(itemsOfOrder){
 
-			def menu=[]
-			def menuMap=[:]
-			menuMap.put("menu_name","Recently ordered")
-			def section =[]
-			def sectionMap=[:]
-			def subSections=[]
-			def subSectionsMap=[:]
-			def contents=[]
-
-			recentOrders.each {
-				def fvrtDrink=it
-				String category
-				println"fvrtDrink "+fvrtDrink.orderId
-				def itemsListOfOrder = fvrtDrink.itemsList
-				JSONArray listOfItems = new JSONArray(itemsListOfOrder)
-				contents.add(listOfItems)
-				
-				
-				if(listOfItems){
-					listOfItems.each {
-						
-						def item = it
-						
-						
-						
-						//contents.add(item)
-						
-						
-						
-						/*
-						def item = it
-						def name = item.itemName
-						if(name){
-							def categoryObj = IngredientCategory.findByCategory(name)
-							if(categoryObj){
-								def ingredients = Ingredients.findByCategory(categoryObj)
-								if(ingredients){
-									def categoryId = ingredients.category.id
-
-									if(category){
-										if(!category.contains(categoryId.toString()))
-											category=category+","+categoryId
-									}
-									else
-										category=categoryId
-								}
+						itemsOfOrder.each{
+							def order=it
+							def contentsMap=[:]
+							if(order.title){
+								contentsMap.put("title",order.title)
 							}
-						}
-					*/}
-				}
-				/*def contentsMap=[:]
-				contentsMap.put("price","0.0")
-				contentsMap.put("type","ITEM")
+							println"order.title "+order.title
 
-				if(category){
-					println"category "+category
-					def categoryList = category.trim().split(",")
-					if(categoryList){
-						categoryList.each {
-							def categoryId = it
-
-							def categoryObj=IngredientCategory.findById(categoryId)
-							if(categoryObj){
-								if(fvrtDrink.description){
-									contentsMap.put("description",fvrtDrink.description)
-								}
-								if(fvrtDrink.specialInstructions){
-									contentsMap.put("specialInstructions",fvrtDrink.specialInstructions)
-								}
-								contentsMap.put("name", categoryObj.category)
-								float price=0.0
-								def options=[]
-								def ingredients = Ingredients.findAllByCategoryAndVenue(categoryObj,venue)
-								ingredients.each{
-									def ingredient = it
-									def ingredientMap = [:]
-									if(ingredient.available.equals("true")){
-										ingredientMap.put("name",ingredient.name)
-										if(ingredient.price && !ingredient.price.toString().equalsIgnoreCase("0"))
-											ingredientMap.put("price",ingredient.price.toString())
-										if(fvrtDrink.itemsList.contains(ingredient.name)){
-											ingredientMap.put("selected","true".toBoolean())
-											price=price+Float.parseFloat(ingredient.price.toString())
-										}
-										options.add(ingredientMap)
-									}
-								}
-
-								if(options.size()>0){
-									def optionsGroupList=[]
-									def options_groups_map=[:]
-									//options_groups_map.put("type","OPTION_SELECT")
-									if(categoryObj.category.toString().contains("Add-ons"))
-										options_groups_map.put("type","OPTION_ADD")
-									else
-										options_groups_map.put("type","OPTION_CHOOSE")
-
-									options_groups_map.put("text",categoryObj.category)
-									options_groups_map.put("options",options)
-									optionsGroupList.add(options_groups_map)
-									contentsMap.put("option_groups",optionsGroupList)
-								}
-								contentsMap.put("order_price",price.toString())
-								contents.add(contentsMap)
+							contentsMap.put("type",order.type)
+							println"order.type "+order.type
+							if(order.quantity){
+								contentsMap.put("quantity",order.quantity)
 							}
-						}
-					}
-				}else{
-					if(fvrtDrink.itemsList){
-						def itemsList = new JSONArray(fvrtDrink.itemsList)
-						if(itemsList){
-							def options=[]
-							def map=[:]
-							map.put("orderId",fvrtDrink.orderId)
-							map.put("order_price",fvrtDrink.totalPrice)
-							map.put("type","ITEM")
+							println"order.quantity "+order.quantity
+							if(order.itemName){
+								contentsMap.put("itemName",order.itemName)
+							}
+							println"order.itemName "+order.itemName
+							if(order.name){
+								contentsMap.put("name",order.name)
+							}
+							println"order.name "+order.name
+							contentsMap.put("price","0.0")
+
+							def options_group=[]
 							float price=0.0
 
-							itemsList.each{
-								def item = it
-								def optionsGroup=[:]
-								optionsGroup.put("price",item.basePrice)
-								optionsGroup.put("description",item.description)
-								optionsGroup.put("name",item.itemName)
-								options.add(optionsGroup)
-								price=price+Float.parseFloat(item.basePrice.toString())
+							def category = order.categorys
+							println"category "+category
+							if(category){
+								if(order.description){
+									contentsMap.put("options_description",order.description)
+								}
+								def categoryList = category.trim().split(",")
+								if(categoryList){
+									categoryList.each {
+										def categoryId = it
+										def categoryObj=IngredientCategory.findById(categoryId)
+										if(categoryObj){
+											if(!contentsMap.containsKey("name")){
+												contentsMap.put("name", categoryObj.category)
+											}
+											def options=[]
+											def ingredients = Ingredients.findAllByCategoryAndVenue(categoryObj,venue)
+											boolean check=false
+											ingredients.each{
+												def ingredient = it
+												def ingredientMap = [:]
+												if(ingredient.available.equals("true")){
+													//ingredientMap.put("id",ingredient.id)
+													ingredientMap.put("name",ingredient.name)
+													if(ingredient.price > 1.0){
+														ingredientMap.put("price",ingredient.price.toString())
+													}
+													if(order.selectedItems){
+														def selectedItems=order.selectedItems.toString().split(",")
+														if(selectedItems.contains(ingredient.name)){
+															//ingredientMap.put("text","Recommended")
+															ingredientMap.put("selected",Boolean.TRUE)
+															if(ingredient.price)
+																price=price+Float.parseFloat(ingredient.price.toString())
+															check=true
+														}
+													}
+													options.add(ingredientMap)
+												}
+											}
+
+											if(!check && options && options.size()>0){
+
+												def ingredientObj = options[0]
+												ingredientObj.put("selected",Boolean.TRUE)
+												if(ingredientObj.price)
+													price=price+Float.parseFloat(ingredientObj.price.toString())
+											}
+
+											if(options.size()>0){
+												def options_groups_map=[:]
+												//options_groups_map.put("type","OPTION_SELECT")
+												if(categoryObj.category.toString().contains("Add-ons"))
+													options_groups_map.put("type","OPTION_ADD")
+												else
+													options_groups_map.put("type","OPTION_CHOOSE")
+
+												options_groups_map.put("text",categoryObj.category)
+												options_groups_map.put("options",options)
+
+												options_group.add(options_groups_map)
+											}
+										}
+									}
+									contentsMap.put("order_price",price.toString())
+									contentsMap.put("option_groups",options_group)
+									contents.add(contentsMap)
+								}
+							}else{
+								if(order.itemList){
+									println"order.itemList "+order.itemList
+									def itemsList = new JSONObject(order.itemList)
+									if(itemsList){
+										def locuMenu = JSON.parse(URLDecoder.decode(venue.locuMenu))
+										if(locuMenu.toString().contains(itemsList.itemName)){
+											contentsMap.put("price",itemsList.price)
+											if(itemsList.description){
+												contentsMap.put("description",itemsList.description)
+											}
+											if(itemsList.itemName){
+												contentsMap.put("name",itemsList.itemName)
+											}
+											contentsMap.put("type","ITEM")
+											contentsMap.put("option_groups",options_group)
+
+											contents.add(contentsMap)
+										}
+
+									}
+									//subSectionMap.put("contents",contents)
+									//subSections.add(subSectionMap)
+									//sectionMap.put("subsections",subSections)
+								}
 							}
-							map.put("price",price.toString())
-							map.put("option_groups",options)
-							contents.add(map)
 						}
 					}
-				}*/
-			}
-
-			subSectionsMap.put("contents",contents)
-			subSections.add(subSectionsMap)
-			sectionMap.put("subsections",subSections)
-			section.add(sectionMap)
-			menuMap.put("sections",section)
-			menu.add(menuMap)
-			output.put("menus",menu)
-			if(section.size()>0){
-				output.put("errorCode","0")
-				output.put("errorMessage","Recent Orders are Available")
+				}
+				subSectionsMap.put("contents",contents)
+				subSections.add(subSectionsMap)
+				sectionMap.put("subsections",subSections)
+				section.add(sectionMap)
+				menuMap.put("sections",section)
+				menu.add(menuMap)
+				output.put("menus",menu)
+				if(section.size()>0){
+					output.put("errorCode","0")
+					output.put("errorMessage","Recent Orders are Available")
+				}else{
+					output.put("errorCode","3")
+					output.put("errorMessage","No Recent orders are available")
+				}
 			}else{
-				output.put("errorCode","3")
-				output.put("errorMessage","No Recent orders are available")
+				output.put("errorCode","5")
+				output.put("errorMessage","Recent orders not available")
 			}
-		}else{
-			output.put("errorCode","5")
-			output.put("errorMessage","Recent orders not available")
+		}catch(Exception e){
+			log.info("Exception found in getRecentOrders service "+e.getMessage())
+			println"Exception found in getFavoriteDrinks service "+e.getMessage()
+			output.put("errorCode",200)
+			output.put("errorMessage","Error occured while processing your request. Please verify json")
 		}
 
 		return output
@@ -232,21 +242,21 @@ class OrderService {
 			menuMap.put("menu_name","Recently ordered")
 			def section =[]
 			recentOrders.each {
-				def fvrtDrink=it
+				def order=it
 				def sectionMap=[:]
 				sectionMap.put("section_name","")
-				sectionMap.put("orderId",fvrtDrink.orderId)
-				if(fvrtDrink.description){
-					sectionMap.put("description",fvrtDrink.description)
+				sectionMap.put("orderId",order.orderId)
+				if(order.description){
+					sectionMap.put("description",order.description)
 				}
-				if(fvrtDrink.specialInstructions){
-					sectionMap.put("specialInstructions",fvrtDrink.specialInstructions)
+				if(order.specialInstructions){
+					sectionMap.put("specialInstructions",order.specialInstructions)
 				}
 
 				def subSections=[]
 				String category
 
-				def itemsListOfOrder = fvrtDrink.itemsList
+				def itemsListOfOrder = order.itemsList
 				JSONArray listOfItems = new JSONArray(itemsListOfOrder)
 				println"itemsListOfOrder "+listOfItems
 				if(listOfItems){
@@ -281,8 +291,8 @@ class OrderService {
 							if(categoryObj){
 								def subSectionsMap=[:]
 								subSectionsMap.put("subsection_name",categoryObj.category)
-								subSectionsMap.put("dateCreated",fvrtDrink.dateCreated.toGMTString())
-								subSectionsMap.put("order_price",fvrtDrink.totalPrice)
+								subSectionsMap.put("dateCreated",order.dateCreated.toGMTString())
+								subSectionsMap.put("order_price",order.totalPrice)
 								def contents=[]
 								def contentsMap=[:]
 								contentsMap.put("name", categoryObj.category)
@@ -297,7 +307,7 @@ class OrderService {
 										ingredientMap.put("name",ingredient.name)
 										if(ingredient.price && !ingredient.price.toString().equalsIgnoreCase("0"))
 											ingredientMap.put("price",ingredient.price.toString())
-										if(fvrtDrink.itemsList.contains(ingredient.name)){
+										if(order.itemsList.contains(ingredient.name)){
 											//ingredientMap.put("text","Recommended")
 											ingredientMap.put("selected","true")
 										}
@@ -328,13 +338,13 @@ class OrderService {
 					sectionMap.put("subsections",subSections)
 
 				}else{
-					if(fvrtDrink.itemsList){
+					if(order.itemsList){
 						def subSectionMap=[:]
 						subSectionMap.put("subsection_name","Menu Item")
-						subSectionMap.put("dateCreated",fvrtDrink.dateCreated.toGMTString())
-						subSectionMap.put("order_price",fvrtDrink.totalPrice)
+						subSectionMap.put("dateCreated",order.dateCreated.toGMTString())
+						subSectionMap.put("order_price",order.totalPrice)
 						def contents=[]
-						def itemsList = new JSONArray(fvrtDrink.itemsList)
+						def itemsList = new JSONArray(order.itemsList)
 						if(itemsList){
 							itemsList.each{
 								def item = it
