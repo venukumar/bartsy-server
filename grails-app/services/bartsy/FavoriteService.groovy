@@ -1,7 +1,7 @@
 package bartsy
 
 import org.codehaus.groovy.grails.web.json.JSONArray
-
+import grails.converters.JSON
 class FavoriteService {
 
 	def serviceMethod() {
@@ -11,60 +11,76 @@ class FavoriteService {
 		try{
 			def itemsList = json.itemsList
 			if(itemsList){
-				String category
 				itemsList.each {
-					def item = it
-					def name = item.itemName
-					if(name){
-						def ingredients = Ingredients.findByName(name)
-						if(ingredients){
-							def categoryId = ingredients.category.id
-							if(category){
-								if(!category.contains(categoryId.toString()))
-									category=category+","+categoryId
+					def itemDetails = it
+
+					def itemName = itemDetails.itemName
+					def title = itemDetails.title
+					def name = itemDetails.name
+					def options_description = itemDetails.options_description
+					def type = itemDetails.type
+					def order_price = itemDetails.order_price
+					def basePrice = itemDetails.price
+					def quantity =itemDetails.quantity
+
+
+					def option_groups=itemDetails.option_groups
+					String category
+					String selectedItems
+					if(option_groups && option_groups.size()>0){
+						option_groups.each {
+							def option = it
+							def text = option.text
+							if(text){
+								def categoryObj = IngredientCategory.findByCategory(text.trim())
+								if(category && !category.contains(categoryObj.id.toString())){
+									category=category+","+categoryObj.id
+								}
+								else{
+									category=categoryObj.id
+								}
 							}
-							else
-								category=categoryId
+							def options = option.options
+							if(options && options.size()>0){
+								options.each {
+									def ingredient=it
+									def selected= ingredient.selected
+									if(selected && selected.toBoolean()){
+										def ingredientName =ingredient.name
+										if(selectedItems){
+											selectedItems=selectedItems+","+ingredientName
+										}
+										else{
+											selectedItems=ingredientName
+										}
+									}
+								}
+							}
 						}
 					}
-				}
-				def description
-				def specialInstructions
-				def title
-				def quantity="1"
-				def basePrice
-				if(json.has("description")){
-					description=json.description
-				}
-				if(json.has("specialInstructions")){
-					specialInstructions=json.specialInstructions
-				}
-				if(json.has("title")){
-					title=json.title
-				}
-				if(json.has("quantity")){
-					quantity=json.quantity
-				}
-				if(json.has("basePrice")){
-					basePrice=json.basePrice
-				}
-				def usrFvtDrnk = new UserFavoriteDrinks()
-				usrFvtDrnk.setItemsList(itemsList.toString())
-				usrFvtDrnk.setCategorys(category)
-				usrFvtDrnk.setDescription(description)
-				usrFvtDrnk.setSpecialInstructions(specialInstructions)
-				usrFvtDrnk.setTitle(title)
-				usrFvtDrnk.setBasePrice(basePrice)
-				usrFvtDrnk.setQuantity(quantity)
-				usrFvtDrnk.setUser(user)
-				usrFvtDrnk.setVenue(venue)
-				if(usrFvtDrnk.save(flush:true)) {
-					output.put("errorCode","0")
-					output.put("errorMessage","Your favorite drink is saved successfully")
-					output.put("favoriteDrinkId",usrFvtDrnk.id)
-				}else{
-					output.put("errorCode","5")
-					output.put("errorMessage","Your favorite drink is not saved successfully")
+					def usrFvtDrnk = new UserFavoriteDrinks()
+					usrFvtDrnk.setItemsList(itemsList.toString())
+					usrFvtDrnk.setItemName(itemName)
+					usrFvtDrnk.setTitle(title)
+					usrFvtDrnk.setBasePrice(basePrice)
+					usrFvtDrnk.setName(name)
+					usrFvtDrnk.setDescription(options_description)
+					usrFvtDrnk.setQuantity(quantity)
+					usrFvtDrnk.setQuantity(quantity)
+					usrFvtDrnk.setType(type)
+					usrFvtDrnk.setUser(user)
+					usrFvtDrnk.setVenue(venue)
+					usrFvtDrnk.setCategorys(category)
+					usrFvtDrnk.setSelectedItems(selectedItems)
+					println"END ******************** "
+					if(usrFvtDrnk.save(flush:true)) {
+						output.put("errorCode","0")
+						output.put("errorMessage","Your favorite drink is saved successfully")
+						output.put("favoriteDrinkId",usrFvtDrnk.id)
+					}else{
+						output.put("errorCode","5")
+						output.put("errorMessage","Your favorite drink is not saved successfully")
+					}
 				}
 			}else{
 				output.put("errorCode","4")
@@ -96,33 +112,30 @@ class FavoriteService {
 				def subSections=[]
 				def subSectionsMap=[:]
 				def contents=[]
-				println"favoriteDrinks "+favoriteDrinks.size()
 				favoriteDrinks.each {
 					def fvrtDrink=it
-
+					def contentsMap=[:]
 					def title
 					if(fvrtDrink.title){
-						title=fvrtDrink.title
+						contentsMap.put("title",fvrtDrink.title)
 					}
-					else{
-						title=""
-					}
-					def contentsMap=[:]
-					contentsMap.put("type","ITEM")
+
+					contentsMap.put("type",fvrtDrink.type)
 					contentsMap.put("favorite_id",fvrtDrink.id)
 					if(fvrtDrink.description){
 						contentsMap.put("options_description",fvrtDrink.description)
 					}
-					if(fvrtDrink.specialInstructions){
-						contentsMap.put("specialInstructions",fvrtDrink.specialInstructions)
-					}
 					if(fvrtDrink.quantity){
 						contentsMap.put("quantity",fvrtDrink.quantity)
 					}
+					if(fvrtDrink.itemName){
+						contentsMap.put("itemName",fvrtDrink.itemName)
+					}
+					if(fvrtDrink.name){
+						contentsMap.put("name",fvrtDrink.name)
+					}
 					contentsMap.put("price","0.0")
-					/*else{
-					 contentsMap.put("order_price","0.0")
-					 }*/
+
 					def options_group=[]
 					float price=0.0
 
@@ -139,6 +152,7 @@ class FavoriteService {
 									}
 									def options=[]
 									def ingredients = Ingredients.findAllByCategoryAndVenue(categoryObj,venue)
+									boolean check=false
 									ingredients.each{
 										def ingredient = it
 										def ingredientMap = [:]
@@ -148,14 +162,25 @@ class FavoriteService {
 											if(ingredient.price > 1.0){
 												ingredientMap.put("price",ingredient.price.toString())
 											}
-											if(fvrtDrink.itemsList.contains(ingredient.name)){
-												//ingredientMap.put("text","Recommended")
-												ingredientMap.put("selected","true".toBoolean())
-												if(ingredient.price)
-													price=price+Float.parseFloat(ingredient.price.toString())
+											if(fvrtDrink.selectedItems){
+												if(fvrtDrink.selectedItems.contains(ingredient.name)){
+													//ingredientMap.put("text","Recommended")
+													ingredientMap.put("selected",Boolean.TRUE)
+													if(ingredient.price)
+														price=price+Float.parseFloat(ingredient.price.toString())
+													check=true
+												}
 											}
 											options.add(ingredientMap)
 										}
+									}
+
+									if(!check && options && options.size()>0){
+
+										def ingredientObj = options[0]
+										ingredientObj.put("selected",Boolean.TRUE)
+										if(ingredientObj.price)
+											price=price+Float.parseFloat(ingredientObj.price.toString())
 									}
 
 									if(options.size()>0){
@@ -179,17 +204,24 @@ class FavoriteService {
 						}
 					}else{
 						if(fvrtDrink.itemsList){
-							def subSectionMap=[:]
-							subSectionMap.put("subsection_name","Menu Item")
 							def itemsList = new JSONArray(fvrtDrink.itemsList)
 							if(itemsList){
+								def locuMenu = JSON.parse(URLDecoder.decode(venue.locuMenu))
 								itemsList.each{
 									def item = it
-									contentsMap.put("price",item.basePrice)
-									contentsMap.put("description",item.description)
-									contentsMap.put("name",item.itemName)
+									if(locuMenu.toString().contains(item.itemName)){
+									contentsMap.put("price",item.price)
+									if(item.description){
+										contentsMap.put("description",item.description)
+									}
+									if(item.itemName){
+										contentsMap.put("name",item.itemName)
+									}
 									contentsMap.put("type","ITEM")
+									contentsMap.put("option_groups",options_group)
+
 									contents.add(contentsMap)
+								}
 								}
 							}
 							//subSectionMap.put("contents",contents)
@@ -197,8 +229,6 @@ class FavoriteService {
 							//sectionMap.put("subsections",subSections)
 						}
 					}
-
-
 				}
 				subSectionsMap.put("contents",contents)
 				subSections.add(subSectionsMap)
