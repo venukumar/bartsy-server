@@ -24,7 +24,7 @@ class CommonMethods {
 		response.put("errorMessage",e.getMessage())
 	}
 
-	
+
 	def getNotifictionCount(UserProfile user){
 		def unReadNotifications = Notifications.findAllByUserAndStatus(user,0)
 		if(unReadNotifications){
@@ -33,8 +33,8 @@ class CommonMethods {
 			return 0
 		}
 	}
-	
-	
+
+
 	/* Checking String is Integer or not*/
 
 	public boolean isInteger(String integerString){
@@ -210,4 +210,83 @@ class CommonMethods {
 			userRewardsPoints.save(flush:true)
 		}
 	}
+
+	/*
+	 * To parse and save menu format
+	 */
+
+	def menuParsingAndSave(def itemsList){
+		itemsList.each {
+			def itemDetails = it
+
+			def itemName = itemDetails.itemName
+			def title = itemDetails.title
+			def name = itemDetails.name
+			def options_description = itemDetails.options_description
+			def type = itemDetails.type
+			def order_price = itemDetails.order_price
+			def basePrice = itemDetails.price
+			def quantity =itemDetails.quantity
+
+
+			def option_groups=itemDetails.option_groups
+			String category
+			String selectedItems
+			if(option_groups && option_groups.size()>0){
+				option_groups.each {
+					def option = it
+					def text = option.text
+					if(text){
+						def categoryObj = IngredientCategory.findByCategory(text.trim())
+						if(category && !category.contains(categoryObj.id.toString())){
+							category=category+","+categoryObj.id
+						}
+						else{
+							category=categoryObj.id
+						}
+					}
+					def options = option.options
+					if(options && options.size()>0){
+						options.each {
+							def ingredient=it
+							def selected= ingredient.selected
+							if(selected){
+								def ingredientName =ingredient.name
+								if(selectedItems){
+									selectedItems=selectedItems+","+ingredientName
+								}
+								else{
+									selectedItems=ingredientName
+								}
+							}
+						}
+					}
+				}
+			}
+			println"category "+category
+			println"selectedItems "+selectedItems
+			def usrFvtDrnk = new UserFavoriteDrinks()
+			usrFvtDrnk.setItemsList(itemsList.toString())
+			usrFvtDrnk.setItemName(itemName)
+			usrFvtDrnk.setTitle(title)
+			usrFvtDrnk.setBasePrice(basePrice)
+			usrFvtDrnk.setName(name)
+			usrFvtDrnk.setDescription(options_description)
+			usrFvtDrnk.setQuantity(quantity)
+			usrFvtDrnk.setQuantity(quantity)
+			usrFvtDrnk.setType(type)
+			usrFvtDrnk.setUser(user)
+			usrFvtDrnk.setVenue(venue)
+			usrFvtDrnk.setCategorys(category)
+			usrFvtDrnk.setSelectedItems(selectedItems)
+			println"END ********************"
+			if(usrFvtDrnk.save(flush:true)) {
+				return true
+			}else{
+				return false
+			}
+
+		}
+	}
+
 }
