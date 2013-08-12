@@ -355,6 +355,7 @@ class OrderController {
 			orderItem.setCategorys(category)
 			orderItem.setSelectedItems(selectedItems)
 			orderItem.setOrder(order)
+			orderItem.setItemList(itemDetails.toString())
 			orderItem.save(flush:true)
 		}
 	}
