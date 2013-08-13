@@ -312,6 +312,7 @@ class OrderController {
 			def order_price = itemDetails.order_price
 			def basePrice = itemDetails.price
 			def quantity = itemDetails.quantity
+			def specialInstructions = itemDetails.specialInstructions
 
 			if(option_groups && option_groups.size()>0){
 				option_groups.each {
@@ -356,6 +357,7 @@ class OrderController {
 			orderItem.setSelectedItems(selectedItems)
 			orderItem.setOrder(order)
 			orderItem.setItemList(itemDetails.toString())
+			orderItem.setSpecialInstructions(specialInstructions)
 			orderItem.save(flush:true)
 		}
 	}
