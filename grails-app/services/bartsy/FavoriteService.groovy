@@ -22,10 +22,10 @@ class FavoriteService {
 					def order_price = itemDetails.order_price
 					def basePrice = itemDetails.price
 					def quantity =itemDetails.quantity
+					def special_instructions=itemDetails.special_instructions
 
 					if(options_description)
 						options_description=itemDetails.description
-
 					def option_groups=itemDetails.option_groups
 					String category
 					String selectedItems
@@ -74,6 +74,7 @@ class FavoriteService {
 					usrFvtDrnk.setVenue(venue)
 					usrFvtDrnk.setCategorys(category)
 					usrFvtDrnk.setSelectedItems(selectedItems)
+					usrFvtDrnk.setSpecialInstructions(special_instructions)
 					println"END ******************** "
 					if(usrFvtDrnk.save(flush:true)) {
 						output.put("errorCode","0")
@@ -124,9 +125,6 @@ class FavoriteService {
 
 					contentsMap.put("type",fvrtDrink.type)
 					contentsMap.put("favorite_id",fvrtDrink.id)
-					if(fvrtDrink.description){
-						contentsMap.put("options_description",fvrtDrink.description)
-					}
 					if(fvrtDrink.quantity){
 						contentsMap.put("quantity",fvrtDrink.quantity)
 					}
@@ -136,6 +134,9 @@ class FavoriteService {
 					if(fvrtDrink.name){
 						contentsMap.put("name",fvrtDrink.name)
 					}
+					if(fvrtDrink.special_instructions){
+						contentsMap.put("special_instructions",fvrtDrink.special_instructions)
+					}
 					contentsMap.put("price","0.0")
 
 					def options_group=[]
@@ -143,6 +144,9 @@ class FavoriteService {
 
 					def category = fvrtDrink.categorys
 					if(category){
+						if(fvrtDrink.description){
+							contentsMap.put("options_description",fvrtDrink.description)
+						}
 						def categoryList = category.trim().split(",")
 						if(categoryList){
 							categoryList.each {
@@ -218,6 +222,9 @@ class FavoriteService {
 										}
 										if(item.itemName){
 											contentsMap.put("name",item.itemName)
+										}
+										if(item.special_instructions){
+											contentsMap.put("special_instructions",item.special_instructions)
 										}
 										contentsMap.put("type","ITEM")
 										contentsMap.put("option_groups",options_group)
