@@ -78,29 +78,24 @@ class OrderService {
 							if(order.title){
 								contentsMap.put("title",order.title)
 							}
-							println"order.title "+order.title
-
 							contentsMap.put("type",order.type)
-							println"order.type "+order.type
 							if(order.quantity){
 								contentsMap.put("quantity",order.quantity)
 							}
-							println"order.quantity "+order.quantity
 							if(order.itemName){
 								contentsMap.put("itemName",order.itemName)
 							}
-							println"order.itemName "+order.itemName
 							if(order.name){
 								contentsMap.put("name",order.name)
 							}
-							println"order.name "+order.name
+							if(order.specialInstructions){
+								contentsMap.put("special_instructions",order.specialInstructions)
+							}
 							contentsMap.put("price","0.0")
 
 							def options_group=[]
 							float price=0.0
-
 							def category = order.categorys
-							println"category "+category
 							if(category){
 								if(order.description){
 									contentsMap.put("options_description",order.description)
@@ -180,6 +175,9 @@ class OrderService {
 											}
 											if(itemsList.itemName){
 												contentsMap.put("name",itemsList.itemName)
+											}
+											if(itemsList.specialInstructions){
+												contentsMap.put("special_instructions",itemsList.specialInstructions)
 											}
 											contentsMap.put("type","ITEM")
 											contentsMap.put("option_groups",options_group)
