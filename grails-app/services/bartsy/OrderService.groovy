@@ -69,7 +69,6 @@ class OrderService {
 				recentOrders.each {
 					def recentOrder=it
 					def itemsOfOrder=OrderItems.findAllByOrder(recentOrder)
-					println "itemsOfOrder "+itemsOfOrder.size()
 					if(itemsOfOrder){
 
 						itemsOfOrder.each{
@@ -102,6 +101,7 @@ class OrderService {
 								}
 								def categoryList = category.trim().split(",")
 								if(categoryList){
+									boolean categoryCheck=false
 									categoryList.each {
 										def categoryId = it
 										def categoryObj=IngredientCategory.findById(categoryId)
@@ -135,8 +135,8 @@ class OrderService {
 												}
 											}
 
-											if(!check && options && options.size()>0){
-
+											if(!categoryCheck && !check && options && options.size()>0){
+												categoryCheck=true
 												def ingredientObj = options[0]
 												ingredientObj.put("selected",Boolean.TRUE)
 												if(ingredientObj.price)
