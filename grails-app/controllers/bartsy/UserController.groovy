@@ -67,7 +67,6 @@ class UserController {
 						}
 						//check if user profile present based on given credentials
 						if(userProfile) {
-							println "if condition !!!!! "
 							//if user profile present, update it with values sent in the syscall request
 							userProfile.setName(json.name ?: "")
 							userProfile.setFirstName(json.firstname ?: "")
@@ -83,6 +82,10 @@ class UserController {
 							userProfile.setGoogleUserName(json.googleUserName ?: "")
 							userProfile.setBartsyPassword(json.bartsyPassword.toString() ?: "")
 							userProfile.setBartsyLogin(json.bartsyLogin ?: "")
+							userProfile.setZipCode(json.zipCode ?: "")
+							userProfile.setHomeCity(json.homeCity ?: "")
+							userProfile.setState(json.state ?: "")
+							userProfile.setEthnicity(json.ethnicity ?: "")
 							userProfile.setRedactedCardNumber(json.has("redactedCardNumber")?json.redactedCardNumber:"")
 							if(json.has("email") && !json.email.equals(userProfile.email)){
 								userProfile.setEmail(json.email ?: "")
@@ -168,6 +171,12 @@ class UserController {
 							userProfileToSave.setExpYear(json.expYear.toString() ?: "")
 							userProfileToSave.setSessionCode(sessionCode)
 							userProfileToSave.setEmailVerified("false")
+
+							userProfileToSave.setZipCode(json.zipCode ?: "")
+							userProfileToSave.setHomeCity(json.homeCity ?: "")
+							userProfileToSave.setState(json.state ?: "")
+							userProfileToSave.setEthnicity(json.ethnicity ?: "")
+
 							userProfileToSave.setRedactedCardNumber(json.has("redactedCardNumber")?json.redactedCardNumber:"")
 							userProfileToSave.setAdminUser(0)
 							//							def admin = AdminUser.findByPromoterCode(json.has("promoCode")?json.promoCode:"")
@@ -1140,6 +1149,10 @@ class UserController {
 						response.put("googleUserName",userProfile.getGoogleUserName())
 						response.put("oauthCode", userProfile.getSessionCode())
 						response.put("redactedCardNumber",userProfile.getRedactedCardNumber())
+						response.put("zipCode",userProfile.getZipCode())
+						response.put("homeCity",userProfile.getHomeCity())
+						response.put("state",userProfile.getState())
+						response.put("ethnicity",userProfile.getEthnicity())
 					}
 					else{
 						//if user profile does not exists send error code 1

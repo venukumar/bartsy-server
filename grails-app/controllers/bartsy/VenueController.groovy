@@ -113,6 +113,13 @@ class VenueController {
 						venue.description=json.description
 					if(json.communityRating)
 						venue.communityRating=json.communityRating
+					if(json.has("tableOrdering"))
+						venue.tableOrdering=json.tableOrdering
+					if(json.has("tables"))
+						venue.tables=json.tables
+					if(json.has("pickupLocation")){
+						venue.pickupLocation=json.pickupLocation
+					}
 
 					//venue.venueImagePath=venueImagePath
 
@@ -164,6 +171,14 @@ class VenueController {
 					else
 						venue.openHours =parsedData?parsedData.objects[0].open_hours:""
 					venue.wifiNetworkType=json.has("wifiNetworkType")?json.wifiNetworkType:""
+
+					if(json.has("tableOrdering"))
+						venue.tableOrdering=json.tableOrdering
+					if(json.has("tables"))
+						venue.tables=json.tables
+					if(json.has("pickupLocation")){
+						venue.pickupLocation=json.pickupLocation
+					}
 
 					/*	venue.venueName = json.has("venueName")?(json.venueName?json.venueName:parsedData?parsedData.objects[0].name:""):(parsedData?parsedData.objects[0].name:"")
 					 venue.venueName = json.has("venueName")?json.venueName:(parsedData?parsedData.objects[0].name:"")
@@ -621,6 +636,9 @@ class VenueController {
 						venueMap.put("totalTaxRate",venue.totalTaxRate)
 						venueMap.put("currentTime",new Date().toGMTString())
 						venueMap.put("wifiNetworkType",venue.wifiNetworkType)
+						venueMap.put("tableOrdering",venue.tableOrdering)
+						venueMap.put("tables",venue.tables)
+						venueMap.put("pickupLocation",venue.pickupLocation)
 						//add the venue object to the list defined earlier
 						totalVenueList.add(venueMap)
 					}
