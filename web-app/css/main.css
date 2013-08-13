@@ -895,3 +895,7 @@ a.skip {
 .mailbody{
 	line-height: 30px;
 }
+.export {
+	border: none !important;
+	background: none !important;
+}

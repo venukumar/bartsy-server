@@ -91,9 +91,15 @@ class AdminController {
 			log.error("Error in Venue List ==>"+e.getMessage())
 		}
 	}
+	
+	/**
+	 * Service to retrieve order details - venue, user name, order Id, order status, etc..
+	 * @return list of order details
+	 */
 	def orderDetails(){
 		try{
 			if(params){
+				int lastOrderState
 				def order = Orders.findByOrderId(params.id)
 				def orderStatusArr = []
 				orderStatusArr.putAt(0,"New")
@@ -107,18 +113,19 @@ class AdminController {
 				orderStatusArr.putAt(8,"Offered drink rejection")
 				orderStatusArr.putAt(9,"Offered drink new")
 				orderStatusArr.putAt(10,"Past order")
-
-				int lastOrderState
-				int orderStatusNumber = Integer.parseInt(order.orderStatus)
-				def lastState = order.lastState
-				if(lastState)
-					lastOrderState = Integer.parseInt(lastState)
-				else
-					lastOrderState = 0
-
-				def orderStatus = orderStatusArr[orderStatusNumber]
-				def orderLastState = orderStatusArr[lastOrderState]
 				
+				// order status
+				int orderStatusNumber = Integer.parseInt(order.orderStatus)
+				def orderStatus = orderStatusArr[orderStatusNumber]
+				// order last state
+				def lastState = order.lastState
+				if(lastState){
+					lastOrderState = Integer.parseInt(lastState)
+				}else{
+					lastOrderState = 0
+				}
+				def orderLastState = orderStatusArr[lastOrderState]
+				// item name
 				def itemName = order.itemName
 				def itemsList = order.itemsList
 				if(itemsList){
@@ -132,9 +139,16 @@ class AdminController {
 						}
 					}
 				}
-
-				render(view:"orderDetails",model:[selectedOrder:order,orderStatus:orderStatus,orderLastState:orderLastState,itemName:itemName])
-
+				// base price
+				def basePrice = order.basePrice
+				def formattedBasePrice = formatNumStr(basePrice.toString())
+				// tip percentage
+				def tip = order.tipPercentage
+				def formattedTip = formatNumStr(tip.toString())
+				// total price
+				def totPrice = order.totalPrice
+				def formattedTotPrice = formatNumStr(totPrice.toString())
+				render(view:"orderDetails",model:[selectedOrder:order, orderStatus:orderStatus, orderLastState:orderLastState, itemName:itemName, tipPercentage:formattedTip+'%', totalPrice:'$ '+formattedTotPrice, , basePrice:'$ '+formattedBasePrice])
 			}
 		}catch(Exception e){
 			log.error("Error in order details ==>"+e.getMessage())
@@ -160,28 +174,30 @@ class AdminController {
 	def ordersList(){
 		params.max = Math.min(params.max ? params.int('max') : 50, 100)
 		try{
-			Date toDate = new Date()
-			DateFormat jQdateFormat = new SimpleDateFormat("MM/dd/yyyy");
-			DateFormat dateFormatn = new SimpleDateFormat("yyyy-MM-dd");
-			java.util.Date date = new java.util.Date();
-			java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd hh")
-			def tradeTime = BartsyConfiguration.findByConfigName("tradingDay")
 			Date  startDate, endDate
-			if(params.startDate)
+			Date date = new Date()
+			DateFormat jQdateFormat = new SimpleDateFormat("MM/dd/yyyy")
+			DateFormat dateFormatn = new SimpleDateFormat("yyyy-MM-dd")
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh")
+			
+			def tradeTime = BartsyConfiguration.findByConfigName("tradingDay")
+			if(params.startDate){
 				startDate = dateFormat.parse(dateFormatn.format(new Date(params.startDate))+" "+tradeTime.value)
-			else startDate = dateFormat.parse(dateFormatn.format(date)+" "+tradeTime.value)
-			if(params.endDate)
+			}else{
+			 	startDate = dateFormat.parse(dateFormatn.format(date)+" "+tradeTime.value)
+			}
+			if(params.endDate){
 				endDate = dateFormat.parse(dateFormatn.format(new Date(params.endDate))+" "+tradeTime.value)
-			else
+			}else{
 				endDate = new Date(startDate.getTime() + (1000 * 60 * 60 * 24));
+			}
 			def jqStart = jQdateFormat.format(startDate)
 			def jqEnd = jQdateFormat.format(endDate)
 			def query = {
 				between("dateCreated", startDate, endDate)
-				
 				order "id", "desc"
 			}	
-			println "start date "+startDate+" "+endDate		
+					
 			def orders=[:], itemsGross = [:], orderTax = [:], tipPercentage = [:], comp = [:], net = [:] 
 			def totalGuests = [:], grossTotal = [:], taxTotal = [:], compTotal = [:], percentageTotal = [:], netTotal = [:]
 			def guests = 0, grossTot = 0, taxTot = 0, compTot = 0, percentageTot = 0, netTot = 0
@@ -230,7 +246,6 @@ class AdminController {
 							gross += base
 						}
 					}
-					def tip = order.tipPercentage
 					// items
 					orders.put(key, itemNames)
 					// gross
@@ -239,8 +254,10 @@ class AdminController {
 					// tax
 					def formattedTax = formatNumStr(order.venue.totalTaxRate)
 					orderTax.put(key, '$ '+formattedTax)
-					// tip
-					tipPercentage.put(key, tip+'%')
+					// tip percentage
+					def tip = order.tipPercentage
+					def formattedTip = formatNumStr(tip.toString())
+					tipPercentage.put(key, formattedTip+'%')
 					// comp
 					def compVal = (gross * new Double(tip)) / 100
 					def formattedCompVal = formatNumStr(compVal.toString())
@@ -271,7 +288,8 @@ class AdminController {
 					// percentage total
 					percentageTot += new Double(tip)
 					def pTot = percentageTot/orderlistTotal
-					percentageTotal.put("percentageTotal", pTot+'%')
+					def formattedPTot = formatNumStr(pTot.toString())
+					percentageTotal.put("percentageTotal", formattedPTot+'%')
 					// net total
 					netTot += netVal
 					def formattedNetTot = formatNumStr(netTot.toString())
@@ -319,8 +337,9 @@ class AdminController {
 			if(params?.format && params.format != "html"){
 				response.contentType = grailsApplication.config.grails.mime.types[params.format]
 				response.setHeader("Content-disposition", "attachment; filename=Orders_${jqStart}.${params.extension}")
-				List fields = ["time", "tid", "item", "sender", "receipient","gross","taxl","compl","tipl","nett"]
-				Map labels = ["time": "Time", "tid": "Transaction Id", "item": "Item", "sender":"Sender","receipient":"Receipient","gross":"Gross","taxl":"Tax","compl":"Comp","tipl":"Tip %","nett":"Net"]
+				List fields = ["dateCreated", "orderId", "itemsList", "sender", "recipient", "gross", "taxl", "compl", "tipl", "nett"]
+				Map labels = ["dateCreated": "Time", "orderId": "Transaction Id", "itemsList": "Item", "sender":"Sender", "recipient":"Recipient", "gross":"Gross", "taxl":"Tax", "compl":"Comp", "tipl":"Tip %", "nett":"Net"]
+				
 				// Formatter closure
 				def upperCase = { domain, value ->
 					return value.toUpperCase()
@@ -334,16 +353,16 @@ class AdminController {
 				def sender = { domain, value ->
 					return domain?.user.nickName
 				}
-				def receipient = { domain, value ->
+				def recipient = { domain, value ->
 					return domain?.receiverProfile.nickName
 				}
 				def item = {domain, value ->
 					def listOfItems = new JSONArray(domain?.itemsList)
-					def uniPar=""
+					def uniPar = ""
 					listOfItems.each{
 						def itemInfo = it
-						def finalBasePrice = formatNumStr(itemInfo.basePrice)
-						uniPar+=itemInfo.itemName + " - \$ " + finalBasePrice + "\n"
+						def finalBasePrice = formatNumStr(itemInfo.price)
+						uniPar += itemInfo.itemName + " - \$ " + finalBasePrice + "\n"
 					}
 					return uniPar
 				}
@@ -352,7 +371,7 @@ class AdminController {
 					def gross=0
 					listOfItems.each{
 						def itemInfo = it
-						def finalBasePrice = formatNumStr(itemInfo.basePrice)
+						def finalBasePrice = formatNumStr(itemInfo.price)
 						Double base = new Double(finalBasePrice)
 						gross += base
 					}
@@ -364,10 +383,10 @@ class AdminController {
 				}
 				def compl = {domain, value ->
 					def listOfItems = new JSONArray(domain?.itemsList)
-					def grossl=0
+					def grossl = 0
 					listOfItems.each{
 						def itemInfo = it
-						def finalBasePrice = formatNumStr(itemInfo.basePrice)
+						def finalBasePrice = formatNumStr(itemInfo.price)
 						Double base = new Double(finalBasePrice)
 						grossl += base
 					}
@@ -378,14 +397,15 @@ class AdminController {
 				}
 				def tipl = {domain, value ->
 					def tipL = domain?.tipPercentage
-					return tipL+"%"
+					def formattedTipVal = formatNumStr(tipL.toString())
+					return formattedTipVal+"%"
 				}
 				def nett = {domain, value->
 					def total = domain?.totalPrice
 					def formattedTotal = formatNumStr(total.toString())
 					return '$ '+formattedTotal
-				}				
-				Map formatters = [time:time,tid:tid,item:item,sender:sender,receipient:receipient,gross:gross,taxl:taxl,compl:compl,tipl:tipl,nett:nett]
+				}
+				Map formatters = [dateCreated:time, orderId:tid, itemsList:item, sender:sender, recipient:recipient, gross:gross, taxl:taxl, compl:compl, tipl:tipl, nett:nett]
 				Map parameters
 				exportService.export(params.format,response.outputStream,orderslist, fields, labels, formatters, parameters)
 			}

@@ -48,16 +48,16 @@
 			<td>:</td><td>${selectedOrder.specialInstructions}
 			</td>
 			<td>Base Price</td>
-			<td>:</td><td>$ ${selectedOrder.basePrice}
+			<td>:</td><td>${basePrice}
 			</td>
 
 		</tr>
 		<tr>
 			<td>Tip Percentage</td>
-			<td>:</td><td>${selectedOrder.tipPercentage}
+			<td>:</td><td>${tipPercentage}
 			</td>
 			<td>Total Price</td>
-			<td>:</td><td>$ ${selectedOrder.totalPrice}
+			<td>:</td><td>${totalPrice}
 			</td>
 		</tr>
 		<tr>

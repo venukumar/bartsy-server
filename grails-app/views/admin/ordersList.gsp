@@ -5,52 +5,46 @@
 	<meta name="layout" content="main">
 	<title><g:message code="page.order.list.title" default="Orders List" /></title>
 	<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
-  <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
-   <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
-	<script type="text/javascript">
-	$(function() {
-	    $( "#datepicker" ).datepicker();
-	    $( "#datepicker1" ).datepicker();
+  	<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+   	<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+   	<script type="text/javascript">
+   	var $j = jQuery.noConflict();
+   	jQuery(function() {
+	    jQuery( "#datepicker" ).datepicker();
+	    jQuery( "#datepicker1" ).datepicker();
 	  });
 	</script>
 </head>
 <body>
 	<h2><g:message code="page.order.list.title" default="Orders List" /></h2>
-	<!-- <div style="text-align: right;">
-		<g:link action="downloadCSV">Download CSV</g:link>
-	</div> -->
 	<g:if test="${flash.message}">
 		<div class="message" role="status">
 			${flash.message}
 		</div>
 	</g:if>
 	<% flash.clear() %>
-<fieldset>
- <g:form method="post" controller="admin" action="ordersList">
-Start Date: <input type="text" id="datepicker" name="startDate"  value="${jqStart }"/>&nbsp; End Date: <input type="text" id="datepicker1" name="endDate" value="${jqEnd }" />
-<input type="submit" value="search"> </g:form>
-</fieldset>
-	<!-- <div>
-		<table width="100%" border="0" cellspacing="0" cellpadding="0" class="tbl-data">
+	<div>
+		<table class="tbl-data">
 			<tr>
 				<th width="10%"><g:link controller="admin" action="summary"><g:message code="summary.label" default="Summary" /></g:link></th>
-				<th width="20%"><g:link controller="admin" action="categories"><g:message code="categories.label" default="Categories" /></g:link></th>
-				<th width="20%"><g:link controller="admin" action="ordersList"><g:message code="items.label" default="Items" /></g:link></th>
-				<th width="20%"><g:message code="guests.label" default="Guests" /></th>
-				<th width="20%">Time</th>
-				<th>
-					<div style="text-align: right;">
-						<g:link action="downloadCSV">PDF</g:link>
-					</div>
-				</th>
-				<th>
-					<div style="text-align: right;">
-						<g:link action="downloadCSV">CSV</g:link>
-					</div>
-				</th>
+				<th width="10%"><g:link controller="admin" action="categories"><g:message code="categories.label" default="Categories" /></g:link></th>
+				<th width="10%"><g:link controller="admin" action="ordersList"><g:message code="items.label" default="Items" /></g:link></th>
+				<th width="10%"><g:message code="guests.label" default="Guests" /></th>
 			</tr>
 		</table>
-	</div> -->
+	</div>
+	<%if (ordersTotal > 0){%>
+		<div align="right">
+			<export:formats params='["startDate":"${jqStart }", "endDate":"${jqEnd }"]' formats="['csv', 'excel', 'pdf']" />
+		</div>
+	<%}%>
+	<fieldset>
+	 <g:form method="post" controller="admin" action="ordersList">
+		<g:message code="start.date.label" default="Start Date" />: <input type="text" id="datepicker" name="startDate"  value="${jqStart }"/>&nbsp; 
+		<g:message code="end.date.label" default="End Date" />: <input type="text" id="datepicker1" name="endDate" value="${jqEnd }" />
+		<input type="submit" value="search"> 
+	</g:form>
+	</fieldset>
 	<div>
 		<table class="tbl-data">
 			<tr>
@@ -80,7 +74,7 @@ Start Date: <input type="text" id="datepicker" name="startDate"  value="${jqStar
 	  		%>
 	    	<tr>
 				<td>${orderInfo.dateCreated}</td>
-          		<td><modalbox:createLink controller="admin" action="orderDetails" id="${orderInfo.orderId}" title="Show Order!" width="750">${orderInfo.orderId}</modalbox:createLink></td>
+          		<td><modalbox:createLink controller="admin" action="orderDetails" id="${orderInfo.orderId}" title="Order details" width="750">${orderInfo.orderId}</modalbox:createLink></td>
           		<td>${itemName}</td>
           		<td>${orderInfo.user.nickName}</td>
 				<td>${orderInfo.receiverProfile.nickName}</td>
@@ -161,12 +155,8 @@ Start Date: <input type="text" id="datepicker" name="startDate"  value="${jqStar
 		<% if(ordersTotal>50){%>
       		<div class="pagination">
        			<g:paginate action="ordersList" total="${ordersTotal}" />
-				   
       		</div>
       	<% } %>
-      	<%if(ordersTotal>0){ %>
-      	<export:formats formats="['csv', 'excel', 'pdf']" />
-      	<% } %>	
 	</div>
 </body>
 </html>
