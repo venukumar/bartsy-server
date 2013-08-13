@@ -4,7 +4,7 @@ import java.util.Date;
 
 class OrderItems {
 
-    static constraints = {
+	static constraints = {
 		//itemId(nullable:true)
 		title(nullable:true)
 		itemName(nullable:true)
@@ -17,12 +17,11 @@ class OrderItems {
 		order_price(nullable:true)
 		selectedItems(nullable:true)
 		itemList(nullable:true)
-    }
-	
-	static belongsTo = [order:Orders]
-	static mapping = {
-		itemList type: 'text'
+		specialInstructions(nullable:true)
 	}
+
+	static belongsTo = [order:Orders]
+	static mapping = { itemList type: 'text' }
 	//String itemId
 	String title
 	String itemName
@@ -36,4 +35,5 @@ class OrderItems {
 	String order_price
 	String selectedItems
 	String itemList
+	String specialInstructions
 }
