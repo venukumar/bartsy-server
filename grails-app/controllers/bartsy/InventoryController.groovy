@@ -87,7 +87,6 @@ class InventoryController {
 		}
 		render(text:response as JSON, contentType:"application/json")
 	}
-
 	def saveCocktails= {
 		def response = [:]
 		try{
