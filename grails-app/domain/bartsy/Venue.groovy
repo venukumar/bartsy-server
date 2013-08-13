@@ -9,6 +9,9 @@ class Venue {
 		phoneNumber(nullable:true)
 		description(nullable:true)
 		communityRating(nullable:true)
+		pickupLocation(nullable:true)
+		tables(nullable:true)
+		tableOrdering(nullable:true)
 	}
 	static mapping = {
 		menu type:"text"
@@ -61,4 +64,7 @@ class Venue {
 	String description
 	String communityRating
 	String wifiNetworkType
+	String pickupLocation
+	String tables
+	String tableOrdering
 }

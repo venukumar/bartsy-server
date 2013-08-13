@@ -7,6 +7,11 @@ class UserProfile {
 		sessionCode(nullable:true)
 		encryptedCreditCard(nullable:true)
 		redactedCardNumber(nullable:true)
+		ethnicity(nullable:true)
+		zipCode(nullable:true)
+		state(nullable:true)
+		homeCity(nullable:true)
+		ethnicity(nullable:true)
 	}
 
 	static mapping = {
@@ -23,6 +28,10 @@ class UserProfile {
 	String status
 	String nickName
 	String bartsyPassword
+	String homeCity
+	String state
+	String zipCode
+	String ethnicity
 	//String location
 	//String emailAddress
 	//String mobileNumber
