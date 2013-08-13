@@ -6,7 +6,9 @@ import grails.converters.JSON
 class InventoryController {
 
 	def inventoryService
-
+	def applePNService
+	def androidPNService
+	CommonMethods common = new CommonMethods()
 	def saveIngredients = {
 		def response = [:]
 		try{
@@ -30,6 +32,7 @@ class InventoryController {
 					}
 					def ingredients = json.ingredients
 					if(ingredients) {
+						def failedcocks=[]
 						ingredients.each{
 							def ingredient =  it
 							def ingredientToSave = Ingredients.findByIngredientIdAndVenue(ingredient.ingredientId as long,venue)
@@ -46,10 +49,19 @@ class InventoryController {
 								ingredientToSave.setCategory(category)
 								ingredientToSave.setVenue(venue)
 							}
-							if(ingredientToSave.save(flush:true)) {
-								response.put("errorCode","0")
-								response.put("errorMessage","Ingredients saved successfully")
+							if(!ingredientToSave.save(flush:true)) {
+								failedcocks.add(ingredient.ingredientId)
 							}
+						}
+
+						if(failedcocks && failedcocks.size()>0){
+							response.put("errorCode","1")
+							response.put("errorMessage","Ingredients not saved successfully")
+							response.put("failedCocktails",failedcocks)
+						}else{
+							response.put("errorCode","0")
+							response.put("errorMessage","Ingredients saved successfully")
+							sendPnToConsumer(venue)
 						}
 					}
 					else{
@@ -133,6 +145,7 @@ class InventoryController {
 						}else{
 							response.put("errorCode","0")
 							response.put("errorMessage","Cocktails saved successfully")
+							sendPnToConsumer(venue)
 						}
 					}
 					else{
@@ -155,9 +168,45 @@ class InventoryController {
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
 		}
-		println "response "+response
 		render(text:response as JSON, contentType:"application/json")
 	}
+
+
+	/**
+	 * Send Pn's to consumer when menu is changed
+	 */
+
+	def sendPnToConsumer(Venue venue){
+		def checkedInUsers = CheckedInUsers.findAllByVenueAndStatus(venue,1)
+		if(checkedInUsers){
+			checkedInUsers.each{
+				def checkedInUser=it
+				def user=checkedInUser.userProfile
+				if(user){
+					def body = venue.venueName+" updated its menu, please sync."
+					def pnMessage=[:]
+					pnMessage.put("messageType","menuUpdated")
+					pnMessage.put("currentTime",new Date().toGMTString())
+					pnMessage.put("venueId",venue.venueId)
+					pnMessage.put("bartsyId",user.bartsyId)
+					pnMessage.put("body",body)
+					if(user.deviceType == 1 ){
+						try{
+							pnMessage.put(CommonConstants.UN_READ_NOTIFICATIONS, common.getNotifictionCount(recieverUserprofile))
+							applePNService.sendPN(pnMessage, user.deviceToken, "1", body)
+						}catch(Exception e){
+							log.info("Exception "+e.getMessage())
+						}
+					}else{
+						androidPNService.sendPN(pnMessage,user.deviceToken)
+					}
+
+				}
+			}
+		}
+	}
+
+
 	/*
 	 * Checking for all ingredients are available or not
 	 * 
@@ -219,78 +268,77 @@ class InventoryController {
 
 
 	/*def getIngredients = {
-		def response = [:]
-		try{
-			def json = JSON.parse(request)
-			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
-			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
-				def venue = Venue.findByVenueId(json.venueId.toString())
-				if(venue){
-					response.put("venueId", json.venueId)
-					def types =  IngredientType.getAll()
-					if(types){
-						def listOfTypes=[]
-						types.each{
-							def typeMap=[:]
-							def type = it
-							def categories =  IngredientCategory.findAllByType(type)
-							if(categories){
-								typeMap.put("typeName", type.type)
-								def listOfCategories=[]
-								categories.each{
-									def categoryMap=[:]
-									def categoryObject =  it
-									def ingredients = Ingredients.findAllByCategoryAndVenue(categoryObject,venue)
-									if(ingredients){
-										categoryMap.put("categoryName",categoryObject.category)
-										def ingredientsList=[]
-										ingredients.each{
-											def ingredient = it
-											def ingredientMap = [:]
-											if(ingredient.available.equals("true")){
-												ingredientMap.put("ingredientId",ingredient.ingredientId)
-												ingredientMap.put("name",ingredient.name)
-												ingredientMap.put("price",ingredient.price)
-												ingredientMap.put("available",ingredient.available)
-												ingredientsList.add(ingredientMap)
-											}
-										}
-										categoryMap.put("ingredients", ingredientsList)
-									}
-
-									listOfCategories.add(categoryMap)
-								}
-								typeMap.put("categories", listOfCategories)
-							}
-							listOfTypes.add(typeMap);
-						}
-						response.put("errorCode","0")
-						response.put("ingredients",listOfTypes)
-						response.put("currentTime",new Date().toGMTString())
-					}
-					else{
-						response.put("errorCode","1")
-						response.put("errorMessage","No Types Available")
-					}
-				}
-				else{
-					response.put("errorCode","1")
-					response.put("errorMessage","Venue Does not exist")
-				}
-			}
-			else{
-				response.put("errorCode","100")
-				response.put("errorMessage","API version do not match")
-			}
-		}
-		catch(Exception e){
-			log.info("Exception is ===> "+e.getMessage())
-			response.put("errorCode",200)
-			response.put("errorMessage",e.getMessage())
-		}
-		render(text:response as JSON ,  contentType:"application/json")
-	}
-*/
+	 def response = [:]
+	 try{
+	 def json = JSON.parse(request)
+	 def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+	 if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
+	 def venue = Venue.findByVenueId(json.venueId.toString())
+	 if(venue){
+	 response.put("venueId", json.venueId)
+	 def types =  IngredientType.getAll()
+	 if(types){
+	 def listOfTypes=[]
+	 types.each{
+	 def typeMap=[:]
+	 def type = it
+	 def categories =  IngredientCategory.findAllByType(type)
+	 if(categories){
+	 typeMap.put("typeName", type.type)
+	 def listOfCategories=[]
+	 categories.each{
+	 def categoryMap=[:]
+	 def categoryObject =  it
+	 def ingredients = Ingredients.findAllByCategoryAndVenue(categoryObject,venue)
+	 if(ingredients){
+	 categoryMap.put("categoryName",categoryObject.category)
+	 def ingredientsList=[]
+	 ingredients.each{
+	 def ingredient = it
+	 def ingredientMap = [:]
+	 if(ingredient.available.equals("true")){
+	 ingredientMap.put("ingredientId",ingredient.ingredientId)
+	 ingredientMap.put("name",ingredient.name)
+	 ingredientMap.put("price",ingredient.price)
+	 ingredientMap.put("available",ingredient.available)
+	 ingredientsList.add(ingredientMap)
+	 }
+	 }
+	 categoryMap.put("ingredients", ingredientsList)
+	 }
+	 listOfCategories.add(categoryMap)
+	 }
+	 typeMap.put("categories", listOfCategories)
+	 }
+	 listOfTypes.add(typeMap);
+	 }
+	 response.put("errorCode","0")
+	 response.put("ingredients",listOfTypes)
+	 response.put("currentTime",new Date().toGMTString())
+	 }
+	 else{
+	 response.put("errorCode","1")
+	 response.put("errorMessage","No Types Available")
+	 }
+	 }
+	 else{
+	 response.put("errorCode","1")
+	 response.put("errorMessage","Venue Does not exist")
+	 }
+	 }
+	 else{
+	 response.put("errorCode","100")
+	 response.put("errorMessage","API version do not match")
+	 }
+	 }
+	 catch(Exception e){
+	 log.info("Exception is ===> "+e.getMessage())
+	 response.put("errorCode",200)
+	 response.put("errorMessage",e.getMessage())
+	 }
+	 render(text:response as JSON ,  contentType:"application/json")
+	 }
+	 */
 	/**
 	 * To get the list of cocktails from DB and send to the client
 	 */
@@ -328,7 +376,7 @@ class InventoryController {
 		}
 		catch(Exception e){
 			log.info("Exception is ===> "+e.getMessage())
-			
+
 			println "Exception is ===> "+e.getMessage()
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
