@@ -75,7 +75,6 @@ class FavoriteService {
 					usrFvtDrnk.setCategorys(category)
 					usrFvtDrnk.setSelectedItems(selectedItems)
 					usrFvtDrnk.setSpecialInstructions(special_instructions)
-					println"END ******************** "
 					if(usrFvtDrnk.save(flush:true)) {
 						output.put("errorCode","0")
 						output.put("errorMessage","Your favorite drink is saved successfully")
@@ -122,7 +121,6 @@ class FavoriteService {
 					if(fvrtDrink.title){
 						contentsMap.put("title",fvrtDrink.title)
 					}
-
 					contentsMap.put("type",fvrtDrink.type)
 					contentsMap.put("favorite_id",fvrtDrink.id)
 					if(fvrtDrink.quantity){
@@ -149,6 +147,7 @@ class FavoriteService {
 						}
 						def categoryList = category.trim().split(",")
 						if(categoryList){
+							boolean categoryCheck=false
 							categoryList.each {
 								def categoryId = it
 								def categoryObj=IngredientCategory.findById(categoryId)
@@ -181,8 +180,8 @@ class FavoriteService {
 										}
 									}
 
-									if(!check && options && options.size()>0){
-
+									if(!categoryCheck && !check && options && options.size()>0){
+										categoryCheck=true
 										def ingredientObj = options[0]
 										ingredientObj.put("selected",Boolean.TRUE)
 										if(ingredientObj.price)
