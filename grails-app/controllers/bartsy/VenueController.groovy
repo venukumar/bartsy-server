@@ -58,9 +58,9 @@ class VenueController {
 				def menu
 				// if menu not found then reading menu from file
 				if(!parsedData.objects?.menus){
-					def resources = grailsApplication.mainContext.getResource("response.txt").file
-					def fileContents = resources.text
-					//def fileContents = new File('/usr/response.txt').getText('UTF-8')
+					//def resources = grailsApplication.mainContext.getResource("response.txt").file
+					//def fileContents = resources.text
+					def fileContents = new File('/usr/response.txt').getText('UTF-8')
 					parsedData = JSON.parse(fileContents)
 				}
 				def locuMenu
