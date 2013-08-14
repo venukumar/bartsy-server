@@ -443,29 +443,30 @@ class DataController {
 						}
 						response.put("orders",ordersList)
 						response.put("expiredOrders",expiredOrders)
-						if(venue){
-							def venueMap=[:]
-							venueMap.put("venueName",venue.getVenueName())
-							venueMap.put("venueId",venue.getVenueId())
-							venueMap.put("venueImagePath",venue.venueImagePath)
-							venueMap.put("latitude",venue.getLat())
-							venueMap.put("longitude",venue.getLongtd())
-							venueMap.put("venueStatus",venue.getStatus())
-							venueMap.put("wifiPresent",venue.getWifiPresent().toString())
-							venueMap.put("wifiName",venue.getWifiName())
-							venueMap.put("wifiPassword",venue.getWifiPassword())
-							venueMap.put("typeOfAuthentication",venue.getTypeOfAuthentication())
-							def address = venue.getStreetAddress()+","+venue.getLocality()+","+venue.getCountry()+","+venue.getPostalCode()
-							venueMap.put("address",address)
-							venueMap.put("cancelOrderTime",venue.getCancelOrderTime())
-							venueMap.put("totalTaxRate",venue.totalTaxRate)
-							venueMap.put("currentTime",new Date().toGMTString())
-							venueMap.put("wifiNetworkType",venue.wifiNetworkType)
-							venueMap.put("tableOrdering",venue.tableOrdering)
-							venueMap.put("tables",venue.tables)
-							venueMap.put("pickupLocation",venue.pickupLocation)
-							response.put("venueDetails",venueMap)
-						}
+					}
+					if(venue){
+						def venueMap=[:]
+						venueMap.put("venueName",venue.getVenueName())
+						venueMap.put("venueId",venue.getVenueId())
+						venueMap.put("venueImagePath",venue.venueImagePath)
+						venueMap.put("latitude",venue.getLat())
+						venueMap.put("longitude",venue.getLongtd())
+						venueMap.put("venueStatus",venue.getStatus())
+						venueMap.put("wifiPresent",venue.getWifiPresent().toString())
+						venueMap.put("wifiName",venue.getWifiName())
+						venueMap.put("wifiPassword",venue.getWifiPassword())
+						venueMap.put("typeOfAuthentication",venue.getTypeOfAuthentication())
+						def address = venue.getStreetAddress()+","+venue.getLocality()+","+venue.getCountry()+","+venue.getPostalCode()
+						venueMap.put("address",address)
+						venueMap.put("cancelOrderTime",venue.getCancelOrderTime())
+						venueMap.put("totalTaxRate",venue.totalTaxRate)
+						venueMap.put("currentTime",new Date().toGMTString())
+						venueMap.put("wifiNetworkType",venue.wifiNetworkType)
+						venueMap.put("tableOrdering",venue.tableOrdering ?: Boolean.FALSE)
+						if(venue.tables)
+							venueMap.put("tables",new JSONArray(venue.tables))
+						venueMap.put("pickupLocation",venue.pickupLocation ?: "")
+						response.put("venueDetails",venueMap)
 					}
 
 				}
