@@ -11,7 +11,6 @@ class UserProfile {
 		zipCode(nullable:true)
 		state(nullable:true)
 		homeCity(nullable:true)
-		ethnicity(nullable:true)
 	}
 
 	static mapping = {
