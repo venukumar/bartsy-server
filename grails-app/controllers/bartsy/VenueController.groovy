@@ -34,7 +34,7 @@ class VenueController {
 				json = JSON.parse(request)
 			//check to make sure the apiVersion sent in the request matches the correct apiVersion
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
-			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
+			if(apiVersion.value.toString().equalsIgnoreCase(json.apiVersion.toString())){
 				def venueImageFile
 				if(params.venueImage){
 					venueImageFile = request.getFile("venueImage")
@@ -58,9 +58,9 @@ class VenueController {
 				def menu
 				// if menu not found then reading menu from file
 				if(!parsedData.objects?.menus){
-					//def resources = grailsApplication.mainContext.getResource("response.txt").file
-					//def fileContents = resources.text
-					def fileContents = new File('/usr/response.txt').getText('UTF-8')
+					def resources = grailsApplication.mainContext.getResource("response.txt").file
+					def fileContents = resources.text
+					//def fileContents = new File('/usr/response.txt').getText('UTF-8')
 					parsedData = JSON.parse(fileContents)
 				}
 				def locuMenu
@@ -636,9 +636,10 @@ class VenueController {
 						venueMap.put("totalTaxRate",venue.totalTaxRate)
 						venueMap.put("currentTime",new Date().toGMTString())
 						venueMap.put("wifiNetworkType",venue.wifiNetworkType)
-						venueMap.put("tableOrdering",venue.tableOrdering)
-						venueMap.put("tables",venue.tables)
-						venueMap.put("pickupLocation",venue.pickupLocation)
+						venueMap.put("tableOrdering",venue.tableOrdering ?: Boolean.FALSE)
+						if(venue.tables)
+							venueMap.put("tables",venue.tables)
+						venueMap.put("pickupLocation",venue.pickupLocation ?: "")
 						//add the venue object to the list defined earlier
 						totalVenueList.add(venueMap)
 					}
