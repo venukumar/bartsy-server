@@ -9,6 +9,7 @@ class FavoriteService {
 	def saveFavoriteDrink(UserProfile user,Venue venue,json){
 		def output=[:]
 		try{
+			println"json "+json
 			def itemsList = json.itemsList
 			if(itemsList){
 				itemsList.each {
@@ -23,7 +24,6 @@ class FavoriteService {
 					def basePrice = itemDetails.price
 					def quantity =itemDetails.quantity
 					def special_instructions=itemDetails.special_instructions
-
 					if(options_description)
 						options_description=itemDetails.description
 					def option_groups=itemDetails.option_groups
@@ -64,7 +64,7 @@ class FavoriteService {
 					usrFvtDrnk.setItemsList(itemsList.toString())
 					usrFvtDrnk.setItemName(itemName)
 					usrFvtDrnk.setTitle(title)
-					usrFvtDrnk.setBasePrice(basePrice)
+					usrFvtDrnk.setBasePrice(basePrice ?: "0.0")
 					usrFvtDrnk.setName(name)
 					usrFvtDrnk.setDescription(options_description)
 					usrFvtDrnk.setQuantity(quantity)
@@ -114,6 +114,7 @@ class FavoriteService {
 				def subSections=[]
 				def subSectionsMap=[:]
 				def contents=[]
+				
 				favoriteDrinks.each {
 					def fvrtDrink=it
 					def contentsMap=[:]
@@ -132,8 +133,8 @@ class FavoriteService {
 					if(fvrtDrink.name){
 						contentsMap.put("name",fvrtDrink.name)
 					}
-					if(fvrtDrink.special_instructions){
-						contentsMap.put("special_instructions",fvrtDrink.special_instructions)
+					if(fvrtDrink.specialInstructions){
+						contentsMap.put("special_instructions",fvrtDrink.specialInstructions)
 					}
 					contentsMap.put("price","0.0")
 
@@ -170,22 +171,28 @@ class FavoriteService {
 											if(fvrtDrink.selectedItems){
 												if(fvrtDrink.selectedItems.contains(ingredient.name)){
 													//ingredientMap.put("text","Recommended")
+													println"categoryObj "+categoryObj.category
 													ingredientMap.put("selected",Boolean.TRUE)
 													if(ingredient.price)
 														price=price+Float.parseFloat(ingredient.price.toString())
 													check=true
+													categoryCheck=true
 												}
 											}
 											options.add(ingredientMap)
 										}
 									}
-
-									if(!categoryCheck && !check && options && options.size()>0){
-										categoryCheck=true
-										def ingredientObj = options[0]
-										ingredientObj.put("selected",Boolean.TRUE)
-										if(ingredientObj.price)
-											price=price+Float.parseFloat(ingredientObj.price.toString())
+									if(!check){
+										if(fvrtDrink.selectedItems && fvrtDrink.basePrice &&  fvrtDrink.basePrice.equalsIgnoreCase("0.0") ){
+											if(!categoryCheck && options && options.size()>0){
+												println"categoryObj check "+categoryObj.category
+												categoryCheck=true
+												def ingredientObj = options[0]
+												ingredientObj.put("selected",Boolean.TRUE)
+												if(ingredientObj.price)
+													price=price+Float.parseFloat(ingredientObj.price.toString())
+											}
+										}
 									}
 
 									if(options.size()>0){

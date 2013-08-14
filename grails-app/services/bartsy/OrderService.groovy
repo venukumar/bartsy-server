@@ -51,7 +51,6 @@ class OrderService {
 
 			def recentOrders = orders.list(){
 				eq("user",user)
-				eq("orderStatus","10")
 				order("orderId", "desc")
 				maxResults(5)
 			}
@@ -101,17 +100,20 @@ class OrderService {
 								}
 								def categoryList = category.trim().split(",")
 								if(categoryList){
+									println"categoryList "+categoryList
 									boolean categoryCheck=false
 									categoryList.each {
 										def categoryId = it
 										def categoryObj=IngredientCategory.findById(categoryId)
 										if(categoryObj){
+											println"categoryObj "+categoryObj.category
 											if(!contentsMap.containsKey("name")){
 												contentsMap.put("name", categoryObj.category)
 											}
 											def options=[]
 											def ingredients = Ingredients.findAllByCategoryAndVenue(categoryObj,venue)
 											boolean check=false
+											println"Ingredients "+Ingredients
 											ingredients.each{
 												def ingredient = it
 												def ingredientMap = [:]
@@ -129,20 +131,25 @@ class OrderService {
 															if(ingredient.price)
 																price=price+Float.parseFloat(ingredient.price.toString())
 															check=true
+															categoryCheck=true
 														}
 													}
 													options.add(ingredientMap)
 												}
 											}
 
-											if(!categoryCheck && !check && options && options.size()>0){
-												categoryCheck=true
-												def ingredientObj = options[0]
-												ingredientObj.put("selected",Boolean.TRUE)
-												if(ingredientObj.price)
-													price=price+Float.parseFloat(ingredientObj.price.toString())
+											if(!check){
+												if(order.selectedItems && order.basePrice &&  order.basePrice.equalsIgnoreCase("0.0") ){
+													if(!categoryCheck && options && options.size()>0){
+														categoryCheck=true
+														def ingredientObj = options[0]
+														ingredientObj.put("selected",Boolean.TRUE)
+														if(ingredientObj.price)
+															price=price+Float.parseFloat(ingredientObj.price.toString())
+													}
+												}
 											}
-
+		
 											if(options.size()>0){
 												def options_groups_map=[:]
 												//options_groups_map.put("type","OPTION_SELECT")

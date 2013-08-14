@@ -72,7 +72,7 @@ class InventoryService {
 								if(check==1){
 									optionMap.put("price",price)
 								}
-								optionsMapList.add(optionMap)
+								optionsMapList.add(name)
 							}
 
 							options_groups_map.put("options",optionsMapList)

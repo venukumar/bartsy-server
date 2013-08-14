@@ -298,7 +298,7 @@ class OrderController {
 			
 			String category, selectedItems
 			def description
-			
+			println "itemDetails.itemId "+itemDetails.itemId
 			def itemName = itemDetails.itemName
 			def title = itemDetails.title
 			def name = itemDetails.name
@@ -312,7 +312,7 @@ class OrderController {
 			def order_price = itemDetails.order_price
 			def basePrice = itemDetails.price
 			def quantity = itemDetails.quantity
-			def specialInstructions = itemDetails.specialInstructions
+			def specialInstructions = itemDetails.special_instructions
 
 			if(option_groups && option_groups.size()>0){
 				option_groups.each {
@@ -348,7 +348,7 @@ class OrderController {
 			orderItem.setVersion(1)
 			orderItem.setItemName(itemName)
 			orderItem.setTitle(title)
-			orderItem.setBasePrice(basePrice)
+			orderItem.setBasePrice(basePrice ?: "0.0")
 			orderItem.setName(name)
 			orderItem.setDescription(description)
 			orderItem.setQuantity(quantity)
