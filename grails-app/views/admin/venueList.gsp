@@ -15,7 +15,7 @@
 	</g:if>
 	<% flash.clear() %>
 	<div>
-		<table border="0" cellspacing="0" cellpadding="0" class="tbl-data">
+		<table class="tbl-data">
 			<tr>
 				<th width="10%"><g:message code="venue.id.label" default="Venue Id" /></th>
 				<th width="15%"><g:message code="venue.name.label" default="Venue Name" /></th>
@@ -23,6 +23,10 @@
 				<th width="10%"><g:message code="venue.orders.label" default="Orders" /></th>
 				<th width="10%"><g:message code="venue.checkins.last.30days.label" default="CheckIns(Last 30 days)" /></th>
 				<th width="10%"><g:message code="venue.orders.last.30days.label" default="Orders(Last 30 days)" /></th>
+				<th width="10%"><g:message code="venue.average.accept.time.label" default="Average Accept time" /></th>
+				<th width="10%"><g:message code="venue.average.complete.time.label" default="Average Complete time" /></th>
+				<th width="10%"><g:message code="venue.average.pickup.time.label" default="Average Pickup time" /></th>
+				<th width="10%"><g:message code="venue.rejection.rate.label" default="Rejection rate" /></th>
 				<th width="15%"><g:message code="page.list.actions" default="Actions" /></th>
 			</tr>
 			<% if(venueTotal>0){
@@ -33,6 +37,10 @@
 					def orders = orders.get(venue.id)
 					def checkInsLast30Days = checkInsLast30Days.get(venue.id)
 					def ordersLast30Days = ordersLast30Days.get(venue.id)
+					def avgAcceptTime = avgAcceptTime.get(venue.id)
+					def avgCompleteTime = avgCompleteTime.get(venue.id)
+					def avgPickupTime = avgPickupTime.get(venue.id)
+					def rejectionRate = rejectionRate.get(venue.id)
 				%>  
 	    		<tr>
           			<!--<td><div style="width:250px;word-wrap:break-word;display:block;">${venue.venueId}</div></td>-->
@@ -42,6 +50,10 @@
 					<td>${orders}</td>
 					<td>${checkInsLast30Days}</td>
 					<td>${ordersLast30Days}</td>
+					<td>${avgAcceptTime}</td>
+					<td>${avgCompleteTime}</td>
+					<td>${avgPickupTime}</td>
+					<td>${rejectionRate}%</td>
           			<td style="text-align:center">
 						  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="actions-tbl">
  			 				<tr>

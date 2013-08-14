@@ -1,9 +1,13 @@
 package bartsy
 
+import groovy.time.TimeDuration
+import groovy.time.TimeCategory
+
 import java.text.DateFormat
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import org.codehaus.groovy.grails.web.json.JSONArray
+import org.codehaus.groovy.grails.web.json.JSONObject
 import org.hsqldb.util.CSVWriter
 
 class AdminController {
@@ -42,14 +46,9 @@ class AdminController {
 	def venueList(){
 		try{
 			def currentDate = new Date()
-			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
-			def  sDate = dateFormat.format(currentDate - 30)
-			def  eDate = dateFormat.format(currentDate)
-			Date startDate = dateFormat.parse(sDate)
-			Date endDate = dateFormat.parse(eDate)
-			
 			def checkInsList, ordersList, checkInsLast30DaysList, ordersLast30DaysList
-			def checkInsMap = [:], ordersMap = [:], checkInsLast30DaysMap = [:], ordersLast30DaysMap = [:]
+			def checkInsMap = [:], ordersMap = [:], checkInsLast30DaysMap = [:], ordersLast30DaysMap = [:], 
+				avgAcceptTimeMap = [:], avgCompleteTimeMap = [:], avgPickupTimeMap = [:], rejectionRateMap = [:]
 			def venuelist = Venue.list()
 			def venuelistTotal = Venue.count()
 			
@@ -71,7 +70,7 @@ class AdminController {
 				checkInsLast30DaysList = UserCheckInDetails.createCriteria().list {
 					eq("venue", venueObj)
 					and{
-						between("checkedInDate", startDate, endDate)
+						between("checkedInDate", currentDate-30, currentDate)
 					}
 				}
 				checkInsLast30DaysMap.put(venueObj.id, checkInsLast30DaysList.size())
@@ -80,16 +79,146 @@ class AdminController {
 				ordersLast30DaysList = Orders.createCriteria().list {
 					eq("venue", venueObj)
 					and{
-						between("dateCreated", startDate, endDate)
+						between("dateCreated", currentDate-30, currentDate)
 					}
 				}
 				ordersLast30DaysMap.put(venueObj.id, ordersLast30DaysList.size())
+				
+				// Average accept time of venue
+				avgAcceptTimeMap = calcAvgOrderAcceptTime(venueObj, avgAcceptTimeMap)
+				
+				// Average complete time of venue
+				avgCompleteTimeMap = calcAvgOrderCompleteTime(venueObj, avgCompleteTimeMap)
+				
+				// Average pickup time of venue
+				avgPickupTimeMap = calcAvgOrderPickupTime(venueObj, avgPickupTimeMap)
+				
+				// Rejection rate of venue
+				def orderRejectionList = Orders.createCriteria().list {
+					eq("venue", venueObj)
+					and{
+						eq("orderStatus", OrderConstants.ORDER_STATUS_REJECTED)
+					}
+				}
+				def rejectionRate
+				if (orderRejectionList){
+					rejectionRate =  (orderRejectionList.size() * 100) / ordersList.size()
+				}
+				rejectionRateMap.put(venueObj.id, rejectionRate?:0)
 			}
 				
-			[venueList:venuelist, venueTotal:venuelistTotal, checkIns:checkInsMap, orders:ordersMap, checkInsLast30Days:checkInsLast30DaysMap, , ordersLast30Days:ordersLast30DaysMap]
+			[venueList:venuelist, venueTotal:venuelistTotal, checkIns:checkInsMap, orders:ordersMap, checkInsLast30Days:checkInsLast30DaysMap, 
+				ordersLast30Days:ordersLast30DaysMap, avgAcceptTime:avgAcceptTimeMap, avgCompleteTime:avgCompleteTimeMap, avgPickupTime:avgPickupTimeMap,
+				rejectionRate:rejectionRateMap]
 		}catch(Exception e){
 			log.error("Error in Venue List ==>"+e.getMessage())
 		}
+	}
+	
+	/**
+	 * Method to calculate average accept time of order by venue
+	 * @param venueObj
+	 * @param avgAcceptTimeMap
+	 * @return average accept time map containing venue id and avg. accept time
+	 */
+	def calcAvgOrderAcceptTime(def venueObj, def avgAcceptTimeMap){
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
+		def orderAcceptedList = Orders.createCriteria().list {
+			eq("venue", venueObj)
+			and{
+				eq("orderStatus", OrderConstants.ORDER_STATUS_ACCEPTED)
+			}
+		}
+		if (orderAcceptedList){
+			def totalMin = 0
+			orderAcceptedList.each{
+				def orderObj = it
+				def orderStatusDateJSON = orderObj.dateOrderStatus
+				if (orderStatusDateJSON){
+					def jsonObj = new JSONObject(orderStatusDateJSON)
+					def orderStatusDateNew = jsonObj.get(OrderConstants.ORDER_STATUS_NEW)
+					def orderStatusDateAccept = jsonObj.get(OrderConstants.ORDER_STATUS_ACCEPTED)
+					Date newDate = dateFormat.parse(orderStatusDateNew)
+					Date acceptDate = dateFormat.parse(orderStatusDateAccept)
+					TimeDuration duration = TimeCategory.minus(acceptDate, newDate)
+					totalMin += duration.minutes
+				}
+			}
+			def avgAcceptMins = totalMin / orderAcceptedList.size()
+			avgAcceptTimeMap.put(venueObj.id, avgAcceptMins+" minutes")
+		}
+		return avgAcceptTimeMap
+	}
+	
+	/**
+	 * Method to calculate average complete time of order by venue
+	 * @param venueObj
+	 * @param avgCompleteTimeMap
+	 * @return average complete time map containing venue id and avg. complete time
+	 */
+	def calcAvgOrderCompleteTime(def venueObj, def avgCompleteTimeMap){
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
+		def orderCompletedList = Orders.createCriteria().list {
+			eq("venue", venueObj)
+			and{
+				eq("orderStatus", OrderConstants.ORDER_STATUS_COMPLETE)
+			}
+		}
+		if (orderCompletedList){
+			def totalMin = 0
+			orderCompletedList.each{
+				def orderObj = it
+				def orderStatusDateJSON = orderObj.dateOrderStatus
+				if (orderStatusDateJSON){
+					def jsonObj = new JSONObject(orderStatusDateJSON)
+					def orderStatusDateAccept = jsonObj.get(OrderConstants.ORDER_STATUS_ACCEPTED)
+					def orderStatusDateComplete = jsonObj.get(OrderConstants.ORDER_STATUS_COMPLETE)
+					Date acceptDate = dateFormat.parse(orderStatusDateAccept)
+					Date completeDate = dateFormat.parse(orderStatusDateComplete)
+					TimeDuration duration = TimeCategory.minus(completeDate, acceptDate)
+					totalMin += duration.minutes
+				}
+			}
+			
+			def avgCompleteMins = totalMin / orderCompletedList.size()
+			avgCompleteTimeMap.put(venueObj.id, avgCompleteMins+" minutes")
+		}
+		return avgCompleteTimeMap
+	}
+	
+	/**
+	 * Method to calculate average pickup time of order by venue
+	 * @param venueObj
+	 * @param avgPickupTimeMap
+	 * @return average pickup time map containing venue id and avg. pickup time
+	 */
+	def calcAvgOrderPickupTime(def venueObj, def avgPickupTimeMap){
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
+		def orderPickedupList = Orders.createCriteria().list {
+			eq("venue", venueObj)
+			and{
+				eq("orderStatus", OrderConstants.ORDER_STATUS_PICKED_UP)
+			}
+		}
+		if (orderPickedupList){
+			def totalMin = 0
+			orderPickedupList.each{
+				def orderObj = it
+				def orderStatusDateJSON = orderObj.dateOrderStatus
+				if (orderStatusDateJSON){
+					def jsonObj = new JSONObject(orderStatusDateJSON)
+					def orderStatusDateComplete = jsonObj.get(OrderConstants.ORDER_STATUS_COMPLETE)
+					def orderStatusDatePickedup = jsonObj.get(OrderConstants.ORDER_STATUS_PICKED_UP)
+					Date completeDate = dateFormat.parse(orderStatusDateComplete)
+					Date pickedupDate = dateFormat.parse(orderStatusDatePickedup)
+					TimeDuration duration = TimeCategory.minus(pickedupDate, completeDate)
+					totalMin += duration.minutes
+				}
+			}
+			def avgPickupMins = totalMin / orderPickedupList.size()
+			avgPickupTimeMap.put(venueObj.id, avgPickupMins+" minutes")
+		}
+		return avgPickupTimeMap
 	}
 	
 	/**
@@ -375,7 +504,8 @@ class AdminController {
 						Double base = new Double(finalBasePrice)
 						gross += base
 					}
-					return formatNumStr(gross.toString())
+					def formattedGross = formatNumStr(gross.toString())
+					return '$ '+formattedGross
 				}
 				def taxl = {domain, value ->
 					def formattedTax = formatNumStr(domain?.venue?.totalTaxRate)
