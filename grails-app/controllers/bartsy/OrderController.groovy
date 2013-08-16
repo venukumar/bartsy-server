@@ -293,27 +293,32 @@ class OrderController {
 	 * @param JSON's itemsList, Order object
 	 */
 	def parseAndSavePlaceOrderItems(def itemsList, Orders order){
+		
 		itemsList.each {
 			def itemDetails = it
 			
 			String category, selectedItems
-			def description
-			println "itemDetails.itemId "+itemDetails.itemId
+			def description, optionDescription
 			def itemName = itemDetails.itemName
 			def title = itemDetails.title
 			def name = itemDetails.name
 			def option_groups = itemDetails.option_groups
-			if(option_groups && option_groups.size()>0){
+			if (itemDetails.description){
+				description = itemDetails.description
+			}else if (itemDetails.options_description){
+				optionDescription = itemDetails.options_description
+			}
+			/*if(option_groups && option_groups.size()>0){
 				description = itemDetails.options_description
 			}else{
 				description = itemDetails.description
-			}
+			}*/
 			def type = itemDetails.type
 			def order_price = itemDetails.order_price
 			def basePrice = itemDetails.price
 			def quantity = itemDetails.quantity
 			def specialInstructions = itemDetails.special_instructions
-
+			
 			if(option_groups && option_groups.size()>0){
 				option_groups.each {
 					def option = it
@@ -351,6 +356,7 @@ class OrderController {
 			orderItem.setBasePrice(basePrice ?: "0.0")
 			orderItem.setName(name)
 			orderItem.setDescription(description)
+			orderItem.setOptionDescription(optionDescription)
 			orderItem.setQuantity(quantity)
 			orderItem.setType(type)
 			orderItem.setCategorys(category)

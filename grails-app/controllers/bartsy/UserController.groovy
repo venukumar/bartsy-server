@@ -86,7 +86,7 @@ class UserController {
 							userProfile.setHomeCity(json.homeCity ?: "")
 							userProfile.setState(json.state ?: "")
 							userProfile.setEthnicity(json.ethnicity ?: "")
-							userProfile.setRedactedCardNumber(json.has("redactedCardNumber")?json.redactedCardNumber:"")
+							//userProfile.setRedactedCardNumber(json.has("redactedCardNumber")?json.redactedCardNumber:"")
 							if(json.has("email") && !json.email.equals(userProfile.email)){
 								userProfile.setEmail(json.email ?: "")
 								emailUpdated = true

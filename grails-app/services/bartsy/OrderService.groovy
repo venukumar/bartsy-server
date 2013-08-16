@@ -96,7 +96,9 @@ class OrderService {
 							def category = order.categorys
 							if(category){
 								if(order.description){
-									contentsMap.put("options_description",order.description)
+									contentsMap.put("description",order.description)
+								}else if (order.optionDescription){
+									contentsMap.put("options_description",order.optionDescription)
 								}
 								def categoryList = category.trim().split(",")
 								if(categoryList){

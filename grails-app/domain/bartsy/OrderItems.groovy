@@ -10,6 +10,7 @@ class OrderItems {
 		itemName(nullable:true)
 		name(nullable:true)
 		description(nullable:true)
+		optionDescription(nullable:true)
 		categorys(nullable:true)
 		basePrice(nullable:true)
 		quantity(nullable:true)
@@ -27,6 +28,7 @@ class OrderItems {
 	String itemName
 	String name
 	String description
+	String optionDescription
 	String categorys
 	String basePrice
 	String quantity
