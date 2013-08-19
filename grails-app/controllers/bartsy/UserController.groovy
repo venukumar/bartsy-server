@@ -5,8 +5,7 @@ import com.sun.org.apache.xerces.internal.impl.dv.util.Base64
 import java.security.KeyPair
 import java.security.PrivateKey
 import java.security.PublicKey
-
-import javax.crypto.spec.SecretKeySpec
+import bartsy.CommonMethods
 
 
 class UserController {
@@ -68,7 +67,7 @@ class UserController {
 						//check if user profile present based on given credentials
 						if(userProfile) {
 							//if user profile present, update it with values sent in the syscall request
-							userProfile.setName(json.name ?: "")
+													userProfile.setName(json.name ?: "")
 							userProfile.setFirstName(json.firstname ?: "")
 							userProfile.setLastName(json.lastname ?: "")
 							userProfile.setDateOfBirth(json.dateofbirth ?: "")
@@ -554,9 +553,6 @@ class UserController {
 				//'in'("orderStatus",["0","2", "3","9"])
 			}
 		}
-		println"usercheck out "
-		println "openOrders "+openOrders.size()
-
 		//check if any open orders are present
 		if(openOrders){
 			//if open orders are present loop through the list
@@ -1039,28 +1035,35 @@ class UserController {
 	 */
 	def getUserPublicDetails={
 		try{
+			println"getUserPublicDetails "
 			def json = JSON.parse(request)
 			def response=[:]
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 			def apiVersionNumber=json.apiVersion
 
 			if(json){
+				println"json"
 				if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
 					if(json.has("bartsyId")){
 						def bartsyId = json.bartsyId
 						def userProfile = UserProfile.findByBartsyId(bartsyId)
 						if(userProfile){
 							CommonMethods commonMethods = new CommonMethods()
-							def age= commonMethods.getAge(userProfile.getDateOfBirth())
+							def age
+							if(userProfile.getDateOfBirth())
+								age= commonMethods.getAge(userProfile.getDateOfBirth())
+
 							response.put("errorCode", 0)
 							response.put("bartsyId", bartsyId)
 							response.put("gender", userProfile.getGender())
-							response.put("age", age)
+							if(age)
+								response.put("age", age)
 							response.put("orientation", userProfile.getOrientation())
 							response.put("showProfile", userProfile.getShowProfile())
 							response.put("userImagePath", userProfile.getUserImage())
 							response.put("status",userProfile.status)
 							response.put("description",userProfile.description)
+							println"response "+response
 						}else{
 							handleNegativeResponse(response,"Userprofile does not exists")
 						}
@@ -1081,6 +1084,7 @@ class UserController {
 			render(text:response as JSON ,  contentType:"application/json")
 		}catch (Exception e) {
 			log.info("Exception Found !!!! "+e.getMessage())
+			render(text:response as JSON ,  contentType:"application/json")
 		}
 
 	}
@@ -1184,12 +1188,14 @@ class UserController {
 		try{
 			def userId = bartsyId.bytes.encodeBase64().toString()
 			String url =  request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+"/"+grailsApplication.getMetadata().getApplicationName()
+			println"email id "+emailId.trim()
 			sendMail {
 				from "Bartsy <accounts-do-not-replay@bartsy.vendsy.com>"
 				to emailId.trim()
 				subject "Bartsy email verification"
 				html g.render(template:'/user/mailTemplate', model:[url:url,userId:userId])
 			}
+
 		}catch(Exception e){
 			log.info("Exception found In sendVerificationMailToUser !!!!! "+e.getMessage())
 		}
