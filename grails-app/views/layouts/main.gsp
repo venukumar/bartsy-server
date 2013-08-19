@@ -41,14 +41,14 @@
 	</div>
   </g:if>
   <div class="logo"><h1>VENDSY</h1></div>
-  <div class="welcme">Bartsy Dashboard</div>
+  <!--  <div class="welcme">Bartsy Dashboard</div>-->
   </div>
   <div class="body-con">
    <g:layoutBody/>
   </div>
 	<div id="spinner" class="spinner" style="display:none;"><g:message code="spinner.alt" default="Loading&hellip;"/></div>
 	<div class="footer-con">
-   	<div class="footer-copytxt">&copy; <g:message code="page.tool.footer.title" default="2013 Bartsy Inc. All rights reserved" /></div>
+   	<div class="footer-copytxt">&copy; <g:message code="page.tool.footer.title" default="2013 Vendsy, Inc. All rights reserved" /></div>
     </div>
   </div>
   </div>

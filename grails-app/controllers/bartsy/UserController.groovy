@@ -1190,7 +1190,7 @@ class UserController {
 			String url =  request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+"/"+grailsApplication.getMetadata().getApplicationName()
 			println"email id "+emailId.trim()
 			sendMail {
-				from "Bartsy <accounts-do-not-replay@bartsy.vendsy.com>"
+				from "Bartsy <accounts-do-not-reply@vendsy.com>"
 				to emailId.trim()
 				subject "Bartsy email verification"
 				html g.render(template:'/user/mailTemplate', model:[url:url,userId:userId])

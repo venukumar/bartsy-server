@@ -1,8 +1,8 @@
 // locations to search for config files that get merged into the main config
 // config files can either be Java properties files or ConfigSlurper scripts
 
- grails.config.locations = [ "file:/usr/${appName}-config.properties"]
- //"classpath:${appName}-config.properties",
+grails.config.locations = [ "file:/usr/${appName}-config.properties"]
+//"classpath:${appName}-config.properties",
 //                             "classpath:${appName}-config.groovy",
 //                             "file:${userHome}/.grails/${appName}-config.properties",
 //                             "file:${userHome}/.grails/${appName}-config.groovy"]
@@ -81,8 +81,8 @@ log4j = {
         rollingFile name:"BartsyLog", 
         maxFileSize:"100MB", 
         maxBackupIndex: 10, 
-       // file:"/home/nagabhargavi/Bartsy_logs/Bartsy.log", 
-		file:"/usr/local/tomcat/Bartsy_logs/Bartsy.log", 
+		//file:"/home/nagabhargavi/Bartsy_logs/Bartsy.log",
+		file:"/usr/local/tomcat/Bartsy_logs/Bartsy.log",
 		'append':true, 
         threshold:org.apache.log4j.Level.INFO
     }
@@ -132,8 +132,8 @@ grails {
 	mail {
 	 host = "smtp.gmail.com"
 	 port = 465
-	 username = "techvedika007@gmail.com"
-	 password = "techvedika"
+	 username = "accounts-do-not-reply@vendsy.com"
+	 password = "TechVedika2013!"
 	 props = ["mail.smtp.auth":"true",
 	  "mail.smtp.socketFactory.port":"465",
 	  "mail.smtp.socketFactory.class":"javax.net.ssl.SSLSocketFactory",

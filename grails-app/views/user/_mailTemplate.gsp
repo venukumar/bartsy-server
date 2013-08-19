@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="layout" content="main" />
-<title>Bartsy</title>
+<title><g:message code="bartsy.acct.verification.mail.template" default="Bartsy account verification mail template" /></title>
 </head>
 <body>
 	<div class="mailbody">
 		<p>
-			<label>Welcome to Bartsy, the easiest and most social way to
+			<label>Welcome to Bartsy, <br>The easiest and most social way to
 				get your drinks.</label>
 		</p>
 		<p>
@@ -20,8 +20,8 @@
 		<p align=left>(This Email was automatically generated. Please do
 			not reply)</p>
 
-		<p>Using Bartsy is subject to the <a href="#">Terms of Service</a>. Your
-			privacy is guaranteed, please read our <a href="#">Privacy Policy</a></p>
+		<p>Using Bartsy is subject to the <a href="http://vendsy.com/">Terms of Service</a>. Your
+			privacy is guaranteed, please read our <a href="http://vendsy.com/">Privacy Policy</a></p>
 
 	</div>
 </body>
