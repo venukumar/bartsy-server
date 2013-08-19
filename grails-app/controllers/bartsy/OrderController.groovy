@@ -55,10 +55,11 @@ class OrderController {
 				if(userprofile && venue){
 					if(venue.status.equals(CommonConstants.OPEN)){
 						CommonMethods common = new CommonMethods()
-
+						String items
 						if(json.totalPrice && common.isInteger(json.totalPrice)){
 
-							def maxId = Orders.createCriteria().get { projections { max "orderId" } } as Long
+							def maxId = Orders.createCriteria().get { projections { max "orderId"
+								} } as Long
 							if(maxId){
 								maxId = maxId+1
 							}else{
@@ -88,53 +89,53 @@ class OrderController {
 							order.setUser(userprofile)
 							order.setVenue(venue)
 							order.setOrderStatus(OrderConstants.ORDER_STATUS_100)
-							
+
 							// Save order status date
 							def dateOrderStatus
 							dateOrderStatus = prepareOrderStatusDateResp(OrderConstants.ORDER_STATUS_100, order)
 							order.setDateOrderStatus(dateOrderStatus)
-							
+
 							order.setAuthApproved(CommonConstants.FALSE)
 							order.save(flush:true)
-							
+
 							if(order){
 								if(json.itemsList){
 									//json.itemsList.each{
-										/*def itemInfo = it
-										OrderItems orderItem = new OrderItems()
-										orderItem.setVersion(1)
-										orderItem.setItemName(itemInfo.itemName)
-										orderItem.setItemId(itemInfo.itemId.toString())
-										orderItem.setBasePrice(itemInfo.basePrice)
-										orderItem.setDescription(itemInfo.description)
-										orderItem.setOrder(order)
-										orderItem.save(flush:true)
-									}*/
-									parseAndSavePlaceOrderItems(json.itemsList, order)
+									/*def itemInfo = it
+									 OrderItems orderItem = new OrderItems()
+									 orderItem.setVersion(1)
+									 orderItem.setItemName(itemInfo.itemName)
+									 orderItem.setItemId(itemInfo.itemId.toString())
+									 orderItem.setBasePrice(itemInfo.basePrice)
+									 orderItem.setDescription(itemInfo.description)
+									 orderItem.setOrder(order)
+									 orderItem.save(flush:true)
+									 }*/
+									items = parseAndSavePlaceOrderItems(json.itemsList, order)
 
 								}/*else{
-									OrderItems orderItem = new OrderItems()
-									orderItem.setItemName(json.itemName?json.itemName:"")
-									orderItem.setItemId(json.itemId?json.itemId.toString():"")
-									orderItem.setBasePrice(json.basePrice)
-									orderItem.setDescription(json.description)
-									orderItem.setOrder(order)
-									orderItem.save(flush:true)
-								}*/
+								 OrderItems orderItem = new OrderItems()
+								 orderItem.setItemName(json.itemName?json.itemName:"")
+								 orderItem.setItemId(json.itemId?json.itemId.toString():"")
+								 orderItem.setBasePrice(json.basePrice)
+								 orderItem.setDescription(json.description)
+								 orderItem.setOrder(order)
+								 orderItem.save(flush:true)
+								 }*/
 							}
 							Orders orderUpdate = Orders.findByOrderId(order.orderId)
 							def authorizeResponse = paymentService.authorizePayment(userprofile,json.totalPrice,orderUpdate?.orderId)
 							//order.setAuthTransactionId(authorizeResponse.transactionId as long)
 
 							if(authorizeResponse.get(CommonConstants.AUTH_APPROVED).toBoolean()){
-								
+
 								if(!json.bartsyId.toString().equals(json.receiverBartsyId.toString())){
 									orderUpdate.setOrderStatus(OrderConstants.ORDER_STATUS_OFFERED_DRINK)
-									
+
 									dateOrderStatus = prepareOrderStatusDateResp(OrderConstants.ORDER_STATUS_OFFERED_DRINK, orderUpdate)
 								}else{
 									orderUpdate.setOrderStatus(OrderConstants.ORDER_STATUS_NEW)
-									
+
 									dateOrderStatus = prepareOrderStatusDateResp(OrderConstants.ORDER_STATUS_NEW, orderUpdate)
 								}
 								orderUpdate.setDateOrderStatus(dateOrderStatus)
@@ -143,10 +144,10 @@ class OrderController {
 								orderUpdate.setAuthTransactionNumber(authorizeResponse.get(CommonConstants.AUTH_TRANSACTION_NUMBER))
 							}else{
 								orderUpdate.setOrderStatus(OrderConstants.ORDER_STATUS_ORDER_TIMEOUT)
-								
+
 								dateOrderStatus = prepareOrderStatusDateResp(OrderConstants.ORDER_STATUS_ORDER_TIMEOUT, orderUpdate)
 								orderUpdate.setDateOrderStatus(dateOrderStatus)
-								
+
 								orderUpdate.setAuthApproved(CommonConstants.FALSE)
 								orderUpdate.setAuthErrorMessage(authorizeResponse.get(CommonConstants.AUTH_ERROR_MESSAGE))
 								orderUpdate.setLastState(CommonConstants.LAST_STATE)
@@ -206,7 +207,7 @@ class OrderController {
 								pnMessage.put(CommonConstants.SPECIAL_INSTRUCTIONS, json.specialInstructions ?: "")
 								pnMessage.put(ItemConstants.ITEMS_LIST, json.itemsList?json.itemsList.toString():"")
 								if(!json.bartsyId.toString().equals(json.receiverBartsyId.toString())){
-									def name = json.itemName?json.itemName:""
+									def name = items?:""
 									def body="You have been offered a drink "+name+" by "+orderUpdate.user.nickName
 									pnMessage.put(CommonConstants.MESSAGE_TYPE, CommonConstants.DRINK_OFFERED)
 									pnMessage.put(CommonConstants.BARTSY_ID, json.receiverBartsyId)
@@ -247,9 +248,10 @@ class OrderController {
 									response.put(OrderConstants.ORDER_STATUS, orderUpdate.getOrderStatus())
 									response.put(OrderConstants.ORDER_TIMEOUT, venue.cancelOrderTime)
 									androidPNService.sendPN(pnMessage, venue.deviceToken)
+									def name = items?:""
 									//save the place order for self notification
 									notification.setOrderType(OrderConstants.ORDER_TYPE_SELF)
-									notification.setMessage("you ordered a drink "+ orderUpdate.getItemName())
+									notification.setMessage("you ordered a drink "+ name)
 									notification.save(flush:true)
 								}
 							}
@@ -287,16 +289,16 @@ class OrderController {
 		}
 		render(text:response as JSON,contentType:"application/json")
 	}
-	
+
 	/**
 	 * Method to parse 'placeOrder' input JSON and to save each item in 'order_items' table
 	 * @param JSON's itemsList, Order object
 	 */
 	def parseAndSavePlaceOrderItems(def itemsList, Orders order){
-		
+		String items
 		itemsList.each {
 			def itemDetails = it
-			
+
 			String category, selectedItems
 			def description, optionDescription
 			def itemName = itemDetails.itemName
@@ -309,16 +311,16 @@ class OrderController {
 				optionDescription = itemDetails.options_description
 			}
 			/*if(option_groups && option_groups.size()>0){
-				description = itemDetails.options_description
-			}else{
-				description = itemDetails.description
-			}*/
+			 description = itemDetails.options_description
+			 }else{
+			 description = itemDetails.description
+			 }*/
 			def type = itemDetails.type
 			def order_price = itemDetails.order_price
 			def basePrice = itemDetails.price
 			def quantity = itemDetails.quantity
 			def specialInstructions = itemDetails.special_instructions
-			
+
 			if(option_groups && option_groups.size()>0){
 				option_groups.each {
 					def option = it
@@ -348,7 +350,15 @@ class OrderController {
 					}
 				}
 			}
-			
+
+			if(itemName){
+				if(items){
+					items=items+","+itemName
+				}else{
+					items=itemName
+				}
+			}
+
 			OrderItems orderItem = new OrderItems()
 			orderItem.setVersion(1)
 			orderItem.setItemName(itemName)
@@ -366,8 +376,9 @@ class OrderController {
 			orderItem.setSpecialInstructions(specialInstructions)
 			orderItem.save(flush:true)
 		}
+		return items
 	}
-	
+
 	/**
 	 * Method to prepare 'dateOrderStatus' column value of 'Orders' table
 	 * @param order
@@ -385,7 +396,7 @@ class OrderController {
 		}
 		return orderStatusJSON.toString()
 	}
-	
+
 	/**
 	 * This is the webservice to be called to update the status of the order
 	 * @author Swetha Bhatnagar
@@ -454,11 +465,11 @@ class OrderController {
 									break;
 							}
 							order.setOrderStatus(orderObject.orderStatus.toString())
-							
+
 							// Save order status date
 							def dateOrderStatus = prepareOrderStatusDateResp(orderObject.orderStatus.toString(), order)
 							order.setDateOrderStatus(dateOrderStatus)
-							
+
 							if(order.save()){
 								//create the place order notification
 								def notification = new Notifications()
@@ -596,7 +607,7 @@ class OrderController {
 		}
 		render(text:response as JSON,contentType:"application/json")
 	}
-	
+
 	/**
 	 * This service is to Update status of the offered drink order
 	 */
@@ -624,11 +635,11 @@ class OrderController {
 								order.setLastState("9")
 								order.setErrorReason("Offer rejected")
 								order.setDateCreated(new Date())
-								
-								// Save order status date
+
+							// Save order status date
 								def dateOrderStatus = prepareOrderStatusDateResp(OrderConstants.ORDER_STATUS_OFFERED_DRINK_REJECTION.toString(), order)
 								order.setDateOrderStatus(dateOrderStatus)
-								
+
 								if(order.save()){
 									response.put("errorCode","0")
 									response.put("errorMessage","Success")
@@ -668,11 +679,11 @@ class OrderController {
 							case "0" :
 								body = "Your offer is accepted by "+recieveUser.nickName
 								order.setOrderStatus("0")
-								
-								// Save order status date
+
+							// Save order status date
 								def dateOrderStatus = prepareOrderStatusDateResp(OrderConstants.ORDER_STATUS_NEW.toString(), order)
 								order.setDateOrderStatus(dateOrderStatus)
-								
+
 								if(order.save(flush:true)){
 									response.put("errorCode","0")
 									response.put("errorMessage","Success")
