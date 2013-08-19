@@ -24,8 +24,7 @@ class FavoriteService {
 					def basePrice = itemDetails.price
 					def quantity =itemDetails.quantity
 					def special_instructions=itemDetails.special_instructions
-					if(options_description)
-						options_description=itemDetails.description
+					def description=itemDetails.description
 					def option_groups=itemDetails.option_groups
 					String category
 					String selectedItems
@@ -66,8 +65,8 @@ class FavoriteService {
 					usrFvtDrnk.setTitle(title)
 					usrFvtDrnk.setBasePrice(basePrice ?: "0.0")
 					usrFvtDrnk.setName(name)
-					usrFvtDrnk.setDescription(options_description)
-					usrFvtDrnk.setQuantity(quantity)
+					usrFvtDrnk.setDescription(description)
+					usrFvtDrnk.setOptionDescription(options_description)
 					usrFvtDrnk.setQuantity(quantity)
 					usrFvtDrnk.setType(type)
 					usrFvtDrnk.setUser(user)
@@ -114,7 +113,7 @@ class FavoriteService {
 				def subSections=[]
 				def subSectionsMap=[:]
 				def contents=[]
-				
+
 				favoriteDrinks.each {
 					def fvrtDrink=it
 					def contentsMap=[:]
@@ -143,8 +142,11 @@ class FavoriteService {
 
 					def category = fvrtDrink.categorys
 					if(category){
-						if(fvrtDrink.description){
+						if(fvrtDrink.options_description){
 							contentsMap.put("options_description",fvrtDrink.description)
+						}
+						if(fvrtDrink.description){
+							contentsMap.put("description",fvrtDrink.description)
 						}
 						def categoryList = category.trim().split(",")
 						if(categoryList){
@@ -225,6 +227,9 @@ class FavoriteService {
 										contentsMap.put("price",item.price)
 										if(item.description){
 											contentsMap.put("description",item.description)
+										}
+										if(item.options_description){
+											contentsMap.put("options_description",item.options_description)
 										}
 										if(item.itemName){
 											contentsMap.put("name",item.itemName)

@@ -115,7 +115,6 @@ class OrderService {
 											def options=[]
 											def ingredients = Ingredients.findAllByCategoryAndVenue(categoryObj,venue)
 											boolean check=false
-											println"Ingredients "+Ingredients
 											ingredients.each{
 												def ingredient = it
 												def ingredientMap = [:]
@@ -182,6 +181,11 @@ class OrderService {
 											if(itemsList.description){
 												contentsMap.put("description",itemsList.description)
 											}
+											
+											if (itemsList.options_description){
+												contentsMap.put("options_description",itemsList.options_description)
+											}
+											
 											if(itemsList.itemName){
 												contentsMap.put("name",itemsList.itemName)
 											}
