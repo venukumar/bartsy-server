@@ -466,6 +466,7 @@ class DataController {
 						if(venue.tables)
 							venueMap.put("tables",new JSONArray(venue.tables))
 						venueMap.put("pickupLocation",venue.pickupLocation ?: "")
+						venueMap.put("open_hours",venue.openHours ?: "")
 						response.put("venueDetails",venueMap)
 					}
 
