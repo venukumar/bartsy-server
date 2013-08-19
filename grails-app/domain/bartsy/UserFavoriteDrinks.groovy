@@ -15,6 +15,7 @@ class UserFavoriteDrinks {
 		order_price(nullable:true)
 		selectedItems(nullable:true)
 		specialInstructions(nullable:true)
+		optionDescription(nullable:true)
 	}
 
 
@@ -35,4 +36,5 @@ class UserFavoriteDrinks {
 	String order_price
 	String selectedItems
 	String specialInstructions
+	String optionDescription
 }
