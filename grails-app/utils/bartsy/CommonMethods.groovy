@@ -1,5 +1,6 @@
 package bartsy
 
+import java.text.DateFormat
 import java.text.SimpleDateFormat
 import org.apache.commons.lang.RandomStringUtils
 import org.codehaus.groovy.grails.web.json.JSONArray
@@ -61,8 +62,13 @@ class CommonMethods {
 	 * @return
 	 */
 	def getAge(String dob){
+		DateFormat df = new SimpleDateFormat("mm/dd/yyyy");
+		Date startDate = df.parse(dob);
+		DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		dob = sdf.format(startDate);
 		// Date is in YYYY-MM-DD format.
 		int yearDOB = Integer.parseInt(dob.substring(0, 4));
+
 		int monthDOB = Integer.parseInt(dob.substring(5, 7));
 		int dayDOB = Integer.parseInt(dob.substring(8, 10));
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy");
