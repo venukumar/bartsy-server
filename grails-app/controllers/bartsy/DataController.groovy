@@ -71,7 +71,7 @@ class DataController {
 							orderMap.put("recieverBartsyId",order.receiverProfile.bartsyId)
 							orderMap.put("senderNickname",order.user.nickName)
 							orderMap.put("recipientNickname",order.receiverProfile.nickName)
-							orderMap.put("SenderImagePath",order.user.userImage)
+							orderMap.put("senderImagePath",order.user.userImage)
 							orderMap.put("recipientImagePath",order.receiverProfile.userImage)
 							orderMap.put("drinkOffered",order.drinkOffered)
 							orderMap.put("orderTime",order.dateCreated.toGMTString())
