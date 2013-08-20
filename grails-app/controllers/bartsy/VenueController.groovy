@@ -206,7 +206,7 @@ class VenueController {
 					else{
 						address = venue.getStreetAddress()+","+venue.getLocality()+","+venue.getCountry()+","+venue.getPostalCode()
 					}
-					venue.address=json.address
+					venue.address=address
 					/*venue.venueName = parsedData.objects[0].name
 					 venue.lat = parsedData.objects[0].lat
 					 venue.longtd = parsedData.objects[0].long
