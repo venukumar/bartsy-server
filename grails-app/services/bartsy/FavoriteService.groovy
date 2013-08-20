@@ -142,8 +142,8 @@ class FavoriteService {
 
 					def category = fvrtDrink.categorys
 					if(category){
-						if(fvrtDrink.options_description){
-							contentsMap.put("options_description",fvrtDrink.description)
+						if(fvrtDrink.optionDescription){
+							contentsMap.put("options_description",fvrtDrink.optionDescription)
 						}
 						if(fvrtDrink.description){
 							contentsMap.put("description",fvrtDrink.description)

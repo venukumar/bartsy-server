@@ -29,6 +29,119 @@ class InventoryService {
 				int check=0
 				cocktails.each {
 					def cocktail=it
+					println"cocktail "+cocktail
+					println"cocktail.available  "+cocktail.available
+					println"cocktail.available "+cocktail.available
+					if(cocktail.available && cocktail.available.equalsIgnoreCase("true")){
+						println"cocktail11111 "+cocktail
+						def contentsMap=[:]
+						def ingredients=[]
+						def photos=[]
+						def options=[]
+						contentsMap=getCocktailMap(cocktail)
+						contentsMap.put("photos",photos)
+						if(cocktail.shopping && cocktail.shopping.length()>0){
+							def categoryList = cocktail.shopping.trim().split(",")
+							if(categoryList){
+								categoryList.each {
+									def categoryId = it
+									def category=IngredientCategory.findById(categoryId)
+									if(category){
+										String name =category.category
+										if(!options.contains(name))
+											options.add(name)
+										def ingredient = Ingredients.findByCategoryAndVenue(category,venue)
+										if(ingredient && check==0){
+											ingredient.each {
+												def ing =it
+												price=ing.price
+												check++
+											}
+										}
+									}
+								}
+							}
+						}
+						if(options.size()>0)
+						{
+							def options_groups=[]
+							def options_groups_map=[:]
+							options_groups_map.put("type","OPTION_SELECT")
+							options_groups_map.put("text","")
+							def optionsMapList=[]
+							options.each {
+								def name = it
+								def optionMap=[:]
+								optionMap.put("name",name)
+								if(check==1){
+									optionMap.put("price",price)
+								}
+								optionsMapList.add(name)
+							}
+
+							options_groups_map.put("options",optionsMapList)
+							options_groups.add(options_groups_map)
+							contentsMap.put("option_groups",options_groups)
+						}
+						contents.add(contentsMap)
+					}
+				}
+				subSectionsMap.put("contents",contents)
+				subSectionsMap.put("subsection_name","")
+				subSections.add(subSectionsMap)
+				sectionsMap.put("subsections",subSections)
+
+				sections.add(sectionsMap)
+				menusMap.put("sections",sections)
+				def menuJson=[]
+				menuJson.add(menusMap)
+				output.put("menus", menuJson)
+				output.put("errorCode", 0)
+				if(contents.size()>0)
+					output.put("errorMessage", "Cocktails are available")
+				else
+					output.put("errorMessage", "contents are not available")
+				return output
+			}
+			else{
+				// if cocktails doesn't exists
+				return returnNegativeResponse(output,"Cocktails are not available")
+			}
+		}
+		else{
+			// If venue id doesn't exist in db, just return the errror message to request
+			return returnNegativeResponse(output,"Venue ID does not exist")
+		}
+	}
+
+	def getSpecialMenus1(venueId){
+		// for returning response of the service
+		def output=[:]
+		// get venue details from DB based on the venueId
+		def venue = Venue.findByVenueId(venueId)
+		// Added venueid to response
+		output.put("VenueId", venueId)
+		// if venue id exists in db
+		if(venue){
+			// to get all available cocktails from db based on the venue id
+			def cocktails = SpecialMenus.findAllByVenue(venue)
+			// if cocktails exists
+			if(cocktails){
+				def option_group=[]
+				def menus=[]
+				def menusMap=[:]
+				menusMap.put("menu_name","cocktails")
+				def sections=[]
+				def sectionsMap=[:]
+				sectionsMap.put("section_name","")
+				def contents=[]
+				def subSections=[]
+				def subSectionsMap=[:]
+				int price=0
+				int check=0
+				cocktails.each {
+					def cocktail=it
+					println"cocktail.getMenuName() "+cocktail.getMenuName()
 					if(cocktail.available && cocktail.available.equalsIgnoreCase("true")){
 						def contentsMap=[:]
 						def ingredients=[]
@@ -109,6 +222,130 @@ class InventoryService {
 			return returnNegativeResponse(output,"Venue ID does not exist")
 		}
 	}
+
+
+
+
+
+
+
+	def getSpecialMenus(venueId){
+		// for returning response of the service
+		def output=[:]
+		// get venue details from DB based on the venueId
+		def venue = Venue.findByVenueId(venueId)
+		// Added venueid to response
+		output.put("VenueId", venueId)
+		// if venue id exists in db
+		if(venue){
+			// to get all available Menus from db based on the venue id
+			def menus = SpecialMenus.findAllByVenue(venue)
+			if(menus){
+				def menusList =[]
+				menus.each {
+					def menu = it
+					def menusMap=[:]
+					menusMap.put("menuName",menu.getMenuName())
+					def cocktails = SpecialMenuItems.findAllBySpecialMenuAndVenue(menu,venue)
+					println"cock "+cocktails
+					if(cocktails){
+						def option_group=[]
+						def sections=[]
+						def sectionsMap=[:]
+						sectionsMap.put("section_name","")
+						def contents=[]
+						def subSections=[]
+						def subSectionsMap=[:]
+						int price=0
+						int check=0
+						println"before loop"
+						cocktails.each {
+							def cocktail=it
+							println "cocktail "+cocktail
+							if(cocktail.available && cocktail.available.equalsIgnoreCase("true")){
+								def contentsMap=[:]
+								def ingredients=[]
+								def photos=[]
+								def options=[]
+								contentsMap=getCocktailMap(cocktail)
+								contentsMap.put("photos",photos)
+								
+								if(cocktail.shopping && cocktail.shopping.length()>0){
+									println "true "
+									def categoryList = cocktail.shopping.trim().split(",")
+									if(categoryList){
+										categoryList.each {
+											def categoryId = it
+											def category=IngredientCategory.findById(categoryId)
+											if(category){
+												String name =category.category
+												if(!options.contains(name))
+													options.add(name)
+												def ingredient = Ingredients.findByCategoryAndVenue(category,venue)
+												if(ingredient && check==0){
+													ingredient.each {
+														def ing =it
+														price=ing.price
+														check++
+													}
+												}
+											}
+										}
+									}
+								}
+								println"after first if"
+								if(options.size()>0)
+								{
+									def options_groups=[]
+									def options_groups_map=[:]
+									options_groups_map.put("type","OPTION_SELECT")
+									options_groups_map.put("text","")
+									def optionsMapList=[]
+									options.each {
+										def name = it
+										def optionMap=[:]
+										optionMap.put("name",name)
+										if(check==1){
+											optionMap.put("price",price)
+										}
+										optionsMapList.add(name)
+									}
+		
+									options_groups_map.put("options",optionsMapList)
+									options_groups.add(options_groups_map)
+									contentsMap.put("option_groups",options_groups)
+								}
+								contents.add(contentsMap)
+							}
+						}
+						subSectionsMap.put("contents",contents)
+						subSectionsMap.put("subsection_name","")
+						subSections.add(subSectionsMap)
+						sectionsMap.put("subsections",subSections)
+		
+						sections.add(sectionsMap)
+						menusMap.put("sections",sections)
+					}
+					menusList.add(menusMap)
+				}
+				output.put("menus", menusList)
+				output.put("errorCode", 0)
+				output.put("errorMessage","Menus available")
+				output.put("venueId",venue.venueId)
+			}
+			else{
+				// if menus doesn't exists
+				return returnNegativeResponse(output,"Menus does not exist")
+			}
+		}
+		else{
+			// If venue id doesn't exist in db, just return the errror message to request
+			return returnNegativeResponse(output,"Venue ID does not exist")
+		}
+		return output
+	}
+
+
 
 	/*
 	 * This is the method used to create locu format of ingredients
@@ -231,7 +468,7 @@ class InventoryService {
 	}
 
 
-	def getCocktailMap(Cocktails cocktail){
+	def getCocktailMap(SpecialMenuItems cocktail){
 		def contentsMap=[:]
 		contentsMap.put("id",cocktail.id)
 		//contentsMap.put("cocktailId",cocktail.cocktailId)
@@ -240,7 +477,7 @@ class InventoryService {
 		contentsMap.put("alcohol",cocktail.alcohol)
 		contentsMap.put("price", cocktail.price.toString())
 		contentsMap.put("type", "BARTSY_ITEM")
-		contentsMap.put("name", cocktail.name)
+		//contentsMap.put("name", cocktail.name)
 		contentsMap.put("glass", cocktail.glass)
 		contentsMap.put("ingredients", cocktail.ingredients)
 		contentsMap.put("description", cocktail.description)
