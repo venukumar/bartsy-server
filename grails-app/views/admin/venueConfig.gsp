@@ -191,17 +191,16 @@ label.error {
 	
 <div class="main_container">
 <g:form action="saveVenueConfig" method="post">
-			<%-- <input type="hidden" name="venue" value='${venue.venueId}'>--%>
-		
+	<input type="hidden" name="venue" value='${venue.venueId}'>
 	<div class="left_container">
 		<ul>
-			<li class="left_panel"><a href="#">How users will see your venue</a></li>
-    		<li class="left_panel"><a href="#">Manager</a></li>
-    		<li class="left_panel"><a href="#">Vendsy representative</a></li>
-    		<li class="left_panel"><a href="#">Menu</a></li>
-    		<li class="left_panel"><a href="#">Orders</a></li>
-    		<li class="left_panel"><a href="#">Bank account</a></li>
-    		<li class="left_panel"><a href="#">WiFi</a></li>
+			<li class="left_panel"><g:link action="venueConfig" id="${venue.venueId}"><g:message code="how.users.will.see.your.venue" default="How users will see your venue" /></g:link></li>
+    		<li class="left_panel"><g:link action="venueConfigManager" id="${venue.venueId}"><g:message code="vendsy.manager.label" default="Manager" /></g:link></li>
+    		<li class="left_panel"><g:link action="venueConfigVendsyRep" id="${venue.venueId}"><g:message code="vendsy.representative.label" default="Vendsy representative" /></g:link></li>
+    		<li class="left_panel"><g:link action="venueConfigMenu" id="${venue.venueId}"><g:message code="menu.label" default="Menu" /></g:link></li>
+    		<li class="left_panel"><g:link action="venueConfigOrders" id="${venue.venueId}"><g:message code="venue.orders.label" default="Orders" /></g:link></li>
+    		<li class="left_panel"><g:link action="venueConfigBankAccount" id="${venue.venueId}"><g:message code="bank.account.label" default="Bank account" /></g:link></li>
+    		<li class="left_panel"><g:link action="venueConfigWifi" id="${venue.venueId}"><g:message code="wifi.label" default="WiFi" /></g:link></li>
   		</ul>
 	</div>
 			

@@ -836,9 +836,136 @@ class AdminController {
 			}
 
 		}catch(Exception e){
-			log.error("Exception in create Sale User ==>"+e.getMessage())
+			log.error("Exception in retrieving venue list ==>"+e.getMessage())
 		}
 	}
+	
+	/**
+	 * Service to retrieve venue manager details
+	 * Name, username, password, cell
+	 * @return manager details
+	 */
+	def venueConfigManager() {
+		try{
+			if(params){
+				def venueId = params.id
+				def venue = Venue.findByVenueId(venueId)
+				if(venue){
+					[venue:venue]
+				}else{
+					flash.message = "Venue Not Found"
+				}
+			}
+		}catch(Exception e){
+			log.error("Exception in retrieving venue manager details ==>"+e.getMessage())
+		}
+	}
+	
+	/**
+	 * Service to retrieve vendsy representative details
+	 * Name, email, cell
+	 * @return vendsy representative details
+	 */
+	def venueConfigVendsyRep() {
+		try{
+			if(params){
+				def venueId = params.id
+				def venue = Venue.findByVenueId(venueId)
+				if(venue){
+					[venue:venue]
+				}else{
+					flash.message = "Venue Not Found"
+				}
+			}
+		}catch(Exception e){
+			log.error("Exception in retrieving vendsy representative details ==>"+e.getMessage())
+		}
+	}
+	
+	/**
+	 * Service to retrieve locu menu details
+	 * Locu username, password, id, section
+	 * @return locu menu details
+	 */
+	def venueConfigMenu() {
+		try{
+			if(params){
+				def venueId = params.id
+				def venue = Venue.findByVenueId(venueId)
+				if(venue){
+					[venue:venue]
+				}else{
+					flash.message = "Venue Not Found"
+				}
+			}
+		}catch(Exception e){
+			log.error("Exception in retrieving venue menu details ==>"+e.getMessage())
+		}
+	}
+	
+	/**
+	 * Service to retrieve order details
+	 * Order timeout, total tax rate
+	 * @return order details
+	 */
+	def venueConfigOrders() {
+		try{
+			if(params){
+				def venueId = params.id
+				def venue = Venue.findByVenueId(venueId)
+				if(venue){
+					[venue:venue]
+				}else{
+					flash.message = "Venue Not Found"
+				}
+			}
+		}catch(Exception e){
+			log.error("Exception in retrieving venue orders details ==>"+e.getMessage())
+		}
+	}
+	
+	/**
+	 * Service to retrieve account details
+	 * Routing number, account number
+	 * @return account details
+	 */
+	def venueConfigBankAccount() {
+		try{
+			if(params){
+				def venueId = params.id
+				def venue = Venue.findByVenueId(venueId)
+				if(venue){
+					[venue:venue]
+				}else{
+					flash.message = "Venue Not Found"
+				}
+			}
+		}catch(Exception e){
+			log.error("Exception in retrieving venue bank account details ==>"+e.getMessage())
+		}
+	}
+	
+	/**
+	 * Service to retrieve wifi details
+	 * Wifi present, wifi name, wifi code, authentication, network type
+	 * @return wifi details
+	 */
+	def venueConfigWifi() {
+		try{
+			if(params){
+				def venueId = params.id
+				def venue = Venue.findByVenueId(venueId)
+				if(venue){
+					[venue:venue]
+				}else{
+					flash.message = "Venue Not Found"
+				}
+			}
+		}catch(Exception e){
+			log.error("Exception in retrieving venue wifi details ==>"+e.getMessage())
+		}
+	}
+	
 	def saveVenueConfig(){
 		try{
 			println"saveVenueConfig saveVenueConfig"
@@ -913,4 +1040,5 @@ class AdminController {
 	def categories() {
 		
 	}
+	
 }
