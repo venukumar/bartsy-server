@@ -78,7 +78,7 @@ label.error {
 		</div>
 	</g:if>
 	<% flash.clear() %>
-	<!--  <div>
+	<%--  <div>
 		<div>
 			<label class="venueConfigstatic">Venue Id :</label>
 			${venue.venueId}
@@ -120,7 +120,7 @@ label.error {
 			</div>
 		</g:form>
 
-		<%--<table width="100%" border="0" cellspacing="0" cellpadding="0"
+		<table width="100%" border="0" cellspacing="0" cellpadding="0"
 			class="tbl-data" padding-top="10px">
 			<tr>
 				<td>Reward Points</td>
@@ -140,7 +140,7 @@ label.error {
 			</tr>
 		</table>
 
-		--%>
+		
 		<div>
 			<table width="100%" border="0" cellspacing="0" cellpadding="0"
 				class="tbl-data">
@@ -186,57 +186,67 @@ label.error {
 
 			</tr>
 		</table>
-	--%>
-	</div>
-	-->
 	
-	<div>
-		<g:form action="saveVenueConfig" method="post">
-			<input type="hidden" name="venue" value='${venue.venueId}'>
-			<table>
-			<tr>
-				<td><g:message code="vendsy.representative.label" default="Vendsy representative" /></td>
-				<td><input type="text" name="vendsyRep" class="txt-field rewards"></td>
-			</tr>
-			<tr>	
-				<td><g:message code="vendsy.manager.label" default="Manager" /></td>
-				<td><input type="text" name="vendsyManager" class="txt-field rewards"></td>
-			</tr>
-			<tr>
-				<td><g:message code="wifi.label" default="Wifi" /></td>
-				<td><input type="text" name="wifi" class="txt-field rewards"></td>
-			</tr>
-			<tr>
-				<td><g:message code="hours.label" default="Hours" /></td>
-				<td><input type="text" name="hours" class="txt-field rewards"></td>
-			</tr>
-			<tr>
-				<td><g:message code="name.label" default="Name" /></td>
-				<td><input type="text" name="venueName" class="txt-field rewards"></td>
-			</tr>
-			<tr>
-				<td><g:message code="address.label" default="Address" /></td>
-				<td><input type="text" name="address" class="txt-field rewards"></td>
-			</tr>
-			<tr>
-				<td><g:message code="picture.label" default="Picture" /></td>
-				<td><input type="text" name="picture" class="txt-field rewards"></td>
-			</tr>
-			<tr>
-				<td><g:message code="bank.info.label" default="Bank Information" /></td>
-				<td><input type="text" name="bankInfo" class="txt-field rewards"></td>
-			</tr>
-			<tr>
-				<td><g:message code="locu.info.label" default="Locu Information" /></td>
-				<td><input type="text" name="locuInfo" class="txt-field rewards"></td>
-			</tr>
-			<tr>
-				<td colspan="2"><g:submitButton name="update" type="button" value="Update" class="venueConfigText" action="saveVenueConfig" /></td>
-			</tr>
-		</table>
-		</g:form>
-	</div>
+	</div>--%>
 	
-
+<div class="main_container">
+<g:form action="saveVenueConfig" method="post">
+			<%-- <input type="hidden" name="venue" value='${venue.venueId}'>--%>
+		
+	<div class="left_container">
+		<ul>
+			<li class="left_panel"><a href="#">How users will see your venue</a></li>
+    		<li class="left_panel"><a href="#">Manager</a></li>
+    		<li class="left_panel"><a href="#">Vendsy representative</a></li>
+    		<li class="left_panel"><a href="#">Menu</a></li>
+    		<li class="left_panel"><a href="#">Orders</a></li>
+    		<li class="left_panel"><a href="#">Bank account</a></li>
+    		<li class="left_panel"><a href="#">WiFi</a></li>
+  		</ul>
+	</div>
+			
+	<div class="right_container">
+		
+		<div class="right_con_leftpart">
+			<div><g:img dir="images" file="apple-touch-icon-retina.png" /></div>
+			<div><g:submitButton name="Edit Image" value="Edit Image" class="edit_btn" /></div>
+		</div>
+		
+		<div class="right_con_rightpart">
+				
+			<div class="margin_btm">
+				<div class="left"><g:message code="name.label" default="Name"/> : </div>
+				<div class="left" style="margin-left:30px;"><input type="text" name="" class="txt-field rewards" ></div>
+				<div class="clr"></div>
+			</div>
+				
+			<div class="margin_btm">
+				<div class="left"><g:message code="address.label" default="Address"/> :</div>
+				<div class="left" style="margin-left:18px;"><textarea></textarea></div>
+				<div class="clr"></div>
+			</div>
+				
+			<div class="margin_btm">
+				<div class="left"><g:message code="hours.label" default="Hours"/> : </div>
+				<div class="left" style="margin-left:30px;"> M &nbsp<input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> to <input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+				 T &nbsp<input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> to <input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/>	<br/>			
+				 W &nbsp<input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> to <input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+				 T &nbsp<input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> to <input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> <br/>
+				 F &nbsp&nbsp<input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> to <input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+				 S &nbsp<input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> to <input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> <br/>
+				 S &nbsp&nbsp<input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> to <input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/>
+				</div>
+				<div class="clr"></div>
+			</div>
+				 	
+			<div><g:submitButton name="update" type="button" value="Update" class="update_btn" action="saveVenueConfig" /></div>
+				 				
+		</div>
+		<div class="clr"></div>
+		
+	</div>
+	<div class="clr"></div>
+</g:form>
+</div>
 </body>
 </html>
