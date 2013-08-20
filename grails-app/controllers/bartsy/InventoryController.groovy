@@ -245,24 +245,33 @@ class InventoryController {
 		try{
 			def json =  JSON.parse(request)
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
-			if(Integer.parseInt(apiVersion.value) == Integer.parseInt(json.apiVersion.toString())){
-				def venue = Venue.findByVenueId(json.venueId)
+			if(apiVersion.value.equalsIgnoreCase(json.apiVersion.toString())){
+				def venue = Venue.findByVenueId(json.venueId.toString().trim())
+				println "venue "+venue
+				println"venue_id "+json.venueId
 				if(venue) {
 					if(json.menuName){
 						if(json.itemsList){
 							def menuName=json.menuName
 							def menu = SpecialMenus.findByMenuNameAndVenue(menuName,venue)
-
-							if(false){
-								def cocktails = json.cocktails
+							if(!menu){
+								menu = new SpecialMenus()
+								menu.setVenue(venue)
+								menu.setMenuName(menuName)
+								menu.save(flush:true)
+							}
+							if(true){
+								def cocktails = json.itemsList
 								if(cocktails) {
 									def failedcocks=[]
 									cocktails.each{
 										def cocktail =  it
-										def cocktailsToSave = Cocktails.findByCocktailIdAndVenue(Long.parseLong(cocktail.cocktailId),venue)
+										println"cocktail "+cocktail.cocktailId
+										def cocktailsToSave = SpecialMenuItems.findByMenuItemIdAndVenueAndSpecialMenu(Long.parseLong(cocktail.cocktailId),venue,menu)
 										if(cocktailsToSave){
 											cocktailsToSave.setPrice(Float.parseFloat(cocktail.price))
 											cocktailsToSave.setAvailable(cocktail.available)
+											cocktailsToSave.save(flush:true)
 										}
 										else{
 											if(cocktail.ingredients && cocktail.shopping){
@@ -272,8 +281,8 @@ class InventoryController {
 												def categories = checkForCategorys(categoryList)
 												if(categories){
 													//def ingForcheck = Ingredients.findByName(ingredint)
-													cocktailsToSave =  new Cocktails()
-													cocktailsToSave.setCocktailId(cocktail.name?Long.parseLong(cocktail.cocktailId):0.0)
+													cocktailsToSave =  new SpecialMenuItems()
+													cocktailsToSave.setMenuItemId(cocktail.name?Long.parseLong(cocktail.cocktailId):0.0)
 													cocktailsToSave.setName(cocktail.name?cocktail.name:"")
 													cocktailsToSave.setCategory(cocktail.category?cocktail.category:"")
 													cocktailsToSave.setGlass(cocktail.glass?cocktail.glass:"")
@@ -285,6 +294,7 @@ class InventoryController {
 													cocktailsToSave.setDescription(categories.description?categories.description:"")
 													cocktailsToSave.setShopping(categories.categorys?categories.categorys:"")
 													cocktailsToSave.setVenue(venue)
+													cocktailsToSave.setSpecialMenu(menu)
 
 													if(!cocktailsToSave.save(flush:true)) {
 														failedcocks.add(cocktail.cocktailId)
@@ -297,11 +307,11 @@ class InventoryController {
 									}
 									if(failedcocks && failedcocks.size()>0){
 										response.put("errorCode","1")
-										response.put("errorMessage","Cocktails not saved successfully")
+										response.put("errorMessage","Menu not saved")
 										response.put("failedCocktails",failedcocks)
 									}else{
 										response.put("errorCode","0")
-										response.put("errorMessage","Cocktails saved successfully")
+										response.put("errorMessage","Menu saved successfully")
 										sendPnToConsumer(venue)
 									}
 								}
