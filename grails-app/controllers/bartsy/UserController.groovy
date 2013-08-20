@@ -67,40 +67,90 @@ class UserController {
 						//check if user profile present based on given credentials
 						if(userProfile) {
 							//if user profile present, update it with values sent in the syscall request
-													userProfile.setName(json.name ?: "")
-							userProfile.setFirstName(json.firstname ?: "")
-							userProfile.setLastName(json.lastname ?: "")
-							userProfile.setDateOfBirth(json.dateofbirth ?: "")
-							userProfile.setNickName(json.nickname ?: "")
-							userProfile.setDescription(json.description ?: "")
-							userProfile.setOrientation(json.orientation ?: "")
-							userProfile.setStatus(json.status ?: "")
-							userProfile.setGoogleId(json.googleId ?json.googleId.trim(): "")
-							userProfile.setFacebookId(json.facebookId?json.facebookId.trim() : "")
-							userProfile.setFacebookUserName(json.facebookUserName ?: "")
-							userProfile.setGoogleUserName(json.googleUserName ?: "")
-							userProfile.setBartsyPassword(json.bartsyPassword.toString() ?: "")
-							userProfile.setBartsyLogin(json.bartsyLogin ?: "")
-							userProfile.setZipCode(json.zipCode ?: "")
-							userProfile.setHomeCity(json.homeCity ?: "")
-							userProfile.setState(json.state ?: "")
-							userProfile.setEthnicity(json.ethnicity ?: "")
-							//userProfile.setRedactedCardNumber(json.has("redactedCardNumber")?json.redactedCardNumber:"")
+							if(json.name){
+								userProfile.setName(json.name ?: "")
+							}
+							if(json.firstname){
+								userProfile.setFirstName(json.firstname ?: "")
+							}
+							if(json.lastname){
+								userProfile.setLastName(json.lastname ?: "")
+							}
+							if(json.dateofbirth){
+								userProfile.setDateOfBirth(json.dateofbirth ?: "")
+							}
+							if(json.nickname){
+								userProfile.setNickName(json.nickname ?: "")
+							}
+							if(json.description){
+								userProfile.setDescription(json.description ?: "")
+							}
+							if(json.orientation){
+								userProfile.setOrientation(json.orientation ?: "")
+							}
+							if(json.status){
+								userProfile.setStatus(json.status ?: "")
+							}
+							if(json.googleId){
+								userProfile.setGoogleId(json.googleId ?json.googleId.trim(): "")
+							}
+							if(json.facebookId){
+								userProfile.setFacebookId(json.facebookId?json.facebookId.trim() : "")
+							}
+							if(json.facebookUserName){
+								userProfile.setFacebookUserName(json.facebookUserName ?: "")
+							}
+							if(json.googleUserName){
+								userProfile.setGoogleUserName(json.googleUserName ?: "")
+							}
+							if(json.bartsyPassword){
+								userProfile.setBartsyPassword(json.bartsyPassword.toString() ?: "")
+							}
+							if(json.bartsyLogin){
+								userProfile.setBartsyLogin(json.bartsyLogin ?: "")
+							}
+							if(json.zipCode){
+								userProfile.setZipCode(json.zipCode.toString() ?: "")
+							}
+							if(json.homeCity){
+								userProfile.setHomeCity(json.homeCity ?: "")
+							}
+							if(json.state){
+								userProfile.setState(json.state ?: "")
+							}
+							if(json.ethnicity){
+								userProfile.setEthnicity(json.ethnicity ?: "")
+							}
+							if(json.redactedCardNumber){
+								userProfile.setRedactedCardNumber(json.redactedCardNumber)
+							}
 							if(json.has("email") && !json.email.equals(userProfile.email)){
 								userProfile.setEmail(json.email ?: "")
 								emailUpdated = true
 							}
-							userProfile.setGender(json.gender ?: "")
-							userProfile.setDeviceToken(json.deviceToken ?: "")
-							userProfile.setDeviceType(json.deviceType as int)
+							if(json.gender){
+								userProfile.setGender(json.gender)
+							}
+							if(json.deviceToken){
+								userProfile.setDeviceToken(json.deviceToken ?: "")
+							}
+							if(json.deviceType){
+								userProfile.setDeviceType(json.deviceType as int)
+							}
 
 							if(json.creditCardNumber && json.creditCardNumber.toString().length()>0)
 							{
 								userProfile.setCreditCardNumber(json.creditCardNumber.toString())
 							}
-							userProfile.setEncryptedCreditCard(json.encryptedCreditCard.toString() ?: "")
-							userProfile.setExpMonth(json.expMonth.toString() ?: "")
-							userProfile.setExpYear(json.expYear.toString() ?: "")
+							if(json.encryptedCreditCard){
+								userProfile.setEncryptedCreditCard(json.encryptedCreditCard.toString() ?: "")
+							}
+							if(json.expMonth){
+								userProfile.setExpMonth(json.expMonth.toString())
+							}
+							if(json.expYear){
+								userProfile.setExpYear(json.expYear.toString())
+							}
 							userProfile.setSessionCode(sessionCode)
 							//code to read the image file sent in the request to the syscall and save it locally
 							def webRootDir = servletContext.getRealPath("/")
@@ -171,7 +221,7 @@ class UserController {
 							userProfileToSave.setSessionCode(sessionCode)
 							userProfileToSave.setEmailVerified("false")
 
-							userProfileToSave.setZipCode(json.zipCode ?: "")
+							userProfileToSave.setZipCode(json.zipCode.toString() ?: "")
 							userProfileToSave.setHomeCity(json.homeCity ?: "")
 							userProfileToSave.setState(json.state ?: "")
 							userProfileToSave.setEthnicity(json.ethnicity ?: "")
