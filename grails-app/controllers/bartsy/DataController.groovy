@@ -137,6 +137,7 @@ class DataController {
 		def response = [:]
 		try{
 			def json = JSON.parse(request)
+			println"json "+json
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
 				def venueId = json.venueId
@@ -144,6 +145,8 @@ class DataController {
 				def venue = Venue.findByVenueId(venueId.toString())
 				def bartsyId=json.bartsyId
 				def userProfile = UserProfile.findByBartsyId(bartsyId)
+				println"venue "+venue
+				println"userProfile "+userProfile
 				if(venue && userProfile){
 					def checkedInUsers = CheckedInUsers.findAllByVenueAndStatus(venue,1)
 					println"checkedInUsers "+checkedInUsers.size()
@@ -167,6 +170,13 @@ class DataController {
 							checkedInUsersMap.put("dateOfBirth",checkedInUser.userProfile.dateOfBirth)
 							checkedInUsersMap.put("showProfile",checkedInUser.userProfile.showProfile)
 							checkedInUsersMap.put("currentTime",new Date().toGMTString())
+							CommonMethods commonMethods = new CommonMethods()
+							def age
+							if(checkedInUser.userProfile.getDateOfBirth())
+								age= commonMethods.getAge(checkedInUser.userProfile.getDateOfBirth())
+							if(age){
+								checkedInUsersMap.put("age",age)
+							}
 
 							def userReadMessages = Messages.findAllBySenderAndReceiverAndStatus(checkedInUser.userProfile,userProfile,1)
 							def userUnReadMessages = Messages.findAllBySenderAndReceiverAndStatus(checkedInUser.userProfile,userProfile,0)

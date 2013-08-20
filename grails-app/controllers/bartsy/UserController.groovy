@@ -1092,7 +1092,6 @@ class UserController {
 			def apiVersionNumber=json.apiVersion
 
 			if(json){
-				println"json"
 				if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
 					if(json.has("bartsyId")){
 						def bartsyId = json.bartsyId
@@ -1106,8 +1105,9 @@ class UserController {
 							response.put("errorCode", 0)
 							response.put("bartsyId", bartsyId)
 							response.put("gender", userProfile.getGender())
-							if(age)
+							if(age){
 								response.put("age", age)
+							}
 							response.put("orientation", userProfile.getOrientation())
 							response.put("showProfile", userProfile.getShowProfile())
 							response.put("userImagePath", userProfile.getUserImage())
