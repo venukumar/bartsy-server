@@ -58,8 +58,7 @@ class OrderController {
 						String items
 						if(json.totalPrice && common.isInteger(json.totalPrice)){
 
-							def maxId = Orders.createCriteria().get { projections { max "orderId"
-								} } as Long
+							def maxId = Orders.createCriteria().get { projections { max "orderId" } } as Long
 							if(maxId){
 								maxId = maxId+1
 							}else{
@@ -327,10 +326,12 @@ class OrderController {
 					def text = option.text
 					if(text){
 						def categoryObj = IngredientCategory.findByCategory(text.trim())
-						if(category && !category.contains(categoryObj.id.toString())){
-							category = category+","+categoryObj.id
-						}else{
-							category = categoryObj.id
+						if(categoryObj){
+							if(category && !category.contains(categoryObj.id.toString())){
+								category = category+","+categoryObj.id
+							}else{
+								category = categoryObj.id
+							}
 						}
 					}
 					def options = option.options
