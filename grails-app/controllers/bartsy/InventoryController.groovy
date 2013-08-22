@@ -87,94 +87,93 @@ class InventoryController {
 		}
 		render(text:response as JSON, contentType:"application/json")
 	}
-/*	def saveCocktails= {
-		def response = [:]
-		try{
-			def json =  JSON.parse(request)
-			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
-			if(Integer.parseInt(apiVersion.value) == Integer.parseInt(json.apiVersion.toString())){
-				def venue = Venue.findByVenueId(json.venueId)
-				if(venue) {
-					def ing = Ingredients.findAllByVenue(venue)
-					if(ing && ing.size()>0){
-						def cocktails = json.cocktails
-						if(cocktails) {
-							def failedcocks=[]
-							cocktails.each{
-								def cocktail =  it
-								def cocktailsToSave = Cocktails.findByCocktailIdAndVenue(Long.parseLong(cocktail.cocktailId),venue)
-								if(cocktailsToSave){
-									cocktailsToSave.setPrice(Float.parseFloat(cocktail.price))
-									cocktailsToSave.setAvailable(cocktail.available)
-								}
-								else{
-									if(cocktail.ingredients && cocktail.shopping){
-										println"cocktail.shopping "+cocktail.shopping
-										//def strIngr = cocktail.ingredients.trim().split(",")
-										def categoryList = cocktail.shopping.trim().split(",")
-										def categories = checkForCategorys(categoryList)
-										if(categories){
-											//def ingForcheck = Ingredients.findByName(ingredint)
-											cocktailsToSave =  new Cocktails()
-											cocktailsToSave.setCocktailId(cocktail.name?Long.parseLong(cocktail.cocktailId):0.0)
-											cocktailsToSave.setName(cocktail.name?cocktail.name:"")
-											cocktailsToSave.setCategory(cocktail.category?cocktail.category:"")
-											cocktailsToSave.setGlass(cocktail.glass?cocktail.glass:"")
-											cocktailsToSave.setAlcohol(cocktail.alcohol?cocktail.alcohol:"")
-											cocktailsToSave.setInstructions(cocktail.instructions?cocktail.instructions:"")
-											cocktailsToSave.setPrice(cocktail.price?Float.parseFloat(cocktail.price):0.0)
-											cocktailsToSave.setAvailable(cocktail.available?cocktail.available:"false")
-											cocktailsToSave.setIngredients(cocktail.ingredients)
-											cocktailsToSave.setDescription(categories.description?categories.description:"")
-											cocktailsToSave.setShopping(categories.categorys?categories.categorys:"")
-											cocktailsToSave.setVenue(venue)
-
-											if(!cocktailsToSave.save(flush:true)) {
-												failedcocks.add(cocktail.cocktailId)
-											}
-										}
-									}else{
-										failedcocks.add(cocktail.cocktailId)
-									}
-								}
-							}
-							if(failedcocks && failedcocks.size()>0){
-								response.put("errorCode","1")
-								response.put("errorMessage","Cocktails not saved successfully")
-								response.put("failedCocktails",failedcocks)
-							}else{
-								response.put("errorCode","0")
-								response.put("errorMessage","Cocktails saved successfully")
-								sendPnToConsumer(venue)
-							}
-						}
-						else{
-							response.put("errorCode","1")
-							response.put("errorMessage","No Cocktails to Save")
-						}
-					}else
-					{
-						response.put("errorCode","1")
-						response.put("errorMessage","Please upload ingredients First")
-					}
-				}else{
-					response.put("errorCode","1")
-					response.put("errorMessage","Venue does not exists")
-				}
-			}
-			else{
-				response.put("errorCode","100")
-				response.put("errorMessage","API version do not match")
-			}
-			response.put("currentTime",new Date().toGMTString())
-		}
-		catch(Exception e){
-			log.info("Exception is ===> "+e.getMessage())
-			response.put("errorCode",200)
-			response.put("errorMessage",e.getMessage())
-		}
-		render(text:response as JSON, contentType:"application/json")
-	}*/
+	/*	def saveCocktails= {
+	 def response = [:]
+	 try{
+	 def json =  JSON.parse(request)
+	 def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+	 if(Integer.parseInt(apiVersion.value) == Integer.parseInt(json.apiVersion.toString())){
+	 def venue = Venue.findByVenueId(json.venueId)
+	 if(venue) {
+	 def ing = Ingredients.findAllByVenue(venue)
+	 if(ing && ing.size()>0){
+	 def cocktails = json.cocktails
+	 if(cocktails) {
+	 def failedcocks=[]
+	 cocktails.each{
+	 def cocktail =  it
+	 def cocktailsToSave = Cocktails.findByCocktailIdAndVenue(Long.parseLong(cocktail.cocktailId),venue)
+	 if(cocktailsToSave){
+	 cocktailsToSave.setPrice(Float.parseFloat(cocktail.price))
+	 cocktailsToSave.setAvailable(cocktail.available)
+	 }
+	 else{
+	 if(cocktail.ingredients && cocktail.shopping){
+	 println"cocktail.shopping "+cocktail.shopping
+	 //def strIngr = cocktail.ingredients.trim().split(",")
+	 def categoryList = cocktail.shopping.trim().split(",")
+	 def categories = checkForCategorys(categoryList)
+	 if(categories){
+	 //def ingForcheck = Ingredients.findByName(ingredint)
+	 cocktailsToSave =  new Cocktails()
+	 cocktailsToSave.setCocktailId(cocktail.name?Long.parseLong(cocktail.cocktailId):0.0)
+	 cocktailsToSave.setName(cocktail.name?cocktail.name:"")
+	 cocktailsToSave.setCategory(cocktail.category?cocktail.category:"")
+	 cocktailsToSave.setGlass(cocktail.glass?cocktail.glass:"")
+	 cocktailsToSave.setAlcohol(cocktail.alcohol?cocktail.alcohol:"")
+	 cocktailsToSave.setInstructions(cocktail.instructions?cocktail.instructions:"")
+	 cocktailsToSave.setPrice(cocktail.price?Float.parseFloat(cocktail.price):0.0)
+	 cocktailsToSave.setAvailable(cocktail.available?cocktail.available:"false")
+	 cocktailsToSave.setIngredients(cocktail.ingredients)
+	 cocktailsToSave.setDescription(categories.description?categories.description:"")
+	 cocktailsToSave.setShopping(categories.categorys?categories.categorys:"")
+	 cocktailsToSave.setVenue(venue)
+	 if(!cocktailsToSave.save(flush:true)) {
+	 failedcocks.add(cocktail.cocktailId)
+	 }
+	 }
+	 }else{
+	 failedcocks.add(cocktail.cocktailId)
+	 }
+	 }
+	 }
+	 if(failedcocks && failedcocks.size()>0){
+	 response.put("errorCode","1")
+	 response.put("errorMessage","Cocktails not saved successfully")
+	 response.put("failedCocktails",failedcocks)
+	 }else{
+	 response.put("errorCode","0")
+	 response.put("errorMessage","Cocktails saved successfully")
+	 sendPnToConsumer(venue)
+	 }
+	 }
+	 else{
+	 response.put("errorCode","1")
+	 response.put("errorMessage","No Cocktails to Save")
+	 }
+	 }else
+	 {
+	 response.put("errorCode","1")
+	 response.put("errorMessage","Please upload ingredients First")
+	 }
+	 }else{
+	 response.put("errorCode","1")
+	 response.put("errorMessage","Venue does not exists")
+	 }
+	 }
+	 else{
+	 response.put("errorCode","100")
+	 response.put("errorMessage","API version do not match")
+	 }
+	 response.put("currentTime",new Date().toGMTString())
+	 }
+	 catch(Exception e){
+	 log.info("Exception is ===> "+e.getMessage())
+	 response.put("errorCode",200)
+	 response.put("errorMessage",e.getMessage())
+	 }
+	 render(text:response as JSON, contentType:"application/json")
+	 }*/
 
 
 	/**
@@ -197,7 +196,7 @@ class InventoryController {
 					pnMessage.put("body",body)
 					if(user.deviceType == 1 ){
 						try{
-							pnMessage.put(CommonConstants.UN_READ_NOTIFICATIONS, common.getNotifictionCount(recieverUserprofile))
+							pnMessage.put(CommonConstants.UN_READ_NOTIFICATIONS, common.getNotifictionCount(user))
 							applePNService.sendPN(pnMessage, user.deviceToken, "1", body)
 						}catch(Exception e){
 							log.info("Exception "+e.getMessage())
@@ -205,7 +204,6 @@ class InventoryController {
 					}else{
 						androidPNService.sendPN(pnMessage,user.deviceToken)
 					}
-
 				}
 			}
 		}
@@ -281,7 +279,7 @@ class InventoryController {
 										else{
 											if(cocktail.ingredients && cocktail.shopping){
 												println"cocktail.shopping "+cocktail.shopping
-												
+
 												//def strIngr = cocktail.ingredients.trim().split(",")
 												def categoryList = cocktail.shopping.trim().split(",")
 												def categories = checkForCategorys(categoryList)
@@ -469,52 +467,52 @@ class InventoryController {
 	/**
 	 * To get the list of cocktails from DB and send to the client
 	 */
-/*	def getCocktails={
-		def response = [:]
-		try{
-			// To get request from client
-			def json = JSON.parse(request)
-			try{
-				println"params "+params
-				println"json "+json
-				def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
-				println"apiVersion "+apiVersion.value
-				println"api json  "+json.apiVersion
-				if(Integer.parseInt(apiVersion.value) == Integer.parseInt(json.apiVersion)){
-					// get requested venue id from the json
-					def venueId=json.venueId.toString()
-					println"venueId "+venueId
-					// created a map object for returning the response
-					// checking if the venue ID is null or not
-					if(venueId){
-						println"IF"
-						response=inventoryService.getCocktails(venueId);
-					}else{
-						response.put("errorCode", 1)
-						response.put("errorMessage", "Vneue ID is empty or null")
-					}
-				}
-				else{
-					response.put("errorCode","100")
-					response.put("errorMessage","API version do not match")
-				}
-				response.put("currentTime",new Date().toGMTString())
-			}
-			catch(Exception e){
-				log.info("Exception is ===> "+e.getMessage())
-				println "Exception is ===> "+e.getMessage()
-				response.put("errorCode",200)
-				response.put("errorMessage",e.getMessage())
-			}
-		}
-		catch(Exception e){
-			log.info("Exception is ===> "+e.getMessage())
-			println "Exception is ===> "+e.getMessage()
-			response.put("errorCode",200)
-			response.put("errorMessage",e.getMessage())
-		}
-		render(text:response as JSON, contentType:"application/json")
-	}*/
+	/*	def getCocktails={
+	 def response = [:]
+	 try{
+	 // To get request from client
+	 def json = JSON.parse(request)
+	 try{
+	 println"params "+params
+	 println"json "+json
+	 def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+	 println"apiVersion "+apiVersion.value
+	 println"api json  "+json.apiVersion
+	 if(Integer.parseInt(apiVersion.value) == Integer.parseInt(json.apiVersion)){
+	 // get requested venue id from the json
+	 def venueId=json.venueId.toString()
+	 println"venueId "+venueId
+	 // created a map object for returning the response
+	 // checking if the venue ID is null or not
+	 if(venueId){
+	 println"IF"
+	 response=inventoryService.getCocktails(venueId);
+	 }else{
+	 response.put("errorCode", 1)
+	 response.put("errorMessage", "Vneue ID is empty or null")
+	 }
+	 }
+	 else{
+	 response.put("errorCode","100")
+	 response.put("errorMessage","API version do not match")
+	 }
+	 response.put("currentTime",new Date().toGMTString())
+	 }
+	 catch(Exception e){
+	 log.info("Exception is ===> "+e.getMessage())
+	 println "Exception is ===> "+e.getMessage()
+	 response.put("errorCode",200)
+	 response.put("errorMessage",e.getMessage())
+	 }
+	 }
+	 catch(Exception e){
+	 log.info("Exception is ===> "+e.getMessage())
+	 println "Exception is ===> "+e.getMessage()
+	 response.put("errorCode",200)
+	 response.put("errorMessage",e.getMessage())
+	 }
+	 render(text:response as JSON, contentType:"application/json")
+	 }*/
 
 	/*
 	 *  To get the special menus in menu format
