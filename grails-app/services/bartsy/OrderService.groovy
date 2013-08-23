@@ -69,139 +69,145 @@ class OrderService {
 					def recentOrder=it
 					def itemsOfOrder=OrderItems.findAllByOrder(recentOrder)
 					if(itemsOfOrder){
-
 						itemsOfOrder.each{
-							def order=it
-							def contentsMap=[:]
-							if(order.title){
-								contentsMap.put("title",order.title)
-							}
-							contentsMap.put("type",order.type)
-							if(order.quantity){
-								contentsMap.put("quantity",order.quantity)
-							}
-							if(order.itemName){
-								contentsMap.put("itemName",order.itemName)
-							}
-							if(order.name){
-								contentsMap.put("name",order.name)
-							}
-							if(order.specialInstructions){
-								contentsMap.put("special_instructions",order.specialInstructions)
-							}
-							contentsMap.put("price","0.0")
 
-							def options_group=[]
-							float price=0.0
-							def category = order.categorys
-							if(category){
-								if(order.description){
-									contentsMap.put("description",order.description)
-								}else if (order.optionDescription){
-									contentsMap.put("options_description",order.optionDescription)
-								}
-								def categoryList = category.trim().split(",")
-								if(categoryList){
-									println"categoryList "+categoryList
-									boolean categoryCheck=false
-									categoryList.each {
-										def categoryId = it
-										def categoryObj=IngredientCategory.findById(categoryId)
-										if(categoryObj){
-											println"categoryObj "+categoryObj.category
-											if(!contentsMap.containsKey("name")){
-												contentsMap.put("name", categoryObj.category)
-											}
-											def options=[]
-											def ingredients = Ingredients.findAllByCategoryAndVenue(categoryObj,venue)
-											boolean check=false
-											ingredients.each{
-												def ingredient = it
-												def ingredientMap = [:]
-												if(ingredient.available.equals("true")){
-													//ingredientMap.put("id",ingredient.id)
-													ingredientMap.put("name",ingredient.name)
-													if(ingredient.price > 1.0){
-														ingredientMap.put("price",ingredient.price.toString())
+							def order=it
+							if(order.type){
+								if(order.type.equalsIgnoreCase("BARTSY_ITEM") || venue.venueId.toString().equalsIgnoreCase(order.order.venue.venueId) ){
+									def contentsMap=[:]
+									if(order.title){
+										contentsMap.put("title",order.title)
+									}
+									if(order.quantity){
+										contentsMap.put("quantity",order.quantity)
+									}
+									if(order.itemName){
+										contentsMap.put("itemName",order.itemName)
+									}
+									if(order.name){
+										contentsMap.put("name",order.name)
+									}
+									if(order.specialInstructions){
+										contentsMap.put("special_instructions",order.specialInstructions)
+									}
+									contentsMap.put("price","0.0")
+
+									def options_group=[]
+									float price=0.0
+									def category = order.categorys
+									if(category){
+										contentsMap.put("type",order.type)
+										if(order.description){
+											contentsMap.put("description",order.description)
+										}else if (order.optionDescription){
+											contentsMap.put("options_description",order.optionDescription)
+										}
+										def categoryList = category.trim().split(",")
+										if(categoryList){
+											println"categoryList "+categoryList
+											boolean categoryCheck=false
+											categoryList.each {
+												def categoryId = it
+												def categoryObj=IngredientCategory.findById(categoryId)
+												if(categoryObj){
+													println"categoryObj "+categoryObj.category
+													if(!contentsMap.containsKey("name")){
+														contentsMap.put("name", categoryObj.category)
 													}
-													if(order.selectedItems){
-														def selectedItems=order.selectedItems.toString().split(",")
-														if(selectedItems.contains(ingredient.name)){
-															//ingredientMap.put("text","Recommended")
-															ingredientMap.put("selected",Boolean.TRUE)
-															if(ingredient.price)
-																price=price+Float.parseFloat(ingredient.price.toString())
-															check=true
-															categoryCheck=true
+													def options=[]
+													def ingredients = Ingredients.findAllByCategoryAndVenue(categoryObj,venue)
+													boolean check=false
+													ingredients.each{
+														def ingredient = it
+														def ingredientMap = [:]
+														if(ingredient.available.equals("true")){
+															//ingredientMap.put("id",ingredient.id)
+															ingredientMap.put("name",ingredient.name)
+															if(ingredient.price > 1.0){
+																ingredientMap.put("price",ingredient.price.toString())
+															}
+															if(order.selectedItems){
+																def selectedItems=order.selectedItems.toString().split(",")
+																if(selectedItems.contains(ingredient.name)){
+																	//ingredientMap.put("text","Recommended")
+																	ingredientMap.put("selected",Boolean.TRUE)
+																	if(ingredient.price)
+																		price=price+Float.parseFloat(ingredient.price.toString())
+																	check=true
+																	categoryCheck=true
+																}
+															}
+															options.add(ingredientMap)
 														}
 													}
-													options.add(ingredientMap)
-												}
-											}
 
-											if(!check){
-												if(order.selectedItems && order.basePrice &&  order.basePrice.equalsIgnoreCase("0.0") ){
-													if(!categoryCheck && options && options.size()>0){
-														categoryCheck=true
-														def ingredientObj = options[0]
-														ingredientObj.put("selected",Boolean.TRUE)
-														if(ingredientObj.price)
-															price=price+Float.parseFloat(ingredientObj.price.toString())
+													if(!check){
+														if(order.selectedItems && order.basePrice &&  order.basePrice.equalsIgnoreCase("0.0") ){
+															if(!categoryCheck && options && options.size()>0){
+																categoryCheck=true
+																def ingredientObj = options[0]
+																ingredientObj.put("selected",Boolean.TRUE)
+																if(ingredientObj.price)
+																	price=price+Float.parseFloat(ingredientObj.price.toString())
+															}
+														}
+													}
+
+													if(options.size()>0){
+														def options_groups_map=[:]
+														//options_groups_map.put("type","OPTION_SELECT")
+														if(categoryObj.category.toString().contains("Add-ons"))
+															options_groups_map.put("type","OPTION_ADD")
+														else
+															options_groups_map.put("type","OPTION_CHOOSE")
+
+														options_groups_map.put("text",categoryObj.category)
+														options_groups_map.put("options",options)
+
+														options_group.add(options_groups_map)
 													}
 												}
 											}
-		
-											if(options.size()>0){
-												def options_groups_map=[:]
-												//options_groups_map.put("type","OPTION_SELECT")
-												if(categoryObj.category.toString().contains("Add-ons"))
-													options_groups_map.put("type","OPTION_ADD")
-												else
-													options_groups_map.put("type","OPTION_CHOOSE")
-
-												options_groups_map.put("text",categoryObj.category)
-												options_groups_map.put("options",options)
-
-												options_group.add(options_groups_map)
-											}
-										}
-									}
-									contentsMap.put("order_price",price.toString())
-									contentsMap.put("option_groups",options_group)
-									contents.add(contentsMap)
-								}
-							}else{
-								if(order.itemList){
-									println"order.itemList "+order.itemList
-									def itemsList = new JSONObject(order.itemList)
-									if(itemsList){
-										def locuMenu = JSON.parse(URLDecoder.decode(venue.locuMenu))
-										if(locuMenu.toString().contains(itemsList.itemName)){
-											contentsMap.put("price",itemsList.price)
-											if(itemsList.description){
-												contentsMap.put("description",itemsList.description)
-											}
-											
-											if (itemsList.options_description){
-												contentsMap.put("options_description",itemsList.options_description)
-											}
-											
-											if(itemsList.itemName){
-												contentsMap.put("name",itemsList.itemName)
-											}
-											if(itemsList.specialInstructions){
-												contentsMap.put("special_instructions",itemsList.specialInstructions)
-											}
-											contentsMap.put("type","ITEM")
+											contentsMap.put("order_price",price.toString())
 											contentsMap.put("option_groups",options_group)
-
 											contents.add(contentsMap)
 										}
+									}else{
+										if(order.itemList){
+											println"order.itemListccc "+order
+											def itemsList = new JSONObject(order.itemList)
+											if(itemsList){
+												def locuMenu = JSON.parse(URLDecoder.decode(venue.locuMenu))
+												if(locuMenu.toString().contains(itemsList.itemName)){
+													if(itemsList.price){
+														contentsMap.put("price",itemsList.price)
+													}
+													if(itemsList.description){
+														contentsMap.put("description",itemsList.description)
+													}
 
+													if (itemsList.options_description){
+														contentsMap.put("options_description",itemsList.options_description)
+													}
+
+													if(itemsList.itemName){
+														contentsMap.put("name",itemsList.itemName)
+													}
+													if(itemsList.specialInstructions){
+														contentsMap.put("special_instructions",itemsList.specialInstructions)
+													}
+													contentsMap.put("type",itemsList.type)
+													contentsMap.put("option_groups",options_group)
+
+													contents.add(contentsMap)
+												}
+
+											}
+											//subSectionMap.put("contents",contents)
+											//subSections.add(subSectionMap)
+											//sectionMap.put("subsections",subSections)
+										}
 									}
-									//subSectionMap.put("contents",contents)
-									//subSections.add(subSectionMap)
-									//sectionMap.put("subsections",subSections)
 								}
 							}
 						}
