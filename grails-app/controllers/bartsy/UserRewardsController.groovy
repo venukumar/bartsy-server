@@ -153,9 +153,11 @@ class UserRewardsController {
 										if(user.emailVerified.toString().equalsIgnoreCase("true")){
 											def rewardsDetails = UserRewardPoints.createCriteria().list() {
 												eq("user", user)
+												and{
+												eq("venue",venue)
+												}
 												projections {
 													sum("rewardPoints")
-													groupProperty("venue")
 												}
 											}
 											if(rewardsDetails){
