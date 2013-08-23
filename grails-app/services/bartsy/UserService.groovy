@@ -50,4 +50,51 @@ class UserService {
 			return map
 		}
 	}
+
+	/**
+	 *  To get venue rewards
+	 */
+
+	def getVenueRewards(Venue venue){
+		def output=[:]
+		try{
+			def venueRewards = VenueConfig.findAllByVenue(venue)
+			if(venueRewards){
+				def rewards=[]
+				venueRewards.each {
+					def venueReward = it
+					def rewardObj = [:]
+					
+					if(venueReward.type){
+						rewardObj.put("type",venueReward.type)
+					}
+					if(venueReward.rewardPoints){
+						rewardObj.put("points",venueReward.rewardPoints)
+					}
+					if(venueReward.value){
+						rewardObj.put("value",venueReward.value)
+					}
+					if(venueReward.description){
+						rewardObj.put("text",venueReward.description)
+					}
+					println"rewardObj "+rewardObj
+					//if(rewardObj.)
+					rewards.add(rewardObj)
+				}
+				println"rewards "+rewards
+				output.put("errorCode",0)
+				output.put("errorMessage","Venue rewards available")
+				output.put("rewards",rewards)
+			}else{
+				output.put("errorCode",5)
+				output.put("errorMessage","No venue rewards available")
+			}
+		}catch(Exception e){
+			log.info("Exception found in getVenueRewards service "+e.getMessage())
+			common.exceptionFound(e,output)
+		}
+		println"output "+output
+		return output
+	}
+
 }
