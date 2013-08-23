@@ -20,7 +20,6 @@ class CommonMethods {
 		return user
 	}
 	def exceptionFound(e,response){
-		println"Exception found in getUserRewards "+e.getMessage()
 		response.put("errorCode",200)
 		response.put("errorMessage",e.getMessage())
 	}
@@ -209,11 +208,12 @@ class CommonMethods {
 			//else{
 			userRewardsPoints = new UserRewardPoints()
 			//}
-			userRewardsPoints.setVenue(order.venue)
-			userRewardsPoints.setUser(order.user)
 			userRewardsPoints.setOrder(order)
 			userRewardsPoints.setRewardPoints(rewards)
+			userRewardsPoints.setBartsyPoints(rewards)
 			userRewardsPoints.save(flush:true)
+			
+			
 		}
 	}
 
