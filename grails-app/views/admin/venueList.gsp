@@ -8,6 +8,7 @@
 </head>
 <body>
 	<h2>Venue List</h2>
+	<!--  <div><g:link action="venueConfig">Add</g:link></div>-->
 	<g:if test="${flash.message}">
 		<div class="message" role="status">
 			${flash.message}
@@ -57,8 +58,9 @@
           			<td style="text-align:center">
 						  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="actions-tbl">
  			 				<tr>
-		         				<td width="30%"><g:link action="venueConfig" id="${venue.venueId}">Venue Config</g:link></td>
-   				 				<td width="30%"><g:link class="edit" action="edit" id="${venue.id}"><g:message code="editbutton.title" default="Edit" /></g:link></td>
+		         				<td width="30%"><g:link action="venueConfig" params="${[vc:1]}" id="${venue.venueId}"><g:message code="settings.label" default="Settings" /></g:link></td>
+								<td width="30%"><g:link action="venueRewards" id="${venue.venueId}"><g:message code="rewards.label" default="Rewards" /></g:link></td>
+   				 				<!--<td width="30%"><g:link class="edit" action="edit" id="${venue.id}"><g:message code="editbutton.title" default="Edit" /></g:link></td>-->
    				 				<td width="40%"><g:link class="delete" action="delete" id="${venue.id}" onclick="return confirm('${message(code: 'default.button.delete.sender.message', default: 'Are you sure you wish to delete this Venue?')}');"><g:message code="deletebutton.title" default="Delete" /></g:link></td>
   							</tr>
 						</table>

@@ -222,6 +222,128 @@ class AdminController {
 	}
 	
 	/**
+	 * Method to retrieve venue rewards
+	 * @return list of venue rewards
+	 */
+	def venueRewards() {
+		try{
+			if(params){
+				def venueId = params.id
+				def venue = Venue.findByVenueId(venueId)
+				def configList = VenueConfig.createCriteria().list() {
+					eq("venue", venue)
+					order("rewardPoints", "asc")
+				}
+				def configListSize = configList.size()
+				if(venue){
+					[venue:venue, venueList:configList, configListSize:configListSize]
+				}else{
+					flash.message = "Venue Not Found"
+				}
+			}
+
+		}catch(Exception e){
+			log.error("Exception in retrieving venue list ==>"+e.getMessage())
+		}
+	}
+	
+	/**
+	 * Method to retrieve venue rewards
+	 * @return list of venue rewards
+	 */
+	def addEditVenueReward() {
+		try{
+			if (params.id){
+				def venueRewardId = params.id
+				def venueReward = VenueConfig.findById(venueRewardId)
+				render(view:"addEditVenueReward", model:[venueReward:venueReward, venueId:params.venueId])
+			}else{
+				render(view:"addEditVenueReward", model:[venueId:params.venueId, rewardType:params.rewardType])
+			}
+		}catch(Exception e){
+			log.error("Exception in retrieving venue list ==>"+e.getMessage())
+		}
+	}
+	
+	/**
+	 * Service to save venue rewards
+	 * @return success/failure
+	 */
+	def saveVenueReward(){
+		try{
+			def rewardPoints, description, type, value, venueRewardId
+			VenueConfig configVenue
+			boolean isEdit = false
+			
+			if(params.rewardPoints){
+				rewardPoints = params.rewardPoints
+			}
+			if(params.description){
+				description = params.description
+			}
+			if(params.type){
+				type = params.type
+			}else{
+				type = params.rewardType
+			}
+			if(params.value){
+				value=params.value
+			}
+			if(params.venueRewardId){
+				venueRewardId = params.venueRewardId
+				isEdit = true
+			}
+			
+			if (isEdit){
+				configVenue = VenueConfig.findById(venueRewardId)
+			}else{
+				configVenue = new VenueConfig()
+			}
+			Venue venue = Venue.findByVenueId(params.venueId)
+			if(rewardPoints && type && venue){
+				configVenue.setRewardPoints(Integer.parseInt(rewardPoints))
+				configVenue.setDescription(description)
+				configVenue.setValue(value)
+				configVenue.setType((type.toString().equals("1") ? "Discount" : "Text"))
+				configVenue.setVenue(venue)
+				if(!configVenue.save(flush:true)){
+					flash.message = "Please try again."
+				}else{
+					flash.message = "Venue reward saved successfully."
+				}
+			}else{
+				flash.message = "Please fill reward points."
+			}
+			redirect(action:"venueRewards", id:venue.venueId)
+		}catch(Exception e){
+			log.error("Exception found "+e.getMessage())
+		}
+	}
+	
+	/**
+	 * Service to delete a venue reward
+	 * @return
+	 */
+	def deleteVenueReward(){
+		try{
+			def venueRewardId
+			if(params.id){
+				venueRewardId = params.id
+				VenueConfig configVenue = VenueConfig.findById(venueRewardId)
+				if (configVenue){
+					configVenue.delete()
+				}else{
+					flash.mesage = "Venue reward not found."
+				}
+			}
+			Venue venue = Venue.findByVenueId(params.venueId)
+			redirect(action:"venueRewards", id:venue.venueId)
+		}catch(Exception e){
+			log.error("Exception found "+e.getMessage())
+		}
+	}
+	
+	/**
 	 * Service to retrieve order details - venue, user name, order Id, order status, etc..
 	 * @return list of order details
 	 */
@@ -821,23 +943,79 @@ class AdminController {
 	 */
 	def venueConfig(){
 		try{
-			if(params){
+			// Edit venue
+			if(params.id && params.vc){
 				def venueId = params.id
 				def venue = Venue.findByVenueId(venueId)
-				def configList= VenueConfig.findAllByVenue(venue)
-				def configListSize = configList.size()
-				println "configListSize "+configListSize
+				//def configList= VenueConfig.findAllByVenue(venue)
+				//def configListSize = configList.size()
 				if(venue){
-					[venue:venue,venueList:configList,configListSize:configListSize]
-
+					String[] monday, tuesday, wednesday, thursday, friday, saturday, sunday
+					if (venue.openHours){
+						def openHoursJSON = new JSONObject(venue.openHours)
+						monday = parseOpenHours(openHoursJSON.get("Monday")) 
+						tuesday = parseOpenHours(openHoursJSON.get("Tuesday"))
+						wednesday = parseOpenHours(openHoursJSON.get("Wednesday"))
+						thursday = parseOpenHours(openHoursJSON.get("Thursday"))
+						friday = parseOpenHours(openHoursJSON.get("Friday"))
+						saturday = parseOpenHours(openHoursJSON.get("Saturday"))
+						sunday = parseOpenHours(openHoursJSON.get("Sunday"))
+					}
+					//[venue:venue,venueList:configList,configListSize:configListSize]
+					[venue:venue, mon:monday, tues:tuesday, wed:wednesday, thurs:thursday, fri:friday, sat:saturday, sun:sunday, params:params]
 				}else{
 					flash.message = "Venue Not Found"
 				}
+			} else if (params.id && params.mgr){
+				[venue:venue]
+			}else if (params.id && params.vRep){
+				[venue:venue]
+			}else if (params.id && params.menu){
+				[venue:venue]
+			}else if (params.id && params.orders){
+				[venue:venue]
+			}else if (params.id && params.bankAcct){
+				[venue:venue]
+			}else if (params.id && params.wifi){
+				[venue:venue]
+			}else{
+				String[] monday, tuesday, wednesday, thursday, friday, saturday, sunday
+				monday = parseOpenHours(monday)
+				tuesday = parseOpenHours(tuesday)
+				wednesday = parseOpenHours(wednesday)
+				thursday = parseOpenHours(thursday)
+				friday = parseOpenHours(friday)
+				saturday = parseOpenHours(saturday)
+				sunday = parseOpenHours(sunday)
+				
+				[mon:monday, tues:tuesday, wed:wednesday, thurs:thursday, fri:friday, sat:saturday, sun:sunday]
 			}
 
 		}catch(Exception e){
-			log.error("Exception in retrieving venue list ==>"+e.getMessage())
+			log.error("Exception in retrieving venue setting ==>"+e.getMessage())
 		}
+	}
+	
+	/**
+	 * Method to parse venue open hours JSON 
+	 * @return String array containing hrs and mins
+	 */
+	def parseOpenHours(def dayHours) {
+		println "dayHours-->"+dayHours
+		String[] dayHrsTemp = new String[2]
+		if (dayHours && dayHours.size() > 0){
+			def dayHrs
+			dayHours.each{
+				dayHrs = it
+			}
+			if (dayHrs){
+				dayHrsTemp = dayHrs.split('-')
+			}
+		}else{
+			dayHrsTemp[0] = "00:00:00"
+			dayHrsTemp[1] = "00:00:00"
+		}
+		return dayHrsTemp
 	}
 	
 	/**
@@ -847,11 +1025,11 @@ class AdminController {
 	 */
 	def venueConfigManager() {
 		try{
-			if(params){
+			if(params.id){
 				def venueId = params.id
 				def venue = Venue.findByVenueId(venueId)
 				if(venue){
-					[venue:venue]
+					render(view:"venueConfig", model:[venue:venue])
 				}else{
 					flash.message = "Venue Not Found"
 				}
@@ -868,11 +1046,11 @@ class AdminController {
 	 */
 	def venueConfigVendsyRep() {
 		try{
-			if(params){
+			if(params.id){
 				def venueId = params.id
 				def venue = Venue.findByVenueId(venueId)
 				if(venue){
-					[venue:venue]
+					render(view:"venueConfig", model:[venue:venue])
 				}else{
 					flash.message = "Venue Not Found"
 				}
@@ -889,7 +1067,7 @@ class AdminController {
 	 */
 	def venueConfigMenu() {
 		try{
-			if(params){
+			if(params.id){
 				def venueId = params.id
 				def venue = Venue.findByVenueId(venueId)
 				if(venue){
@@ -910,7 +1088,7 @@ class AdminController {
 	 */
 	def venueConfigOrders() {
 		try{
-			if(params){
+			if(params.id){
 				def venueId = params.id
 				def venue = Venue.findByVenueId(venueId)
 				if(venue){
@@ -931,7 +1109,7 @@ class AdminController {
 	 */
 	def venueConfigBankAccount() {
 		try{
-			if(params){
+			if(params.id){
 				def venueId = params.id
 				def venue = Venue.findByVenueId(venueId)
 				if(venue){
@@ -952,7 +1130,7 @@ class AdminController {
 	 */
 	def venueConfigWifi() {
 		try{
-			if(params){
+			if(params.id){
 				def venueId = params.id
 				def venue = Venue.findByVenueId(venueId)
 				if(venue){
@@ -966,49 +1144,115 @@ class AdminController {
 		}
 	}
 	
+	/**
+	 * Service to save venue details like name, address and open hours
+	 * @return success/failure message
+	 */
 	def saveVenueConfig(){
 		try{
-			println"saveVenueConfig saveVenueConfig"
-			println"params "+params
-			def rewardPoints
-			def description
-			def type
-			def value
-			def venueId
-			if(params.rewardPoints){
-				rewardPoints=params.rewardPoints}
-			if(params.description){
-				description=params.description}
-			if(params.type){
-				type=params.type}
-			if(params.value){
-				value=params.value
-			}
-			if(params.venue){
-				venueId=params.venue}
-			def venue = Venue.findByVenueId(venueId)
-			println "venue "+venue
-			if(rewardPoints && description && type && venue){
-				VenueConfig configVenue = new VenueConfig()
-				configVenue.setRewardPoints(Integer.parseInt(rewardPoints))
-				configVenue.setDescription(description)
-				configVenue.setValue(value)
-				configVenue.setType(type)
-				configVenue.setVenue(venue)
-				if(!configVenue.save(flush:true)){
-					flash.message = "Please try again"
+			println "params-->"+params
+			if (params.venueId && params.vc){
+				def venueId = params.venueId
+				def venue = Venue.findByVenueId(venueId)
+				if (venue){
+					String[] monday, tuesday, wednesday, thursday, friday, saturday, sunday
+					
+					venue.venueName = params.venueName
+					venue.address = params.address
+					def openHoursUpd = formatVenueOpenHours(params)
+					venue.openHours = openHoursUpd.toString()
+					if (!venue.save(flush:true)){
+						flash.message = "Problem saving venue details."
+					}else{
+						flash.message = "Venue details saved successfully."
+					}
+					if (venue.openHours){
+						def openHoursJSON = new JSONObject(venue.openHours)
+						monday = parseOpenHours(openHoursJSON.get("Monday"))
+						tuesday = parseOpenHours(openHoursJSON.get("Tuesday"))
+						wednesday = parseOpenHours(openHoursJSON.get("Wednesday"))
+						thursday = parseOpenHours(openHoursJSON.get("Thursday"))
+						friday = parseOpenHours(openHoursJSON.get("Friday"))
+						saturday = parseOpenHours(openHoursJSON.get("Saturday"))
+						sunday = parseOpenHours(openHoursJSON.get("Sunday"))
+					}
+					render(view:"venueConfig",  model:[venue:venue, mon:monday, tues:tuesday, wed:wednesday, thurs:thursday, fri:friday, sat:saturday, sun:sunday, params:params])
+				}else{
+					flash.message = "Venue not found."
+					render(view:"venueConfig",  model:[venue:venue, params:params])
 				}
-			}else{
-				println "else "
-				flash.message = "Please fill all the fields"
 			}
-			redirect(action:"venueConfig",id:venue.venueId)
 		}catch(Exception e){
-
-			log.error("Exception found "+e.getMessage())
-
+			log.error("Exception in saving venue config details ==>"+e.getMessage())
 		}
 	}
+	
+	/**
+	 * Method to format venue open hours from request
+	 * @param params
+	 * @return JSON containing open hours
+	 */
+	def formatVenueOpenHours(def params){
+		def monFromHrs = params.monFromHrs
+		def monFromMins = params.monFromMins
+		def monToHrs = params.monToHrs
+		def monToMins = params.monToMins
+		def tuesFromHrs = params.tuesFromHrs
+		def tuesFromMins = params.tuesFromMins
+		def tuesToHrs = params.tuesToHrs
+		def tuesToMins = params.tuesToMins
+		def wedFromHrs = params.wedFromHrs
+		def wedFromMins = params.wedFromMins
+		def wedToHrs = params.wedToHrs
+		def wedToMins = params.wedToMins
+		def thursFromHrs = params.thursFromHrs
+		def thursFromMins = params.thursFromMins
+		def thursToHrs = params.thursToHrs
+		def thursToMins = params.thursToMins
+		def friFromHrs = params.friFromHrs
+		def friFromMins = params.friFromMins
+		def friToHrs = params.friToHrs
+		def friToMins = params.friToMins
+		def satFromHrs = params.satFromHrs
+		def satFromMins = params.satFromMins
+		def satToHrs = params.satToHrs
+		def satToMins = params.satToMins
+		def sunFromHrs = params.sunFromHrs
+		def sunFromMins = params.sunFromMins
+		def sunToHrs = params.sunToHrs
+		def sunToMins = params.sunToMins
+		
+		def monStr = monFromHrs.trim()+":"+monFromMins.trim()+":00 - "+monToHrs.trim()+":"+monToMins.trim()+":00"
+		def tuesStr = tuesFromHrs.trim()+":"+tuesFromMins.trim()+":00 - "+tuesToHrs.trim()+":"+tuesToMins.trim()+":00"
+		def wedStr = wedFromHrs.trim()+":"+wedFromMins.trim()+":00 - "+wedToHrs.trim()+":"+wedToMins.trim()+":00"
+		def thursStr = thursFromHrs.trim()+":"+thursFromMins.trim()+":00 - "+thursToHrs.trim()+":"+thursToMins.trim()+":00"
+		def friStr = friFromHrs.trim()+":"+friFromMins.trim()+":00 - "+friToHrs.trim()+":"+friToMins.trim()+":00"
+		def satStr = satFromHrs.trim()+":"+satFromMins.trim()+":00 - "+satToHrs.trim()+":"+satToMins.trim()+":00"
+		def sunStr = sunFromHrs.trim()+":"+sunFromMins.trim()+":00 - "+sunToHrs.trim()+":"+sunToMins.trim()+":00"
+		
+		def monList = new JSONArray(), tuesList = new JSONArray(), wedList = new JSONArray(), thursList = new JSONArray(), 
+		friList = new JSONArray(), satList = new JSONArray(), sunList = new JSONArray()
+		
+		monList.add(monStr)
+		tuesList.add(tuesStr)
+		wedList.add(wedStr)
+		thursList.add(thursStr)
+		friList.add(friStr)
+		satList.add(satStr)
+		sunList.add(sunStr)
+		
+		def jsonObj = new JSONObject()
+		jsonObj.put("Monday", monList)
+		jsonObj.put("Tuesday", tuesList)
+		jsonObj.put("Wednesday", wedList)
+		jsonObj.put("Thursday", thursList)
+		jsonObj.put("Friday", friList)
+		jsonObj.put("Saturday", satList)
+		jsonObj.put("Sunday", sunList)
+		
+		return jsonObj
+	}
+	
 	def generatePromoCode(){
 		CommonMethods common = new CommonMethods()
 		String promoCode = common.promoCode(8)

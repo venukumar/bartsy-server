@@ -1,65 +1,8 @@
 <%@page import="bartsy.Venue"%>
+<%@page import="org.codehaus.groovy.grails.web.json.JSONObject" %>
 <!doctype html>
 <html>
 <head>
-<script type="text/javascript">
-	/*
-	jQuery(document).ready(function() {
-	console.log("READY", jQuery("#frm"));
-	jQuery(".frm").validate({	
-	rules: {
-	rewardPoints:{
-	required: true, 
-	digits:true
-	}
-	},
-	messages:{
-	rewardPoints:{
-	required:"enter your mobile num", 
-	digits:"enter only digits"
-	}
-	} 
-	});
-	
-	
-	});*/
-	jQuery(document).ready(function() {
-		console.log("READY");
-	});
-	function validateForm() {
-		var rewardPoints = jQuery(".rewards").val();
-		if (rewardPoints != "") {
-			if (isNaN(rewardPoints) || rewardPoints <= 0) {
-				alert("Reward Points should be number");
-				return false;
-			} else {
-				var description = jQuery(".description").val();
-				if (description != null && description != "") {
-					var value = jQuery(".value").val();
-					if (value != null && value != "") {
-
-						if (isNaN(value) || value <= 0) {
-							alert("value should be number");
-							return false;
-						}
-						else{return true}
-					} else {
-						alert("Value should not be empty");
-						return false;
-					}
-
-				} else {
-					alert("Descriptions should not be empty");
-					return false;
-				}
-			}
-		} else {
-			alert("No value in Reward Points field");
-			return false;
-		}
-
-	}
-</script>
 <style type="text/css">
 label.error {
 	display:;
@@ -78,172 +21,241 @@ label.error {
 		</div>
 	</g:if>
 	<% flash.clear() %>
-	<%--  <div>
-		<div>
-			<label class="venueConfigstatic">Venue Id :</label>
-			${venue.venueId}
-		</div>
-		<div>
-			<label class="venueConfigstatic">Venue Name :</label>
-			${venue.venueName}
-		</div>
-
-		<g:form action="saveVenueConfig" method="post"
-			onSubmit="return validateForm()">
-
-			<input type="hidden" name="venue" value='${venue.venueId}'>
-			<div class='venu-con'>
-				<div id="userTimeout" class="label-row">
-					<label class="venueConfigstatic">Reward Points :</label><input
-						type="text" name="rewardPoints" class="txt-field rewards">
-				</div>
-				<div id="userTimeout" class="label-row">
-					<label class="venueConfigstatic">Description :</label>
-					<textarea name="description" class="txt-field description" rows="3"
-						cols="5"></textarea>
-				</div>
-				<div id="userTimeout" class="label-row">
-					<label class="venueConfigstatic">Types :</label> <select
-						class="txt-field pick" name="type">
-						<option>Percentage</option>
-						<option>Cash</option>
-					</select>
-				</div>
-				<div id="userTimeout" class="label-row">
-					<label class="venueConfigstatic">Value :</label> <input type="text"
-						name="value" class="txt-field value"></input>
-				</div>
-
-				<div id="userTimeout" class="label-row">
-					<g:submitButton name="create" class="ybtn" value="Add" />
-				</div>
-			</div>
-		</g:form>
-
-		<table width="100%" border="0" cellspacing="0" cellpadding="0"
-			class="tbl-data" padding-top="10px">
-			<tr>
-				<td>Reward Points</td>
-				<td>Description</td>
-				<td>Reedem Types</td>
-				<td>Action</td>
-			</tr>
-			<tr>
-				<td><input class="venueConfigText" type="text" /></td>
-				<td><textarea rows="1" cols="3" class="textAreaVenueConfig"></textarea></td>
-				<td><select class="venueConfigText">
-						<option>Percentage</option>
-						<option>Cash</option>
-				</select></td>
-				<td><g:submitButton name="create" type="button" value="Add"
-						class="venueConfigText" action="saveVenueConfig" /></td>
-			</tr>
-		</table>
-
-		
-		<div>
-			<table width="100%" border="0" cellspacing="0" cellpadding="0"
-				class="tbl-data">
-				<tr>
-					
-					<th width="20%">Reward Points</th>
-					<th width="20%">Value</th>
-					<th width="20%">Reedem Type</th>
-					<th width="20%">Description</th>
-				</tr>
-				<% if(configListSize>0){%>
-      <g:each in="${venueList}" status="i" var="configList">
-	    <tr>
-		<td><label>${configList.rewardPoints}</label></td>
-		<td><label>${configList.value}</label></td>
-		<td><label>${configList.type}</label></td>
-		<td><label>${configList.description}</label></td>
-	  </tr>
-      </g:each>
-      <% }else { %>
-        <tr><td colspan="5" align="center"><div class="errors"><g:message code="page.list.not.found" default="No Records Found" /></div></td></tr>
-      <% } %>
-			</table>
-		</div>
-
-
-		<%--<table width="100%" border="0" cellspacing="0" cellpadding="0"
-			class="tbl-data">
-			<tr>
-				<th width="20%"><g:message code="venue.id.label"
-						default="Venue Id" /></th>
-				<th width="20%"><g:message code="venue.name.label"
-						default="Venue Name" /></th>
-			</tr>
-			<tr>
-				<td><div
-						style="width: 250px; word-wrap: break-word; display: block;">
-						${venue.venueId}
-					</div></td>
-				<td>
-					${venue.venueName}
-				</td>
-
-			</tr>
-		</table>
-	
-	</div>--%>
 	
 <div class="main_container">
-<g:form action="saveVenueConfig" method="post">
-	<input type="hidden" name="venue" value='${venue.venueId}'>
 	<div class="left_container">
 		<ul>
-			<li class="left_panel"><g:link action="venueConfig" id="${venue.venueId}"><g:message code="how.users.will.see.your.venue" default="How users will see your venue" /></g:link></li>
-    		<li class="left_panel"><g:link action="venueConfigManager" id="${venue.venueId}"><g:message code="vendsy.manager.label" default="Manager" /></g:link></li>
-    		<li class="left_panel"><g:link action="venueConfigVendsyRep" id="${venue.venueId}"><g:message code="vendsy.representative.label" default="Vendsy representative" /></g:link></li>
-    		<li class="left_panel"><g:link action="venueConfigMenu" id="${venue.venueId}"><g:message code="menu.label" default="Menu" /></g:link></li>
-    		<li class="left_panel"><g:link action="venueConfigOrders" id="${venue.venueId}"><g:message code="venue.orders.label" default="Orders" /></g:link></li>
-    		<li class="left_panel"><g:link action="venueConfigBankAccount" id="${venue.venueId}"><g:message code="bank.account.label" default="Bank account" /></g:link></li>
-    		<li class="left_panel"><g:link action="venueConfigWifi" id="${venue.venueId}"><g:message code="wifi.label" default="WiFi" /></g:link></li>
+			<li class="left_panel"><g:link action="venueConfig" params="${[vc:1]}" id="${venue?.venueId}"><g:message code="how.users.will.see.your.venue" default="How users will see your venue" /></g:link></li>
+    		<li class="left_panel"><g:link action="venueConfig" params="${[mgr:2]}" id="${venue?.venueId}"><g:message code="vendsy.manager.label" default="Manager" /></g:link></li>
+    		<li class="left_panel"><g:link action="venueConfig" params="${[vRep:3]}" id="${venue?.venueId}"><g:message code="vendsy.representative.label" default="Vendsy representative" /></g:link></li>
+    		<li class="left_panel"><g:link action="venueConfig" params="${[menu:4]}" id="${venue?.venueId}"><g:message code="menu.label" default="Menu" /></g:link></li>
+    		<li class="left_panel"><g:link action="venueConfig" params="${[orders:5]}" id="${venue?.venueId}"><g:message code="venue.orders.label" default="Orders" /></g:link></li>
+    		<li class="left_panel"><g:link action="venueConfig" params="${[bankAcct:6]}" id="${venue?.venueId}"><g:message code="bank.account.label" default="Bank account" /></g:link></li>
+    		<li class="left_panel"><g:link action="venueConfig" params="${[wifi:7]}" id="${venue?.venueId}"><g:message code="wifi.label" default="WiFi" /></g:link></li>
   		</ul>
 	</div>
-			
-	<div class="right_container">
-		
+<g:form action="saveVenueConfig" method="post">
+	<input type="hidden" name="venueId" value='${venue?.venueId}'>
+		<!-- How users will see your venue -->
+	<%if (params.vc){ %>
+		<input type="hidden" name="vc" value='${params.vc}'>
+		<div class="right_container">
 		<div class="right_con_leftpart">
-			<div><g:img dir="images" file="apple-touch-icon-retina.png" /></div>
+			<div><g:img dir="/Bartsy/venueImages" file="100001" /></div>
 			<div><g:submitButton name="Edit Image" value="Edit Image" class="edit_btn" /></div>
 		</div>
-		
 		<div class="right_con_rightpart">
 				
 			<div class="margin_btm">
 				<div class="left"><g:message code="name.label" default="Name"/> : </div>
-				<div class="left" style="margin-left:30px;"><input type="text" name="" class="txt-field rewards" ></div>
+				<div class="left" style="margin-left:30px;"><input type="text" name="venueName" value="${venue?.venueName}" class="txt-field rewards" ></div>
 				<div class="clr"></div>
 			</div>
 				
 			<div class="margin_btm">
 				<div class="left"><g:message code="address.label" default="Address"/> :</div>
-				<div class="left" style="margin-left:18px;"><textarea></textarea></div>
+				<div class="left" style="margin-left:18px;"><textarea name="address" >${venue?.address}</textarea></div>
 				<div class="clr"></div>
 			</div>
-				
+			<%
+				String[] monFrom = mon[0].split(':')
+				String[] monTo = mon[1].split(':')
+				String[] tuesFrom = tues[0].split(':')
+				String[] tuesTo = tues[1].split(':')
+				String[] wedFrom = wed[0].split(':')
+				String[] wedTo = wed[1].split(':')
+				String[] thursFrom = thurs[0].split(':')
+				String[] thursTo = thurs[1].split(':')
+				String[] friFrom = fri[0].split(':')
+				String[] friTo = fri[1].split(':')
+				String[] satFrom = sat[0].split(':')
+				String[] satTo = sat[1].split(':')
+				String[] sunFrom = sun[0].split(':')
+				String[] sunTo = sun[1].split(':')
+			 %>	
 			<div class="margin_btm">
 				<div class="left"><g:message code="hours.label" default="Hours"/> : </div>
-				<div class="left" style="margin-left:30px;"> M &nbsp<input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> to <input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
-				 T &nbsp<input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> to <input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/>	<br/>			
-				 W &nbsp<input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> to <input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
-				 T &nbsp<input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> to <input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> <br/>
-				 F &nbsp&nbsp<input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> to <input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
-				 S &nbsp<input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> to <input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> <br/>
-				 S &nbsp&nbsp<input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/> to <input type="text" class="hrs_text_field"/> : <input type="text" class="hrs_text_field"/>
+				<div class="left" style="margin-left:30px;"> M &nbsp<input type="text" name="monFromHrs"  value="${monFrom[0]}" class="hrs_text_field"/> : <input type="text" name="monFromMins"  value="${monFrom[1]}" class="hrs_text_field"/> to <input type="text" name="monToHrs"  value="${monTo[0]}" class="hrs_text_field"/> : <input type="text" name="monToMins"  value="${monTo[1]}" class="hrs_text_field"/> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+				 T &nbsp<input type="text" name="tuesFromHrs" value="${tuesFrom[0]}" class="hrs_text_field"/> : <input type="text" name="tuesFromMins" value="${tuesFrom[1]}" class="hrs_text_field"/> to <input type="text" name="tuesToHrs" value="${tuesTo[0]}" class="hrs_text_field"/> : <input type="text" name="tuesToMins" value="${tuesTo[1]}" class="hrs_text_field"/>	<br/>			
+				 W &nbsp<input type="text" name="wedFromHrs" value="${wedFrom[0]}" class="hrs_text_field"/> : <input type="text" name="wedFromMins" value="${wedFrom[1]}" class="hrs_text_field"/> to <input type="text" name="wedToHrs" value="${wedTo[0]}" class="hrs_text_field"/> : <input type="text" name="wedToMins" value="${wedTo[1]}" class="hrs_text_field"/> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+				 T &nbsp<input type="text" name="thursFromHrs" value="${thursFrom[0]}" class="hrs_text_field"/> : <input type="text" name="thursFromMins" value="${thursFrom[1]}" class="hrs_text_field"/> to <input type="text" name="thursToHrs" value="${thursTo[0]}" class="hrs_text_field"/> : <input type="text" name="thursToMins" value="${thursTo[1]}" class="hrs_text_field"/> <br/>
+				 F &nbsp&nbsp<input type="text" name="friFromHrs" value="${friFrom[0]}" class="hrs_text_field"/> : <input type="text" name="friFromMins" value="${friFrom[1]}" class="hrs_text_field"/> to <input type="text" name="friToHrs" value="${friTo[0]}" class="hrs_text_field"/> : <input type="text" name="friToMins" value="${friTo[1]}" class="hrs_text_field"/> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+				 S &nbsp<input type="text" name="satFromHrs" value="${satFrom[0]}" class="hrs_text_field"/> : <input type="text" name="satFromMins" value="${satFrom[1]}" class="hrs_text_field"/> to <input type="text" name="satToHrs" value="${satTo[0]}" class="hrs_text_field"/> : <input type="text" name="satToMins" value="${satTo[1]}" class="hrs_text_field"/> <br/>
+				 S &nbsp&nbsp<input type="text" name="sunFromHrs" value="${sunFrom[0]}" class="hrs_text_field"/> : <input type="text" name="sunFromMins" value="${sunFrom[1]}" class="hrs_text_field"/> to <input type="text" name="sunToHrs" value="${sunTo[0]}" class="hrs_text_field"/> : <input type="text" name="sunToMins" value="${sunTo[1]}" class="hrs_text_field"/>
 				</div>
 				<div class="clr"></div>
 			</div>
 				 	
-			<div><g:submitButton name="update" type="button" value="Update" class="update_btn" action="saveVenueConfig" /></div>
+			<div>
+				<g:submitButton name="update" type="submit" value='${(venue?"Update":"Save")}' class="update_btn" />
+			</div>
 				 				
 		</div>
 		<div class="clr"></div>
 		
 	</div>
+	<%}%>
+	
+	<!-- Manager -->
+	<%if (params.mgr){ %>
+	<div class="right_container">
+		<table>
+			<tr>
+				<td><g:message code="name.label" default="Name" /> : </td>
+				<td><input type="text" name="" class="txt-field rewards"></td>
+			</tr>
+			<tr>	
+				<td><g:message code="email.label" default="Username/Email" /> : </td>
+				<td><input type="text" name="" class="txt-field rewards"></td>
+			</tr>
+			<tr>
+				<td><g:message code="password.label" default="Password" /> : </td>
+				<td><input type="password" name="" class="txt-field rewards"></td>
+			</tr>
+			<tr>
+				<td><g:message code="confirmpwd.label" default="Confirm" /> : </td>
+				<td><input type="password" name="" class="txt-field rewards"></td>
+			</tr>
+			<tr>
+				<td><g:message code="phone.label" default="Cell" /> : </td>
+				<td><input type="text" name="" class="txt-field rewards" placeholder="Your cell phone for emergencies"></td>
+			</tr>
+				
+			<tr>
+				<td colspan="2">
+					<g:submitButton name="update" type="button" value='${(venue?"Update":"Save")}' class="venueConfigText" action="saveVenueConfig" />
+				</td>
+			</tr>
+		</table> 
+		
+	</div>
+	<%}%>
+	
+	<!--  Vendsy representative -->
+	<%if (params.vRep) {%>
+	<div class="right_container">
+		<table>
+			<tr>
+				<td><g:message code="name.label" default="Name" /> : </td>
+				<td><input type="text" name="" class="txt-field rewards"></td>
+			</tr>
+			<tr>	
+				<td><g:message code="email.label" default="Username/Email" /> : </td>
+				<td><input type="text" name="" class="txt-field rewards"></td>
+			</tr>
+			<tr>
+				<td><g:message code="phone.label" default="Cell" /> : </td>
+				<td><input type="text" name="" class="txt-field rewards" ></td>
+			</tr>
+				
+			<tr>
+				<td colspan="2"><g:submitButton name="update" type="button" value='${(venue?"Update":"Save")}' class="venueConfigText" action="saveVenueConfig" /></td>
+			</tr>
+		</table> 
+		
+	</div>
+	<%}%>
+	
+	<!--  Menu -->
+	<%if (params.menu){ %>
+	<div class="right_container">
+		<table>
+			<tr>
+				<td><g:message code="locuusername.label" default="Locu username" /> : </td>
+				<td><input type="text" name="" class="txt-field rewards"></td>
+			</tr>
+			<tr>	
+				<td><g:message code="locupwd.label" default="Locu password" /> : </td>
+				<td><input type="password" name="" class="txt-field rewards"></td>
+			</tr>
+			<tr>
+				<td><g:message code="locuid.label" default="Locu ID" /> : </td>
+				<td><input type="text" name="" class="txt-field rewards" ></td>
+			</tr>
+			<tr>
+				<td><g:message code="locusection.label" default="Locu section" /> : </td>
+				<td><input type="text" name="" class="txt-field rewards" ></td>
+			</tr>
+			
+			<tr>
+				<td colspan="2"><g:submitButton name="update" type="button" value='${(venue?"Update":"Save")}' class="venueConfigText" action="saveVenueConfig" /></td>
+			</tr>
+		</table> 
+		
+	</div>
+	<%}%>
+	
+	<!-- Orders -->
+	<%if (params.orders) {%>
+		<div class="right_container">
+		<div class="left"><g:message code="ordertimeout.label" default="Order timeout"/> : <input type="text" name="" class="hrs_text_field " > minutes </div>
+		<div class="left">&nbsp;&nbsp;&nbsp;&nbsp;<g:message code="totaltaxrate.label" default="Total tax rate"/> : <input type="text" name="" class="hrs_text_field " > % </div>
+		<div class="clr"></div>
+		<div><g:submitButton name="update" type="button" value='${(venue?"Update":"Save")}' class="update_btn" action="saveVenueConfig" /></div>
+	</div>
+	<%}%>
+	
+	<!--  Bank account -->
+	<%if (params.bankAcct){ %>
+		<div class="right_container">
+		<table>
+			<tr>
+				<td><g:message code="routingnumber.label" default="Routing Number" /> : </td>
+				<td><input type="text" name="" class="txt-field rewards"></td>
+			</tr>
+			<tr>
+				<td><g:message code="accountnumber.label" default="Account Number" /> : </td>
+				<td><input type="text" name="" class="txt-field rewards" ></td>
+			</tr>
+				
+			<tr>
+				<td colspan="2"><g:submitButton name="update" type="button" value='${(venue?"Update":"Save")}' class="venueConfigText" action="saveVenueConfig" /></td>
+			</tr>
+		</table>
+		
+	</div>
+	<%}%>
+	
+	<!-- Wifi -->
+	<%if (params.wifi){ %>
+		<div class="right_container">
+		<table>
+			<tr>
+				<td><g:message code="wifipresent.label" default="Wifi Present" /> : </td>
+				<td><g:checkBox name="" value="" /></td>
+			</tr>
+			<tr>
+				<td><g:message code="wifiname.label" default="Wifi Name" /> : </td>
+				<td><input type="text" name="" class="txt-field rewards"></td>
+			</tr>
+			<tr>
+				<td><g:message code="wificode.label" default="Wifi Code" /> : </td>
+				<td><input type="password" name="" class="txt-field rewards"></td>
+			</tr>
+			<tr>
+				<td><g:message code="authentication.label" default="Authentication" /> : </td>
+				<td>
+					<input type="radio" name="">&nbsp;<g:message code="password.label" default="Password" />
+					<input type="radio" name="">&nbsp;<g:message code="passphrase.label" default="Passphrase" />
+				</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td><g:message code="networktype.label" default="Network Type" /> : </td>
+				<td>
+					<input type="radio" name="">&nbsp;<g:message code="wpa.label" default="WPA" />
+					<input type="radio" name="">&nbsp;<g:message code="wep.label" default="WEP" />
+				</td>
+				<td></td>
+			</tr>
+				
+			<tr>
+				<td colspan="2"><g:submitButton name="update" type="button" value='${(venue?"Update":"Save")}' class="venueConfigText" action="saveVenueConfig" /></td>
+			</tr>
+		</table>
+		
+	</div>
+	<%}%>
 	<div class="clr"></div>
 </g:form>
 </div>
