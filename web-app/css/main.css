@@ -1046,21 +1046,21 @@ a.skip {
     font-weight:bold;
     height:40px;
     line-height:40px;
-    
-    width:82px;
-    text-align: center;
+    font-size:11px;
 }
 
 .main_navigation ul li a {
     color: hsl(0, 0%, 100%);
     margin: 0;
-    padding: 0 16px;
+    padding: 0 22px;
     text-decoration: none;
     text-align:center;
+    font-size:11px;
 }
 
 .main_navigation ul li:hover {
 	background: url(../images/main_navi_hover_bg.png) center center no-repeat;
+	font-size:11px;
 }
 
 .main_navi_right {
@@ -1072,7 +1072,8 @@ a.skip {
 }
 
 .main_navi_right_divs {
-	padding:0px 16px;
+	padding:0px 4px;
 	float:left;
 	color: #acacac;
+	font-size:11px;
 }
