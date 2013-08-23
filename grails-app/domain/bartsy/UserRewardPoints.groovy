@@ -5,7 +5,7 @@ class UserRewardPoints {
 	static constraints = {
 	}
 
-	static belongsTo = [order:Orders]
+	static belongsTo = [order:Orders,venue:Venue,user:UserProfile]
 
 	static mapping={
 		rewardPoints defaultValue: 0
