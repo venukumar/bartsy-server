@@ -359,6 +359,126 @@ class InventoryController {
 
 	}
 
+	/*
+	 *  For Rename the menu
+	 */
+	def renameMenu={
+
+		def response = [:]
+		try{
+			def json =  JSON.parse(request)
+			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+			if(apiVersion.value && json.apiVersion && apiVersion.value.toString().equalsIgnoreCase(json.apiVersion.toString())){
+
+				if(json.venueId ){
+
+					def venue = Venue.findByVenueId(json.venueId)
+					if(venue){
+						if(json.oldMenuName && json.newMenuName){
+
+							def oldMenu = SpecialMenus.findByMenuNameAndVenue(json.oldMenuName,venue)
+
+							if(oldMenu){
+								oldMenu.setMenuName(json.newMenuName)
+								if(oldMenu.save(flush:true)){
+									response.put("errorCode",0)
+									response.put("errorMessage","Menu name renamed successfully")
+								}else{
+									response.put("errorCode",5)
+									response.put("errorMessage","Menu name not renamed")
+								}
+
+							}else{
+								response.put("errorCode",4)
+								response.put("errorMessage","Old Menu doesn't exists")
+							}
+
+						}
+						else{
+							response.put("errorCode",3)
+							response.put("errorMessage","Old or New menu name are missing in your request")
+						}
+
+					}else{
+						response.put("errorCode",2)
+						response.put("errorMessage","venue doesn't exists")
+					}
+				}else{
+					response.put("errorCode",1)
+					response.put("errorMessage","venueId or bartsyId is missing in your request")
+				}
+			}else{
+				response.put("errorCode",6)
+				response.put("errorMessage","ApiVersion not matched")
+			}
+		}catch(Exception e){
+			log.info("Exception is ===> "+e.getMessage())
+			response.put("errorCode",200)
+			response.put("errorMessage",e.getMessage())
+		}
+		render(text:response as JSON, contentType:"application/json")
+	}
+
+	/**
+	 *  To delete menu from DB
+	 */
+
+	def deleteMenu={
+
+		def response = [:]
+		try{
+			def json =  JSON.parse(request)
+			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+			if(apiVersion.value && json.apiVersion && apiVersion.value.toString().equalsIgnoreCase(json.apiVersion.toString())){
+
+				if(json.venueId ){
+
+					def venue = Venue.findByVenueId(json.venueId)
+					if(venue){
+						if(json.menuName){
+
+							def specailMenu = SpecialMenus.findByMenuNameAndVenue(json.menuName,venue)
+
+							if(specailMenu){
+								if(!specailMenu.delete()){
+									response.put("errorCode",0)
+									response.put("errorMessage","Menu deleted successfully")
+								}else{
+									response.put("errorCode",5)
+									response.put("errorMessage","Menu not deleted")
+								}
+
+							}else{
+								response.put("errorCode",4)
+								response.put("errorMessage","Menu doesn't exists")
+							}
+
+						}
+						else{
+							response.put("errorCode",3)
+							response.put("errorMessage","Menu name is missing in your request")
+						}
+
+					}else{
+						response.put("errorCode",2)
+						response.put("errorMessage","venue doesn't exists")
+					}
+				}else{
+					response.put("errorCode",1)
+					response.put("errorMessage","venueId or bartsyId is missing in your request")
+				}
+			}else{
+				response.put("errorCode",6)
+				response.put("errorMessage","ApiVersion not matched")
+			}
+		}catch(Exception e){
+			log.info("Exception is ===> "+e.getMessage())
+			response.put("errorCode",200)
+			response.put("errorMessage",e.getMessage())
+		}
+		render(text:response as JSON, contentType:"application/json")
+	}
+
 
 
 	/*
