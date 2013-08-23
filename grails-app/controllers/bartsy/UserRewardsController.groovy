@@ -146,23 +146,41 @@ class UserRewardsController {
 								response = userService.getVenueRewards(venue)
 								response.put("venueId",venue.venueId)
 								println"response "+response
+								if(json.bartsyId){
+									boolean bartsyId = common.verifyBartsyId(json.bartsyId)
+									if(bartsyId){
+										def user = UserProfile.findByBartsyId(json.bartsyId)
+										if(user.emailVerified.toString().equalsIgnoreCase("true")){
+											def rewardsDetails = UserRewardPoints.createCriteria().list() {
+												eq("user", user)
+												projections {
+													sum("rewardPoints")
+													groupProperty("venue")
+												}
+											}
+											if(rewardsDetails){
+												rewardsDetails.each{
+													def userRewards = it
+													def availableRewards=userRewards[0]
+													def rewardVenue = userRewards[1]
+													if(venue.venueId.toString().equalsIgnoreCase(rewardVenue.venueId)) {
+														response.put("rewards",availableRewards)
+													}
+												}
+											}else{
+												response.put("rewardPoints", 0)
+											}
+										}else{
+											response.put("rewardPoints", 0)
+										}
+									}
+								}else{
+									response.put("rewardPoints", 0)
+								}
 							}else {
 								response.put("errorCode","4")
 								response.put("errorMessage","Venue doesn't exist")
 							}
-
-
-
-							/*boolean bartsyId = common.verifyBartsyId(json.bartsyId)
-							 if(bartsyId){
-							 def user = UserProfile.findByBartsyId(json.bartsyId)
-							 if(user.emailVerified.toString().equalsIgnoreCase("true")){
-							 response=userService.getuserRewards(json.bartsyId,response)
-							 }else{
-							 response.put("errorCode","99")
-							 response.put("errorMessage","Please verify your account to start collecting rewards")
-							 }
-							 }*/
 						}
 						else{
 							response.put("errorCode","3")
