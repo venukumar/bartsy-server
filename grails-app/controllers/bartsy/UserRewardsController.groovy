@@ -123,4 +123,69 @@ class UserRewardsController {
 		}
 		render(text:response as JSON,contentType:"application/json")
 	}
+
+	/**
+	 *  To get getVenueRewards
+	 */
+
+	def getVenueRewards={
+		def response=[:]
+		CommonMethods common = new CommonMethods()
+		try{
+			def json = JSON.parse(request)
+			println"json "+json
+			if(json){
+				if(json.has("apiVersion")){
+					def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
+					if(apiVersion.value.toString().equalsIgnoreCase(json.apiVersion.toString())){
+						if(json.has("venueId")){
+
+							def venue = Venue.findByVenueId(json.venueId)
+							if(venue){
+								println"venue "+venue
+								response = userService.getVenueRewards(venue)
+								response.put("venueId",venue.venueId)
+								println"response "+response
+							}else {
+								response.put("errorCode","4")
+								response.put("errorMessage","Venue doesn't exist")
+							}
+
+
+
+							/*boolean bartsyId = common.verifyBartsyId(json.bartsyId)
+							 if(bartsyId){
+							 def user = UserProfile.findByBartsyId(json.bartsyId)
+							 if(user.emailVerified.toString().equalsIgnoreCase("true")){
+							 response=userService.getuserRewards(json.bartsyId,response)
+							 }else{
+							 response.put("errorCode","99")
+							 response.put("errorMessage","Please verify your account to start collecting rewards")
+							 }
+							 }*/
+						}
+						else{
+							response.put("errorCode","3")
+							response.put("errorMessage","VenueId should not be empty or null")
+						}
+					}else {
+						response.put("errorCode","100")
+						response.put("errorMessage","API version do not match")
+					}
+				}else {
+					response.put("errorCode","2")
+					response.put("errorMessage","API version should not empty")
+				}
+			}
+			else{
+				response.put("errorCode", 1)
+				response.put("errorMessage", "Invalid request")
+			}
+		}catch(Exception e){
+			log.info("Exception found in getVenueRewards "+e.getMessage())
+			common.exceptionFound(e,response)
+		}
+		response.put("currentTime",new Date().toGMTString())
+		render(text:response as JSON,contentType:"application/json")
+	}
 }
