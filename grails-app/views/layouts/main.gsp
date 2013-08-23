@@ -25,12 +25,35 @@
   <body>
   <div id="wrappar">
   <div id="main-container">
+  
   <div class="header-con">
+  	<div class="logo"><h1>VENDSY</h1></div>
+  	<!--  <div class="welcme">Bartsy Dashboard</div>-->
+  </div>
   <g:if test="${session.user}">
  
-  	<div class="navi_links">
+ 	<div class="main_navigation">
+ 		<ul>
+			<li><g:link controller="admin" action="ordersList"><g:message code="default.home.label" default="Home" class="active"/></g:link></li> 
+			<li><g:link controller="admin" action="summary"><g:message code="user.label" default="Users" class="active" /></g:link></li>
+			<li><g:link controller="admin" action="saleuserList"><g:message code="venue.label" default="Venues" class="active" /></g:link></li>
+            <li><g:link controller="admin" action="usersList"><g:message code="reports.label" default="Reports" class="active" /></g:link></li>
+            <li><g:link controller="admin" action="venueList"><g:message code="promotion.label" default="Promotions" class="active" /></g:link></li>
+            <li><g:link controller="admin" action="appSettings"><g:message code="settings.label" default="Settings" class="active" /></g:link></li>
+		</ul>
+		
+		<div class="main_navi_right">
+			<div class="main_navi_right_divs"><g:message code="" default="" />Bank Of Venice</div>
+			<div class="main_navi_right_divs"><g:message code="" default="" />megan@venicealehouse.com</div>
+			<div class="main_navi_right_divs" style="color:#ffffff;"><g:message code="logout.label" default="Logout" /></div>
+		</div>
+		
+		<div class="clr"></div>
+ 	</div>
+ 
+   	<%--<div class="navi_links">
 		<ul>
-			<%-- <li><g:link controller="admin" action="ordersList"><img src="${resource(dir: 'images', file: 'home-icon.png')}" alt="img" width="20" height="18" /></g:link></li> --%>
+			 <li><g:link controller="admin" action="ordersList"><img src="${resource(dir: 'images', file: 'home-icon.png')}" alt="img" width="20" height="18" /></g:link></li> 
 			<li><g:link controller="admin" action="summary"><img src="${resource(dir: 'images', file: 'home-icon.png')}" alt="img" width="20" height="18" /></g:link></li>
 			<li><g:link controller="admin" action="saleuserList"><img src="${resource(dir: 'images', file: 'user.png')}" alt="Sales Users" width="14" height="16" /></g:link></li>
             <li><g:link controller="admin" action="usersList"><img src="${resource(dir: 'images', file: 'user.png')}" alt="Users" width="14" height="16" /></g:link></li>
@@ -39,10 +62,8 @@
 			<li><g:link controller="admin" action="logout"><img src="${resource(dir: 'images', file: 'logout.png')}" alt="img" width="17" height="17" /></g:link></li>
 		</ul>
 	</div>
-  </g:if>
-  <div class="logo"><h1>VENDSY</h1></div>
-  <!--  <div class="welcme">Bartsy Dashboard</div>-->
-  </div>
+  --%></g:if>
+  
   <div class="body-con">
    <g:layoutBody/>
   </div>
