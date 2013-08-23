@@ -5,10 +5,14 @@ class UserRewardPoints {
 	static constraints = {
 	}
 
-	static belongsTo = [user : UserProfile,venue : Venue,order:Orders]
+	static belongsTo = [order:Orders]
 
-	static mapping={ rewardPoints defaultValue: 0 }
+	static mapping={
+		rewardPoints defaultValue: 0
+		bartsyPoints defaultValue: 0
+	}
 
 	int rewardPoints
+	int bartsyPoints
 	Date dateCreated
 }
