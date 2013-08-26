@@ -49,7 +49,9 @@ class AdminController {
 			def checkInsList, ordersList, checkInsLast30DaysList, ordersLast30DaysList
 			def checkInsMap = [:], ordersMap = [:], checkInsLast30DaysMap = [:], ordersLast30DaysMap = [:], 
 				avgAcceptTimeMap = [:], avgCompleteTimeMap = [:], avgPickupTimeMap = [:], rejectionRateMap = [:]
-			def venuelist = Venue.list()
+			def venuelist = Venue.createCriteria().list {
+				ne("status", "DELETED")	
+			}
 			def venuelistTotal = Venue.count()
 			
 			venuelist.each {
@@ -949,8 +951,8 @@ class AdminController {
 				def venue = Venue.findByVenueId(venueId)
 				//def configList= VenueConfig.findAllByVenue(venue)
 				//def configListSize = configList.size()
+				String[] monday, tuesday, wednesday, thursday, friday, saturday, sunday
 				if(venue){
-					String[] monday, tuesday, wednesday, thursday, friday, saturday, sunday
 					if (venue.openHours){
 						def openHoursJSON = new JSONObject(venue.openHours)
 						monday = parseOpenHours(openHoursJSON.get("Monday")) 
@@ -965,6 +967,16 @@ class AdminController {
 					[venue:venue, mon:monday, tues:tuesday, wed:wednesday, thurs:thursday, fri:friday, sat:saturday, sun:sunday, params:params]
 				}else{
 					flash.message = "Venue Not Found"
+					
+					monday = parseOpenHours(monday)
+					tuesday = parseOpenHours(tuesday)
+					wednesday = parseOpenHours(wednesday)
+					thursday = parseOpenHours(thursday)
+					friday = parseOpenHours(friday)
+					saturday = parseOpenHours(saturday)
+					sunday = parseOpenHours(sunday)
+					
+					[mon:monday, tues:tuesday, wed:wednesday, thurs:thursday, fri:friday, sat:saturday, sun:sunday, params:params]
 				}
 			} else if (params.id && params.mgr){
 				def venueId = params.id
@@ -1195,10 +1207,30 @@ class AdminController {
 				def venueId = params.venueId
 				def venue = Venue.findByVenueId(venueId)
 				if (venue){
+					def mgrPassword = params.mgrPassword
+					def confirmPwd = params.mgrConfirm
 					
+					if (!mgrPassword.trim().equals(confirmPwd.trim())){
+						flash.message = "Password and confirm password does not match."
+						render(view:"venueConfig",  model:[venue:venue, params:params])
+						return
+					}
+					
+					venue.managerName = params.mgrName
+					venue.managerEmail = params.mgrEmail
+					venue.managerPassword = params.mgrPassword
+					venue.managerCell = params.mgrCell
+					if (!venue.save(flush:true)){
+						flash.message = "Problem saving venue details."
+					}else{
+						flash.message = "Venue details saved successfully."
+					}
+					render(view:"venueConfig",  model:[venue:venue, params:params])
+					return
 				}else{
 					flash.message = "Venue not found."
 					render(view:"venueConfig",  model:[venue:venue, params:params])
+					return
 				}
 			}else if (params.venueId && params.vRep){
 				def venueId = params.venueId
@@ -1223,6 +1255,8 @@ class AdminController {
 				if (venue){
 					venue.locuId = params.locuId
 					venue.locuSection = params.locuSection
+					venue.locuUsername = params.locuUsername
+					venue.locuPassword = params.locuPassword
 					if (!venue.save(flush:true)){
 						flash.message = "Problem saving venue details."
 					}else{
@@ -1276,6 +1310,12 @@ class AdminController {
 					}
 					venue.wifiName = params.wifiName
 					venue.wifiPassword = params.wifiPassword
+					if (params.authType){
+						venue.typeOfAuthentication = params.authType
+					}
+					if (params.networkType){
+						venue.wifiNetworkType = params.networkType
+					}
 					if (!venue.save(flush:true)){
 						flash.message = "Problem saving venue details."
 					}else{
@@ -1286,7 +1326,9 @@ class AdminController {
 					flash.message = "Venue not found."
 					render(view:"venueConfig",  model:[venue:venue, params:params])
 				}
-			}else if (params.vc){
+			}
+			// Add new venue
+			else if (params.vc){
 				String[] monday, tuesday, wednesday, thursday, friday, saturday, sunday
 				Venue venue = new Venue()
 				venue.venueName = params.venueName
@@ -1425,7 +1467,12 @@ class AdminController {
 			if (params.id){
 				def venue = Venue.findByVenueId(params.id)
 				if (venue){
-					venue.delete()
+					venue.status = 'DELETED'
+					if (!venue.save(flush:true)){
+						flash.message = "Problem deleting venue."
+					}else{
+						flash.message = "Venue deleted successfully."
+					}
 				}else{
 					flash.message = "Venue not found"
 				}
@@ -1461,8 +1508,8 @@ class AdminController {
 	 * @return total guests, total checks etc.. as int
 	 */
 	def summary() {
-		try{
-			Date  startDate, endDate
+		try{println "here"
+			/*Date  startDate, endDate
 			Date date = new Date()
 			DateFormat jQdateFormat = new SimpleDateFormat("MM/dd/yyyy")
 			DateFormat dateFormatn = new SimpleDateFormat("yyyy-MM-dd")
@@ -1484,7 +1531,7 @@ class AdminController {
 			def query = {
 				between("dateCreated", startDate, endDate)
 				order "id", "desc"
-			}
+			}*/
 			
 			// Total guests
 			def totalGuests = UserProfile.getAll()
@@ -1493,8 +1540,9 @@ class AdminController {
 			def checkedInUsers = CheckedInUsers.findAllByStatus(1)
 			
 			// Calculate Base, Tax, Comps, Comps% and Total
-			def totalBase = 0, totalTax = 0, compTotal = 0
-			def orderslist = Orders.createCriteria().list(params, query)
+			def totalBase = 0, totalTax = 0, compTotal = 0, compPercent = 0
+			//def orderslist = Orders.createCriteria().list(params, query)
+			def orderslist = Orders.list()
 			if(orderslist){
 				orderslist.each {
 					def order = it
@@ -1519,12 +1567,17 @@ class AdminController {
 					def compVal = (gross * new Double(tip)) / 100
 					compTotal += compVal
 				}
+				
+				// percentage comps
+				compPercent = compTotal/orderslist.size()
 			}
 			def formattedBase = formatNumStr(totalBase.toString())
 			def formattedTax = formatNumStr(totalTax.toString())
 			def formattedComps = formatNumStr(compTotal.toString())
-			[totalGuests : totalGuests.size(), totalChecks : checkedInUsers.size(), guestsAvg : 12.26, checksAvg : 22.22, 
-				base:formattedBase, tax:formattedTax, comps:formattedComps]
+			def formattedCompPer = formatNumStr(compPercent.toString())
+			
+			[totalGuests:totalGuests.size(), totalChecks:checkedInUsers.size(), guestsAvg:12.26, checksAvg:22.22,
+				base:formattedBase, tax:formattedTax, comps:formattedComps, compsPer:formattedCompPer]
 		}catch(Exception e){
 			log.error("Exception in retrieving summary data ==>"+e.getMessage())
 		}

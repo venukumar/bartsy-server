@@ -8,7 +8,7 @@
 </head>
 <body>
 	<h2>Venue List</h2>
-	<!--  <div><g:link action="venueConfig">Add</g:link></div>-->
+	<div><g:link action="venueConfig" params="${[vc:1]}"><g:img dir="images" file="add_btn.png" /></g:link></div>
 	<g:if test="${flash.message}">
 		<div class="message" role="status">
 			${flash.message}
@@ -24,11 +24,11 @@
 				<th width="10%"><g:message code="venue.orders.label" default="Orders" /></th>
 				<th width="10%"><g:message code="venue.checkins.last.30days.label" default="CheckIns(Last 30 days)" /></th>
 				<th width="10%"><g:message code="venue.orders.last.30days.label" default="Orders(Last 30 days)" /></th>
-				<th width="10%"><g:message code="venue.average.accept.time.label" default="Average Accept time" /></th>
-				<th width="10%"><g:message code="venue.average.complete.time.label" default="Average Complete time" /></th>
-				<th width="10%"><g:message code="venue.average.pickup.time.label" default="Average Pickup time" /></th>
+				<th width="10%"><g:message code="venue.average.accept.time.label" default="Avg. Accept time" /></th>
+				<th width="10%"><g:message code="venue.average.complete.time.label" default="Avg. Complete time" /></th>
+				<th width="10%"><g:message code="venue.average.pickup.time.label" default="Avg. Pickup time" /></th>
 				<th width="10%"><g:message code="venue.rejection.rate.label" default="Rejection rate" /></th>
-				<th width="15%"><g:message code="page.list.actions" default="Actions" /></th>
+				<th width="15%" style="text-align:center;"><g:message code="page.list.actions" default="Actions" /></th>
 			</tr>
 			<% if(venueTotal>0){
 			%>
@@ -56,12 +56,12 @@
 					<td>${avgPickupTime}</td>
 					<td>${rejectionRate}%</td>
           			<td style="text-align:center">
-						  <table width="100%" border="0" cellspacing="0" cellpadding="0" class="actions-tbl">
+						  <table class="actions-tbl">
  			 				<tr>
-		         				<td width="30%"><g:link action="venueConfig" params="${[vc:1]}" id="${venue.venueId}"><g:message code="settings.label" default="Settings" /></g:link></td>
-								<td width="30%"><g:link action="venueRewards" id="${venue.venueId}"><g:message code="rewards.label" default="Rewards" /></g:link></td>
+		         				<td width="30%" style="padding: 0px 4px 0px 4px;"><g:link action="venueConfig" params="${[vc:1]}" id="${venue.venueId}"><g:message code="settings.label" default="Settings" /></g:link></td>
+								<td width="30%" style="padding: 0px 4px 0px 4px;"><g:link action="venueRewards" id="${venue.venueId}"><g:message code="rewards.label" default="Rewards" /></g:link></td>
    				 				<!--<td width="30%"><g:link class="edit" action="edit" id="${venue.id}"><g:message code="editbutton.title" default="Edit" /></g:link></td>-->
-   				 				<td width="40%"><g:link class="delete" action="delete" id="${venue.id}" onclick="return confirm('${message(code: 'default.button.delete.sender.message', default: 'Are you sure you wish to delete this Venue?')}');"><g:message code="deletebutton.title" default="Delete" /></g:link></td>
+   				 				<td width="40%" style="padding: 0px 4px 0px 4px;"><g:link class="delete" action="deleteVenue" id="${venue.venueId}" onclick="return confirm('${message(code: 'default.button.delete.sender.message', default: 'Are you sure you wish to delete this Venue?')}');"><g:message code="deletebutton.title" default="Delete" /></g:link></td>
   							</tr>
 						</table>
 					</td>

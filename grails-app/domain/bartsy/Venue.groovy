@@ -12,6 +12,13 @@ class Venue {
 		pickupLocation(nullable:true)
 		tables(nullable:true)
 		tableOrdering(nullable:true)
+		
+		managerEmail(nullable:true)
+		managerPassword(nullable:true)
+		managerCell(nullable:true)
+		locuUsername(nullable:true)
+		locuPassword(nullable:true)
+		
 	}
 	static mapping = {
 		menu type:"text"
@@ -22,6 +29,8 @@ class Venue {
 	String hasLocuMenu
 	String locuId
 	String locuSection
+	String locuUsername
+	String locuPassword
 	String totalTaxRate
 	String routingNumber
 	String accountNumber
@@ -56,6 +65,9 @@ class Venue {
 	String vendsyRepEmail
 	String vendsyRepPhone
 	String managerName
+	String managerEmail
+	String managerPassword
+	String managerCell
 	String venueLogin
 	String venuePassword
 	Date lastActivity

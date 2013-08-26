@@ -103,23 +103,23 @@ label.error {
 		<table>
 			<tr>
 				<td><g:message code="name.label" default="Name" /> : </td>
-				<td><input type="text" name="" class="txt-field rewards"></td>
+				<td><input type="text" name="mgrName" value="${venue?.managerName}" class="txt-field rewards"></td>
 			</tr>
 			<tr>	
 				<td><g:message code="email.label" default="Username/Email" /> : </td>
-				<td><input type="text" name="" class="txt-field rewards"></td>
+				<td><input type="text" name="mgrEmail" value="${venue?.managerEmail}" class="txt-field rewards"></td>
 			</tr>
 			<tr>
 				<td><g:message code="password.label" default="Password" /> : </td>
-				<td><input type="password" name="" class="txt-field rewards"></td>
+				<td><input type="password" name="mgrPassword" value="${venue?.managerPassword}" class="txt-field rewards"></td>
 			</tr>
 			<tr>
 				<td><g:message code="confirmpwd.label" default="Confirm" /> : </td>
-				<td><input type="password" name="" class="txt-field rewards"></td>
+				<td><input type="password" name="mgrConfirm" value="${venue?.managerPassword}" class="txt-field rewards"></td>
 			</tr>
 			<tr>
 				<td><g:message code="phone.label" default="Cell" /> : </td>
-				<td><input type="text" name="" class="txt-field rewards" placeholder="Your cell phone for emergencies"></td>
+				<td><input type="text" name="mgrCell" value="${venue?.managerCell}" class="txt-field rewards" placeholder="Your cell phone for emergencies"></td>
 			</tr>
 				
 			<tr>
@@ -165,11 +165,11 @@ label.error {
 		<table>
 			<tr>
 				<td><g:message code="locuusername.label" default="Locu username" /> : </td>
-				<td><input type="text" name="locuUsername" class="txt-field rewards"></td>
+				<td><input type="text" name="locuUsername" value='${(venue?.locuUsername)}' class="txt-field rewards"></td>
 			</tr>
 			<tr>	
 				<td><g:message code="locupwd.label" default="Locu password" /> : </td>
-				<td><input type="password" name="locuPassword" class="txt-field rewards"></td>
+				<td><input type="password" name="locuPassword" value='${(venue?.locuPassword)}' class="txt-field rewards"></td>
 			</tr>
 			<tr>
 				<td><g:message code="locuid.label" default="Locu ID" /> : </td>
@@ -241,16 +241,16 @@ label.error {
 			<tr>
 				<td><g:message code="authentication.label" default="Authentication" /> : </td>
 				<td>
-					<input type="radio" name="">&nbsp;<g:message code="password.label" default="Password" />
-					<input type="radio" name="">&nbsp;<g:message code="passphrase.label" default="Passphrase" />
+					<input type="radio" name="authType" value="Password" ${(venue?(venue.typeOfAuthentication.equalsIgnoreCase('Password')?'checked=true':''):'')}>&nbsp;<g:message code="password.label" default="Password" />
+					<input type="radio" name="authType" value="Passphrase" ${(venue?(venue.typeOfAuthentication.equalsIgnoreCase('Passphrase')?'checked=true':''):'')}>&nbsp;<g:message code="passphrase.label" default="Passphrase" />
 				</td>
 				<td></td>
 			</tr>
 			<tr>
 				<td><g:message code="networktype.label" default="Network Type" /> : </td>
 				<td>
-					<input type="radio" name="">&nbsp;<g:message code="wpa.label" default="WPA" />
-					<input type="radio" name="">&nbsp;<g:message code="wep.label" default="WEP" />
+					<input type="radio" name="networkType" value="WPA" ${(venue?(venue.wifiNetworkType.equalsIgnoreCase('WPA')?'checked=true':''):'')}>&nbsp;<g:message code="wpa.label" default="WPA" />
+					<input type="radio" name="networkType" value="WEP" ${(venue?(venue.wifiNetworkType.equalsIgnoreCase('WEP')?'checked=true':''):'')}>&nbsp;<g:message code="wep.label" default="WEP" />
 				</td>
 				<td></td>
 			</tr>
