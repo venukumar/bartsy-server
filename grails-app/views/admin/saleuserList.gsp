@@ -3,21 +3,23 @@
 <html>
   <head>
     <meta name="layout" content="main">
-    <title><g:message code="page.sale.list.title" default="Sales Users List" /></title>
+    <title><g:message code="users.list.label" default="Users List" /></title>
   </head>
   <body>
-  <h2>Sales Users List</h2><div style="float:right; font-weight:bold; padding-bottom:6px;"><g:link action="createSaleUser">New Sales Account</g:link></div>
+  <h2><g:message code="users.list.label" default="Users List" /></h2><div style="float:right; font-weight:bold; padding-bottom:6px;"><g:link action="createSaleUser">New Sales Account</g:link></div>
     <g:if test="${flash.message}">
       <div class="message" role="status">${flash.message}</div>
     </g:if>	<% flash.clear() %>
     <div>
     <g:form method="post" controller="admin" action="saleuserList" name="frm">
     <select name="userType" id="userType" onchange="javascript:document.frm.submit();">
-    <option value="">All</option>
-    <option value="Admin" <% if(saleParam.userType=="Admin"){ %> selected="selected"<% } %>>Admin</option>
-    <option value="SalesUser" <% if(saleParam.userType=="SalesUser"){ %> selected="selected"<% } %>>SalesUser</option>
-    <option value="SalesManager" <% if(saleParam.userType=="SalesManager"){ %> selected="selected"<% } %>>SalesManager</option>
-     <option value="Promoter" <% if(saleParam.userType=="Promoter"){ %> selected="selected"<% } %>>Promoter</option>
+    	<option value="">All</option>
+    	<option value="Admin" <% if(saleParam.userType=="Admin"){ %> selected="selected"<% } %>><g:message code="admin.label" default="Admin" /></option>
+    	<!--<option value="SalesUser" <% if(saleParam.userType=="SalesUser"){ %> selected="selected"<% } %>>SalesUser</option>-->
+    	<!--<option value="SalesManager" <% if(saleParam.userType=="SalesManager"){ %> selected="selected"<% } %>>SalesManager</option>-->
+    	<option value="VendsySalesManager" <% if(saleParam.userType=="VendsySalesManager"){ %> selected="selected"<% } %>><g:message code="vendsy.sales.manager" default="Vendsy Sales Manager" /></option>
+    	<option value="VenueManager" <% if(saleParam.userType=="VenueManager"){ %> selected="selected"<% } %>><g:message code="venue.manager" default="Venue Manager" /></option>
+     	<option value="Promoter" <% if(saleParam.userType=="Promoter"){ %> selected="selected"<% } %>>Promoter</option>
     </select>
     &nbsp;&nbsp;
     <select name="status" id="status" onchange="javascript:document.frm.submit();">
@@ -30,12 +32,12 @@
     </g:form>
     </div>
 	<div>
-      <table width="100%" border="0" cellspacing="0" cellpadding="0" class="tbl-data">
+      <table class="tbl-data">
         <tr>
-        <th width="20%"><g:message code="sale.label.name" default="Name" /></th>
-		<th width="20%"><g:message code="sale.label.email" default="Email" /></th>
-		<th width="20%"><g:message code="sale.label.utype" default="Account Type" /></th>
-		<th width="15%">Promo Code</th>	
+        <th width="20%"><g:message code="name.label" default="Name" /></th>
+		<th width="20%"><g:message code="email.label" default="Email" /></th>
+		<th width="20%"><g:message code="account.type.label" default="Account Type" /></th>
+		<th width="15%"><g:message code="promo.code.label" default="Promo Code" /></th>	
 		<th width="15%"><g:message code="page.list.actions" default="Actions" /></th>	
         </tr>
     <% if(salesCnt>0){%>

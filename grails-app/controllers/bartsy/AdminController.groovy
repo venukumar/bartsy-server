@@ -16,7 +16,7 @@ class AdminController {
 	
 	def index() {
 		if(session.user){
-			forward(action:"ordersList")
+			forward(action:"summary")
 		}
 	}
 
@@ -30,7 +30,7 @@ class AdminController {
 					return
 				}
 				session.user = adminInstance
-				forward(action:"ordersList")
+				forward(action:"summary")
 			}
 			}catch(Exception e){
 			log.error("Exception found in admin login =====>"+ e.getMessage())
@@ -842,7 +842,7 @@ class AdminController {
 		try{
 			def query={
 				if(params.userType)
-					eq("userType",params.userType)
+					eq("userType", params.userType)
 				if(params.status)
 					eq("status", Integer.parseInt(params.status.toString()))
 				if(params.keyword && (!params.keyword.equals("null") || !params.keyword.equals(""))){
@@ -967,18 +967,30 @@ class AdminController {
 					flash.message = "Venue Not Found"
 				}
 			} else if (params.id && params.mgr){
+				def venueId = params.id
+				def venue = Venue.findByVenueId(venueId)
 				[venue:venue]
 			}else if (params.id && params.vRep){
+				def venueId = params.id
+				def venue = Venue.findByVenueId(venueId)
 				[venue:venue]
 			}else if (params.id && params.menu){
+				def venueId = params.id
+				def venue = Venue.findByVenueId(venueId)
 				[venue:venue]
 			}else if (params.id && params.orders){
+				def venueId = params.id
+				def venue = Venue.findByVenueId(venueId)
 				[venue:venue]
 			}else if (params.id && params.bankAcct){
+				def venueId = params.id
+				def venue = Venue.findByVenueId(venueId)
 				[venue:venue]
 			}else if (params.id && params.wifi){
+				def venueId = params.id
+				def venue = Venue.findByVenueId(venueId)
 				[venue:venue]
-			}else{
+			}else if (params.vc){
 				String[] monday, tuesday, wednesday, thursday, friday, saturday, sunday
 				monday = parseOpenHours(monday)
 				tuesday = parseOpenHours(tuesday)
@@ -988,7 +1000,7 @@ class AdminController {
 				saturday = parseOpenHours(saturday)
 				sunday = parseOpenHours(sunday)
 				
-				[mon:monday, tues:tuesday, wed:wednesday, thurs:thursday, fri:friday, sat:saturday, sun:sunday]
+				[mon:monday, tues:tuesday, wed:wednesday, thurs:thursday, fri:friday, sat:saturday, sun:sunday, params:params]
 			}
 
 		}catch(Exception e){
@@ -1001,7 +1013,6 @@ class AdminController {
 	 * @return String array containing hrs and mins
 	 */
 	def parseOpenHours(def dayHours) {
-		println "dayHours-->"+dayHours
 		String[] dayHrsTemp = new String[2]
 		if (dayHours && dayHours.size() > 0){
 			def dayHrs
@@ -1022,7 +1033,7 @@ class AdminController {
 	 * Service to retrieve venue manager details
 	 * Name, username, password, cell
 	 * @return manager details
-	 */
+	 *//*
 	def venueConfigManager() {
 		try{
 			if(params.id){
@@ -1039,11 +1050,11 @@ class AdminController {
 		}
 	}
 	
-	/**
+	*//**
 	 * Service to retrieve vendsy representative details
 	 * Name, email, cell
 	 * @return vendsy representative details
-	 */
+	 *//*
 	def venueConfigVendsyRep() {
 		try{
 			if(params.id){
@@ -1060,11 +1071,11 @@ class AdminController {
 		}
 	}
 	
-	/**
+	*//**
 	 * Service to retrieve locu menu details
 	 * Locu username, password, id, section
 	 * @return locu menu details
-	 */
+	 *//*
 	def venueConfigMenu() {
 		try{
 			if(params.id){
@@ -1081,11 +1092,11 @@ class AdminController {
 		}
 	}
 	
-	/**
+	*//**
 	 * Service to retrieve order details
 	 * Order timeout, total tax rate
 	 * @return order details
-	 */
+	 *//*
 	def venueConfigOrders() {
 		try{
 			if(params.id){
@@ -1102,11 +1113,11 @@ class AdminController {
 		}
 	}
 	
-	/**
+	*//**
 	 * Service to retrieve account details
 	 * Routing number, account number
 	 * @return account details
-	 */
+	 *//*
 	def venueConfigBankAccount() {
 		try{
 			if(params.id){
@@ -1123,11 +1134,11 @@ class AdminController {
 		}
 	}
 	
-	/**
+	*//**
 	 * Service to retrieve wifi details
 	 * Wifi present, wifi name, wifi code, authentication, network type
 	 * @return wifi details
-	 */
+	 *//*
 	def venueConfigWifi() {
 		try{
 			if(params.id){
@@ -1142,7 +1153,7 @@ class AdminController {
 		}catch(Exception e){
 			log.error("Exception in retrieving venue wifi details ==>"+e.getMessage())
 		}
-	}
+	}*/
 	
 	/**
 	 * Service to save venue details like name, address and open hours
@@ -1150,7 +1161,6 @@ class AdminController {
 	 */
 	def saveVenueConfig(){
 		try{
-			println "params-->"+params
 			if (params.venueId && params.vc){
 				def venueId = params.venueId
 				def venue = Venue.findByVenueId(venueId)
@@ -1181,6 +1191,159 @@ class AdminController {
 					flash.message = "Venue not found."
 					render(view:"venueConfig",  model:[venue:venue, params:params])
 				}
+			}else if (params.venueId && params.mgr){
+				def venueId = params.venueId
+				def venue = Venue.findByVenueId(venueId)
+				if (venue){
+					
+				}else{
+					flash.message = "Venue not found."
+					render(view:"venueConfig",  model:[venue:venue, params:params])
+				}
+			}else if (params.venueId && params.vRep){
+				def venueId = params.venueId
+				def venue = Venue.findByVenueId(venueId)
+				if (venue){
+					venue.vendsyRepName = params.vendsyRepName
+					venue.vendsyRepEmail = params.vendsyRepEmail
+					venue.vendsyRepPhone = params.vendsyRepPhone
+					if (!venue.save(flush:true)){
+						flash.message = "Problem saving venue details."
+					}else{
+						flash.message = "Venue details saved successfully."
+					}
+					render(view:"venueConfig",  model:[venue:venue, params:params])
+				}else{
+					flash.message = "Venue not found."
+					render(view:"venueConfig",  model:[venue:venue, params:params])
+				}
+			}else if (params.venueId && params.menu){
+				def venueId = params.venueId
+				def venue = Venue.findByVenueId(venueId)
+				if (venue){
+					venue.locuId = params.locuId
+					venue.locuSection = params.locuSection
+					if (!venue.save(flush:true)){
+						flash.message = "Problem saving venue details."
+					}else{
+						flash.message = "Venue details saved successfully."
+					}
+					render(view:"venueConfig",  model:[venue:venue, params:params])
+				}else{
+					flash.message = "Venue not found."
+					render(view:"venueConfig",  model:[venue:venue, params:params])
+				}
+			}else if (params.venueId && params.orders){
+				def venueId = params.venueId
+				def venue = Venue.findByVenueId(venueId)
+				if (venue){
+					venue.cancelOrderTime = Integer.parseInt(params.cancelOrderTime)
+					venue.totalTaxRate = params.totalTaxRate
+					if (!venue.save(flush:true)){
+						flash.message = "Problem saving venue details."
+					}else{
+						flash.message = "Venue details saved successfully."
+					}
+					render(view:"venueConfig",  model:[venue:venue, params:params])
+				}else{
+					flash.message = "Venue not found."
+					render(view:"venueConfig",  model:[venue:venue, params:params])
+				}
+			}else if (params.venueId && params.bankAcct){
+				def venueId = params.venueId
+				def venue = Venue.findByVenueId(venueId)
+				if (venue){
+					venue.routingNumber = params.routingNumber
+					venue.accountNumber = params.accountNumber
+					if (!venue.save(flush:true)){
+						flash.message = "Problem saving venue details."
+					}else{
+						flash.message = "Venue details saved successfully."
+					}
+					render(view:"venueConfig",  model:[venue:venue, params:params])
+				}else{
+					flash.message = "Venue not found."
+					render(view:"venueConfig",  model:[venue:venue, params:params])
+				}
+			}else if (params.venueId && params.wifi){
+				def venueId = params.venueId
+				def venue = Venue.findByVenueId(venueId)
+				if (venue){
+					if (params.wifiPresent){
+						venue.wifiPresent = 1
+					}else{
+						venue.wifiPresent = 0
+					}
+					venue.wifiName = params.wifiName
+					venue.wifiPassword = params.wifiPassword
+					if (!venue.save(flush:true)){
+						flash.message = "Problem saving venue details."
+					}else{
+						flash.message = "Venue details saved successfully."
+					}
+					render(view:"venueConfig",  model:[venue:venue, params:params])
+				}else{
+					flash.message = "Venue not found."
+					render(view:"venueConfig",  model:[venue:venue, params:params])
+				}
+			}else if (params.vc){
+				String[] monday, tuesday, wednesday, thursday, friday, saturday, sunday
+				Venue venue = new Venue()
+				venue.venueName = params.venueName
+				venue.address = params.address
+				def openHoursUpd = formatVenueOpenHours(params)
+				venue.openHours = openHoursUpd.toString()
+				
+				venue.country = null
+				venue.hasLocuMenu = null
+				venue.locuId = null
+				venue.locuSection = null
+				venue.totalTaxRate = null
+				venue.routingNumber = null
+				venue.accountNumber = null
+				venue.lat = null
+				venue.locality = null
+				venue.longtd = null
+				venue.phone = null
+				venue.postalCode = null
+				venue.region = null
+				venue.address = null
+				venue.streetAddress = null
+				venue.websiteURL = null
+				venue.hasBarSection = 0
+				venue.facebookURL = null
+				venue.openHours = null
+				venue.twitterId = null
+				//get the latest venueId from DB and increase it by 1 and set it to the venue object
+				def maxId = Venue.createCriteria().get { projections { max "venueId" } } as Long
+				if(maxId){
+					maxId = maxId+1
+				}
+				else{
+					maxId = 100001
+				}
+				venue.venueId = maxId
+				venue.wifiName = null
+				venue.wifiPassword = null
+				venue.typeOfAuthentication = null
+				venue.deviceToken = null
+				
+				if (!venue.save(flush:true)){
+					flash.message = "Problem saving venue details."
+				}else{
+					flash.message = "Venue details saved successfully."
+				}
+				if (venue.openHours){
+					def openHoursJSON = new JSONObject(venue.openHours)
+					monday = parseOpenHours(openHoursJSON.get("Monday"))
+					tuesday = parseOpenHours(openHoursJSON.get("Tuesday"))
+					wednesday = parseOpenHours(openHoursJSON.get("Wednesday"))
+					thursday = parseOpenHours(openHoursJSON.get("Thursday"))
+					friday = parseOpenHours(openHoursJSON.get("Friday"))
+					saturday = parseOpenHours(openHoursJSON.get("Saturday"))
+					sunday = parseOpenHours(openHoursJSON.get("Sunday"))
+				}
+				render(view:"venueConfig",  model:[venue:venue, mon:monday, tues:tuesday, wed:wednesday, thurs:thursday, fri:friday, sat:saturday, sun:sunday, params:params])
 			}
 		}catch(Exception e){
 			log.error("Exception in saving venue config details ==>"+e.getMessage())
@@ -1253,6 +1416,26 @@ class AdminController {
 		return jsonObj
 	}
 	
+	/**
+	 * Service to delete a venue
+	 * @return success/failure
+	 */
+	def deleteVenue(){
+		try{
+			if (params.id){
+				def venue = Venue.findByVenueId(params.id)
+				if (venue){
+					venue.delete()
+				}else{
+					flash.message = "Venue not found"
+				}
+				render(view:"venueList")
+			}
+		}catch(Exception e){
+			log.error("Exception deleting a venue ==>"+e.getMessage())
+		}
+	}
+	
 	def generatePromoCode(){
 		CommonMethods common = new CommonMethods()
 		String promoCode = common.promoCode(8)
@@ -1278,7 +1461,73 @@ class AdminController {
 	 * @return total guests, total checks etc.. as int
 	 */
 	def summary() {
-		[totalGuests : 159, totalChecks : 87, guestsAvg : 12.26, checksAvg : 22.22]
+		try{
+			Date  startDate, endDate
+			Date date = new Date()
+			DateFormat jQdateFormat = new SimpleDateFormat("MM/dd/yyyy")
+			DateFormat dateFormatn = new SimpleDateFormat("yyyy-MM-dd")
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh")
+			
+			def tradeTime = BartsyConfiguration.findByConfigName("tradingDay")
+			if(params.startDate){
+				startDate = dateFormat.parse(dateFormatn.format(new Date(params.startDate))+" "+tradeTime.value)
+			}else{
+				 startDate = dateFormat.parse(dateFormatn.format(date)+" "+tradeTime.value)
+			}
+			if(params.endDate){
+				endDate = dateFormat.parse(dateFormatn.format(new Date(params.endDate))+" "+tradeTime.value)
+			}else{
+				endDate = new Date(startDate.getTime() + (1000 * 60 * 60 * 24));
+			}
+			def jqStart = jQdateFormat.format(startDate)
+			def jqEnd = jQdateFormat.format(endDate)
+			def query = {
+				between("dateCreated", startDate, endDate)
+				order "id", "desc"
+			}
+			
+			// Total guests
+			def totalGuests = UserProfile.getAll()
+			
+			// Get the checked in users list
+			def checkedInUsers = CheckedInUsers.findAllByStatus(1)
+			
+			// Calculate Base, Tax, Comps, Comps% and Total
+			def totalBase = 0, totalTax = 0, compTotal = 0
+			def orderslist = Orders.createCriteria().list(params, query)
+			if(orderslist){
+				orderslist.each {
+					def order = it
+					// To retrieve items from orderItems for each order
+					def orderItemsList = OrderItems.createCriteria().list {
+						eq("order", order)
+					}
+					def gross = 0
+					if (orderItemsList){
+						orderItemsList.each {
+							def orderItem = it
+							def finalBasePrice = formatNumStr(orderItem.basePrice)
+							Double base = new Double(finalBasePrice)
+							totalBase += base
+							gross += base
+						}
+					}
+					totalTax += order.venue.totalTaxRate
+					// tip percentage
+					def tip = order.tipPercentage
+					// comp
+					def compVal = (gross * new Double(tip)) / 100
+					compTotal += compVal
+				}
+			}
+			def formattedBase = formatNumStr(totalBase.toString())
+			def formattedTax = formatNumStr(totalTax.toString())
+			def formattedComps = formatNumStr(compTotal.toString())
+			[totalGuests : totalGuests.size(), totalChecks : checkedInUsers.size(), guestsAvg : 12.26, checksAvg : 22.22, 
+				base:formattedBase, tax:formattedTax, comps:formattedComps]
+		}catch(Exception e){
+			log.error("Exception in retrieving summary data ==>"+e.getMessage())
+		}
 	}
 	
 	def categories() {

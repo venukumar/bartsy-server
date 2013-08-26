@@ -37,13 +37,13 @@
   		<g:form action="summary" method="post">
     		<div id="totalguests" class="label-row">
       			<label style="line-height:20px;width:145px;">
-        			<g:message code="summary.total.guests.label" default="Total Guests"/>
+        			<g:message code="summary.total.guests.label" default="Total Guests"/> :
       			</label>
       			<div style="float:left;line-height:18px">
         			${totalGuests }
       			</div>
       			<label style="line-height:20px;width:145px;">
-        			<g:message code="summary.total.checks.label" default="Total Checks"/>
+        			<g:message code="summary.total.checks.label" default="Total Checks"/> :
       			</label>
       			<div style="float:left;line-height:18px">
         			${totalChecks }
@@ -75,9 +75,9 @@
 			</tr>
 			<tr>	
 				<td><g:message code="totals.label" default="Totals" /></td>
-				<td>$1</td>
-				<td>$2</td>
-				<td>$3</td>
+				<td>$ ${base}</td>
+				<td>$ ${tax}</td>
+				<td>$ ${comps}</td>
 				<td>%4</td>
 				<td>$5</td>
 			</tr>

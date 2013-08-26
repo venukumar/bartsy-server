@@ -41,7 +41,7 @@ label.error {
 		<input type="hidden" name="vc" value='${params.vc}'>
 		<div class="right_container">
 		<div class="right_con_leftpart">
-			<div><g:img dir="/Bartsy/venueImages" file="100001" /></div>
+			<div><g:img dir="Bartsy/venueImages" file="100001.JPG" /></div>
 			<div><g:submitButton name="Edit Image" value="Edit Image" class="edit_btn" /></div>
 		</div>
 		<div class="right_con_rightpart">
@@ -98,6 +98,7 @@ label.error {
 	
 	<!-- Manager -->
 	<%if (params.mgr){ %>
+		<input type="hidden" name="mgr" value='${params.mgr}'>
 	<div class="right_container">
 		<table>
 			<tr>
@@ -123,7 +124,7 @@ label.error {
 				
 			<tr>
 				<td colspan="2">
-					<g:submitButton name="update" type="button" value='${(venue?"Update":"Save")}' class="venueConfigText" action="saveVenueConfig" />
+					<g:submitButton name="update" type="submit" value='${(venue?"Update":"Save")}' class="venueConfigText" action="saveVenueConfig" />
 				</td>
 			</tr>
 		</table> 
@@ -133,23 +134,24 @@ label.error {
 	
 	<!--  Vendsy representative -->
 	<%if (params.vRep) {%>
+	<input type="hidden" name="vRep" value='${params.vRep}'>
 	<div class="right_container">
 		<table>
 			<tr>
 				<td><g:message code="name.label" default="Name" /> : </td>
-				<td><input type="text" name="" class="txt-field rewards"></td>
+				<td><input type="text" name="vendsyRepName" value='${(venue?.vendsyRepName)}' class="txt-field rewards"></td>
 			</tr>
 			<tr>	
 				<td><g:message code="email.label" default="Username/Email" /> : </td>
-				<td><input type="text" name="" class="txt-field rewards"></td>
+				<td><input type="text" name="vendsyRepEmail" value='${(venue?.vendsyRepEmail)}' class="txt-field rewards"></td>
 			</tr>
 			<tr>
 				<td><g:message code="phone.label" default="Cell" /> : </td>
-				<td><input type="text" name="" class="txt-field rewards" ></td>
+				<td><input type="text" name="vendsyRepPhone" value='${(venue?.vendsyRepPhone)}' class="txt-field rewards" ></td>
 			</tr>
 				
 			<tr>
-				<td colspan="2"><g:submitButton name="update" type="button" value='${(venue?"Update":"Save")}' class="venueConfigText" action="saveVenueConfig" /></td>
+				<td colspan="2"><g:submitButton name="update" type="submit" value='${(venue?"Update":"Save")}' class="venueConfigText" action="saveVenueConfig" /></td>
 			</tr>
 		</table> 
 		
@@ -158,27 +160,28 @@ label.error {
 	
 	<!--  Menu -->
 	<%if (params.menu){ %>
+	<input type="hidden" name="menu" value='${params.menu}'>
 	<div class="right_container">
 		<table>
 			<tr>
 				<td><g:message code="locuusername.label" default="Locu username" /> : </td>
-				<td><input type="text" name="" class="txt-field rewards"></td>
+				<td><input type="text" name="locuUsername" class="txt-field rewards"></td>
 			</tr>
 			<tr>	
 				<td><g:message code="locupwd.label" default="Locu password" /> : </td>
-				<td><input type="password" name="" class="txt-field rewards"></td>
+				<td><input type="password" name="locuPassword" class="txt-field rewards"></td>
 			</tr>
 			<tr>
 				<td><g:message code="locuid.label" default="Locu ID" /> : </td>
-				<td><input type="text" name="" class="txt-field rewards" ></td>
+				<td><input type="text" name="locuId" value='${(venue?.locuId)}' class="txt-field rewards" ></td>
 			</tr>
 			<tr>
 				<td><g:message code="locusection.label" default="Locu section" /> : </td>
-				<td><input type="text" name="" class="txt-field rewards" ></td>
+				<td><input type="text" name="locuSection" value='${(venue?.locuSection)}' class="txt-field rewards" ></td>
 			</tr>
 			
 			<tr>
-				<td colspan="2"><g:submitButton name="update" type="button" value='${(venue?"Update":"Save")}' class="venueConfigText" action="saveVenueConfig" /></td>
+				<td colspan="2"><g:submitButton name="update" type="submit" value='${(venue?"Update":"Save")}' class="venueConfigText" action="saveVenueConfig" /></td>
 			</tr>
 		</table> 
 		
@@ -187,29 +190,30 @@ label.error {
 	
 	<!-- Orders -->
 	<%if (params.orders) {%>
+		<input type="hidden" name="orders" value='${params.orders}'>
 		<div class="right_container">
-		<div class="left"><g:message code="ordertimeout.label" default="Order timeout"/> : <input type="text" name="" class="hrs_text_field " > minutes </div>
-		<div class="left">&nbsp;&nbsp;&nbsp;&nbsp;<g:message code="totaltaxrate.label" default="Total tax rate"/> : <input type="text" name="" class="hrs_text_field " > % </div>
+		<div class="left"><g:message code="ordertimeout.label" default="Order timeout"/> : <input type="text" name="cancelOrderTime" value='${(venue?.cancelOrderTime)}' class="hrs_text_field " > minutes </div>
+		<div class="left">&nbsp;&nbsp;&nbsp;&nbsp;<g:message code="totaltaxrate.label" default="Total tax rate"/> : <input type="text" name="totalTaxRate" value='${(venue?.totalTaxRate)}' class="hrs_text_field " > % </div>
 		<div class="clr"></div>
-		<div><g:submitButton name="update" type="button" value='${(venue?"Update":"Save")}' class="update_btn" action="saveVenueConfig" /></div>
+		<div><g:submitButton name="update" type="submit" value='${(venue?"Update":"Save")}' class="update_btn" action="saveVenueConfig" /></div>
 	</div>
 	<%}%>
 	
 	<!--  Bank account -->
 	<%if (params.bankAcct){ %>
+		<input type="hidden" name="bankAcct" value='${params.bankAcct}'>
 		<div class="right_container">
 		<table>
 			<tr>
 				<td><g:message code="routingnumber.label" default="Routing Number" /> : </td>
-				<td><input type="text" name="" class="txt-field rewards"></td>
+				<td><input type="text" name="routingNumber" value='${(venue?.routingNumber)}' class="txt-field rewards"></td>
 			</tr>
 			<tr>
 				<td><g:message code="accountnumber.label" default="Account Number" /> : </td>
-				<td><input type="text" name="" class="txt-field rewards" ></td>
+				<td><input type="text" name="accountNumber" value='${(venue?.accountNumber)}' class="txt-field rewards" ></td>
 			</tr>
-				
 			<tr>
-				<td colspan="2"><g:submitButton name="update" type="button" value='${(venue?"Update":"Save")}' class="venueConfigText" action="saveVenueConfig" /></td>
+				<td colspan="2"><g:submitButton name="update" type="submit" value='${(venue?"Update":"Save")}' class="venueConfigText" action="saveVenueConfig" /></td>
 			</tr>
 		</table>
 		
@@ -218,19 +222,21 @@ label.error {
 	
 	<!-- Wifi -->
 	<%if (params.wifi){ %>
+		<input type="hidden" name="wifi" value='${params.wifi}'>
 		<div class="right_container">
 		<table>
 			<tr>
 				<td><g:message code="wifipresent.label" default="Wifi Present" /> : </td>
-				<td><g:checkBox name="" value="" /></td>
+				<!--<td><g:checkBox name="wifiPresent" checked='${(venue?(venue.wifiPresent == 1?true:false):false)}' /></td>-->
+				<td><input type='checkBox' name="wifiPresent" ${(venue?(venue.wifiPresent == 1?'checked=true':''):'')} /></td>
 			</tr>
 			<tr>
 				<td><g:message code="wifiname.label" default="Wifi Name" /> : </td>
-				<td><input type="text" name="" class="txt-field rewards"></td>
+				<td><input type="text" name="wifiName" value='${(venue?.wifiName)}' class="txt-field rewards"></td>
 			</tr>
 			<tr>
 				<td><g:message code="wificode.label" default="Wifi Code" /> : </td>
-				<td><input type="password" name="" class="txt-field rewards"></td>
+				<td><input type="password" name="wifiPassword" value='${(venue?.wifiPassword)}' class="txt-field rewards"></td>
 			</tr>
 			<tr>
 				<td><g:message code="authentication.label" default="Authentication" /> : </td>
@@ -250,7 +256,7 @@ label.error {
 			</tr>
 				
 			<tr>
-				<td colspan="2"><g:submitButton name="update" type="button" value='${(venue?"Update":"Save")}' class="venueConfigText" action="saveVenueConfig" /></td>
+				<td colspan="2"><g:submitButton name="update" type="submit" value='${(venue?"Update":"Save")}' class="venueConfigText" action="saveVenueConfig" /></td>
 			</tr>
 		</table>
 		

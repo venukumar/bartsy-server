@@ -34,9 +34,9 @@
  
  	<div class="main_navigation">
  		<ul>
-			<li><g:link controller="admin" action="ordersList"><g:message code="default.home.label" default="Home" class="active"/></g:link></li> 
-			<li><g:link controller="admin" action="usersList"><g:message code="user.label" default="Users" class="active" /></g:link></li>
-			<!--  <li><g:link controller="admin" action="saleuserList"><g:message code="venue.label" default="Venues" class="active" /></g:link></li>-->
+			<li><g:link controller="admin" action="summary"><g:message code="default.home.label" default="Home" class="active"/></g:link></li> 
+			<!--  <li><g:link controller="admin" action="usersList"><g:message code="user.label" default="Users" class="active" /></g:link></li>-->
+			<li><g:link controller="admin" action="saleuserList"><g:message code="user.label" default="Users" class="active" /></g:link></li>
             <li><g:link controller="admin" action="venueList"><g:message code="venue.label" default="Venues" class="active" /></g:link></li>
             <li><g:link controller="admin" action="#"><g:message code="reports.label" default="Reports" class="active" /></g:link></li>
             <li><g:link controller="admin" action="#"><g:message code="promotion.label" default="Promotions" class="active" /></g:link></li>
@@ -44,8 +44,16 @@
 		</ul>
 		
 		<div class="main_navi_right">
-			<div class="main_navi_right_divs"><g:message code="" default="" />Bank Of Venice</div>
-			<div class="main_navi_right_divs"><g:message code="" default="" />megan@venicealehouse.com</div>
+			<div class="main_navi_right_divs"><g:message code="" default="" />
+				<g:if test="${session.user}">
+					${session.user.username}
+				</g:if>
+			</div>
+			<div class="main_navi_right_divs"><g:message code="" default="" />
+				<g:if test="${session.user}">
+					${session.user.email}
+				</g:if>
+			</div>
 			<div class="main_navi_right_divs" style="color:#ffffff;"><g:link controller="admin" action="logout"><g:message code="logout.label" default="Logout" /></g:link></div>
 		</div>
 		

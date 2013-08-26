@@ -5,6 +5,7 @@
 <head>
 <meta name="layout" content="main">
 <title><g:message code="page.venue.rewards.title" default="Venue Rewards" /></title>
+<link href="${resource(dir: 'css', file: 'tooltipster.css')}" rel="stylesheet">
 <style type="text/css">
 label.error {
 	display:;
@@ -62,6 +63,8 @@ label.error {
 				<modalbox:createLink controller="admin" action="addEditVenueReward" params="${[venueId:venue.venueId, rewardType:"2"]}" title="General" width="750">
 					${"General"}
 				</modalbox:createLink>
+				<img src="${resource(dir: 'images', file: 'icon.png')}" class="tooltip imagToolTip"
+				title="Dollar discounts are automatically applied to orders as long as the user has the number of points specified, or more." />
 			</div>
 			<% if(configListSize>10){%>
       		<div class="pagination">
