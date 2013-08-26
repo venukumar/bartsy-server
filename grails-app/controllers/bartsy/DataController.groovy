@@ -170,6 +170,7 @@ class DataController {
 							checkedInUsersMap.put("dateOfBirth",checkedInUser.userProfile.dateOfBirth)
 							checkedInUsersMap.put("showProfile",checkedInUser.userProfile.showProfile)
 							checkedInUsersMap.put("currentTime",new Date().toGMTString())
+							checkedInUsersMap.put("faceBookId",checkedInUser.userProfile.facebookId)
 							CommonMethods commonMethods = new CommonMethods()
 							def age
 							if(checkedInUser.userProfile.getDateOfBirth())
@@ -454,7 +455,7 @@ class DataController {
 						response.put("orders",ordersList)
 						response.put("expiredOrders",expiredOrders)
 					}
-					if(venue){
+					/*if(venue){
 						def venueMap=[:]
 						venueMap.put("venueName",venue.getVenueName())
 						venueMap.put("venueId",venue.getVenueId())
@@ -478,7 +479,7 @@ class DataController {
 						venueMap.put("pickupLocation",venue.pickupLocation ?: "")
 						venueMap.put("open_hours",venue.openHours ?: "")
 						response.put("venueDetails",venueMap)
-					}
+					}*/
 
 				}
 				else{
