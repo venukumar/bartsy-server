@@ -1,6 +1,7 @@
 package bartsy
 
 import grails.converters.JSON
+import org.codehaus.groovy.grails.web.json.JSONArray
 
 /**
  * This is the controller which has all Venue related actions to be performed.
@@ -80,7 +81,6 @@ class VenueController {
 						}
 					}
 				}
-
 				//Get the venue based on the locu Id sent in the request
 				Venue venue = Venue.findByLocuId(json.locuId)
 				//if venue exists as of now updating the deviceToken and cancelOrderTime. To be changed later
@@ -129,6 +129,10 @@ class VenueController {
 						response.put("venueImagePath",venue.venueImagePath)
 						response.put("errorCode","0")
 						response.put("errorMessage","Venue Details Updated")
+
+						// Parsing loc menu
+						parseAndSaveLocuMenuItems(venue)
+
 					}else{
 						response.put("venueId",venue.getVenueId())
 						response.put("venueName",venue.getVenueName())
@@ -276,6 +280,8 @@ class VenueController {
 						response.put("venueImagePath",venue.venueImagePath)
 						response.put("errorCode","0")
 						response.put("errorMessage",message(code:'venue.save'))
+						// Parsing loc menu
+						parseAndSaveLocuMenuItems(venue.menu)
 					}
 					else{
 						//if save not successful send the following details as response with errorCode 1
@@ -303,7 +309,161 @@ class VenueController {
 			render(text:response as JSON ,  contentType:"application/json")
 		}
 	}
+	/**
+	 * 
+	 * @param Venue
+	 * @return
+	 */
+	def parseAndSaveLocuMenuItems(Venue venue){
+		try{
+			if(venue){
+				if(venue.locuMenu){
+					def locuData = JSON.parse(URLDecoder.decode(venue.locuMenu))
+					if(locuData){
+						locuData.each {
+							def  menuData = it
+							def menus = menuData.menus
+							if(menus){
+								menus.each {
+									def locuMenu = it
+									def menuName = locuMenu.menu_name
+									if(menuName){
+										menuParsing(menuName,locuMenu,venue)
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 
+		}catch(Exception e){
+			println"exception found in parseAndSaveLocuMenuItems "+e.getMessage()
+			log.info("exception found in parseAndSaveLocuMenuItems "+e.getMessage())
+		}
+	}
+
+	def menuParsing(String menuName,locuMenu,venue){
+		def menu = LocuMenuName.findByMenuName(menuName)
+		if(menu){
+		}else{
+			menu = new LocuMenuName()
+			menu.setMenuName(menuName)
+			menu.save(flush:true)
+		}
+		def sections = locuMenu.sections
+		if(sections){
+			sections.each {
+				def section = it
+				def subSections = section.subsections
+				if(subSections){
+					subSections.each {
+						def subsection = it
+						def contents = subsection.contents
+						if(contents){
+							contents.each{
+								def item = it
+								def text = item.text
+								def type = item.type
+								def price = item.price
+								def name= item.name
+								def description = item.description
+
+								def option_groups = item.option_groups
+								def options
+
+								if(option_groups){
+									option_groups.each {
+										def option = it
+										text = option.text
+										type = option.type
+										options=option.options
+									}
+								}
+								def locuMenuItems = new LocuMenuItems()
+
+								if(!locuMenuItems){
+									locuMenuItems = new LocuMenuItems()
+								}
+
+								locuMenuItems.setText(text)
+								locuMenuItems.setType(type)
+								locuMenuItems.setName(name)
+								locuMenuItems.setPrice(price)
+								locuMenuItems.setDescription(description)
+								locuMenuItems.setOption_groups(option_groups?option_groups.toString():"")
+								locuMenuItems.setOptions(options?options.toString():"")
+								locuMenuItems.setLocuMenu(menu)
+								locuMenuItems.setVenue(venue)
+								locuMenuItems.save(flush:true)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	def getVenueDetails={
+		def response=[:]
+		CommonMethods common = new CommonMethods()
+		try{
+			def json = JSON.parse(request)
+			if(json.apiVersion){
+				def apiVersion = BartsyConfiguration.findByConfigName("apiVersion").value
+				if(json.apiVersion.toString().equalsIgnoreCase(apiVersion)){
+					if(json.venueId){
+
+						def venue = Venue.findByVenueId(json.venueId.toString())
+						if(venue){
+							def venueMap=[:]
+							venueMap.put("venueName",venue.getVenueName())
+							venueMap.put("venueId",venue.getVenueId())
+							venueMap.put("venueImagePath",venue.venueImagePath)
+							venueMap.put("latitude",venue.getLat())
+							venueMap.put("longitude",venue.getLongtd())
+							venueMap.put("venueStatus",venue.getStatus())
+							venueMap.put("wifiPresent",venue.getWifiPresent().toString())
+							venueMap.put("wifiName",venue.getWifiName())
+							venueMap.put("wifiPassword",venue.getWifiPassword())
+							venueMap.put("typeOfAuthentication",venue.getTypeOfAuthentication())
+							def address = venue.getStreetAddress()+","+venue.getLocality()+","+venue.getCountry()+","+venue.getPostalCode()
+							venueMap.put("address",address)
+							venueMap.put("cancelOrderTime",venue.getCancelOrderTime())
+							venueMap.put("totalTaxRate",venue.totalTaxRate)
+							venueMap.put("currentTime",new Date().toGMTString())
+							venueMap.put("wifiNetworkType",venue.wifiNetworkType)
+							venueMap.put("tableOrdering",venue.tableOrdering ?: Boolean.FALSE)
+							if(venue.tables)
+								venueMap.put("tables",new JSONArray(venue.tables))
+							venueMap.put("pickupLocation",venue.pickupLocation ?: "")
+							venueMap.put("open_hours",venue.openHours ?: "")
+							common.response(0, response, "venue Details Available")
+							response.put("venueDetails",venueMap)
+						}else{
+							common.response(3, response, "venue doesn't exist")
+						}
+					}else{
+						common.response(2, response, "VenueId is missing in your request")
+					}
+				}else{
+					common.response(100, response, "Apiversion doesn't match")
+				}
+			}else{
+				common.response(1, response, "Apiversion is missing in your request")
+			}
+
+		}catch(Exception e){
+			println "Exception found in getVenueDetails "+e.getMessage()
+			log.info("Exception found in getVenueDetails "+e.getMessage())
+			common.exceptionFound(e, response)
+			response.put("currentTime",new Date().toGMTString())
+			render(text:response as JSON,contentType:"application/json")
+		}
+		response.put("currentTime",new Date().toGMTString())
+		render(text:response as JSON,contentType:"application/json")
+
+	}
 
 	def setValuesToVenue(Venue venue,json){
 
@@ -338,8 +498,6 @@ class VenueController {
 		venue.status = "OPEN"
 
 	}
-
-
 
 	/**
 	 * 
