@@ -23,7 +23,10 @@ class CommonMethods {
 		response.put("errorCode",200)
 		response.put("errorMessage",e.getMessage())
 	}
-
+	def response(int code ,Map response,String Message){
+		response.put("errorCode",code)
+		response.put("errorMessage",Message)
+	}
 
 	def getNotifictionCount(UserProfile user){
 		def unReadNotifications = Notifications.findAllByUserAndStatus(user,0)
@@ -212,8 +215,8 @@ class CommonMethods {
 			userRewardsPoints.setRewardPoints(rewards)
 			userRewardsPoints.setBartsyPoints(rewards)
 			userRewardsPoints.save(flush:true)
-			
-			
+
+
 		}
 	}
 
@@ -285,7 +288,6 @@ class CommonMethods {
 			usrFvtDrnk.setVenue(venue)
 			usrFvtDrnk.setCategorys(category)
 			usrFvtDrnk.setSelectedItems(selectedItems)
-			println"END ********************"
 			if(usrFvtDrnk.save(flush:true)) {
 				return true
 			}else{
