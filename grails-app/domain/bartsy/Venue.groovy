@@ -9,16 +9,17 @@ class Venue {
 		phoneNumber(nullable:true)
 		description(nullable:true)
 		communityRating(nullable:true)
-		pickupLocation(nullable:true)
-		tables(nullable:true)
+
+		pickupLocations(nullable:true)
+		deliveryTables(nullable:true)
 		tableOrdering(nullable:true)
-		
+		isPickupLocution(nullable:true)
+
 		managerEmail(nullable:true)
 		managerPassword(nullable:true)
 		managerCell(nullable:true)
 		locuUsername(nullable:true)
 		locuPassword(nullable:true)
-		
 	}
 	static mapping = {
 		menu type:"text"
@@ -76,7 +77,8 @@ class Venue {
 	String description
 	String communityRating
 	String wifiNetworkType
-	String pickupLocation
-	String tables
+	String isPickupLocution
+	String pickupLocations
+	String deliveryTables
 	String tableOrdering
 }
