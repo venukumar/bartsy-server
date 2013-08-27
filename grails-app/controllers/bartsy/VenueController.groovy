@@ -292,7 +292,7 @@ class VenueController {
 						response.put("errorCode","0")
 						response.put("errorMessage",message(code:'venue.save'))
 						// Parsing loc menu
-						parseAndSaveLocuMenuItems(venue.menu)
+						parseAndSaveLocuMenuItems(venue)
 					}
 					else{
 						//if save not successful send the following details as response with errorCode 1
@@ -353,7 +353,6 @@ class VenueController {
 			log.info("exception found in parseAndSaveLocuMenuItems "+e.getMessage())
 		}
 	}
-
 	def menuParsing(String menuName,locuMenu,venue){
 		def menu = LocuMenuName.findByMenuName(menuName)
 		if(menu){
@@ -391,7 +390,7 @@ class VenueController {
 										options=option.options
 									}
 								}
-								def locuMenuItems = new LocuMenuItems()
+								def locuMenuItems = LocuMenuItems.findByNameAndLocuMenuAndVenue(item.name,menu,venue)
 
 								if(!locuMenuItems){
 									locuMenuItems = new LocuMenuItems()
