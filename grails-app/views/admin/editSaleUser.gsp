@@ -3,10 +3,10 @@
 <html>
   <head>
     <meta name="layout" content="main">
-    <title><g:message code="page.edit.sale.title" default="Update Sales Account" /></title>
+    <title><g:message code="page.update.title" default="Update Account" /></title>
 </head>
 <body>
-  <h1><g:message code="page.edit.sale.title" default="Edit Sales Account" /></h1>
+  <h1><g:message code="page.edit.title" default="Edit Account" /></h1>
 <g:if test="${flash.errors}">
   <div id="msg_error" class="errors" role="status">${flash.errors}</div>
 </g:if>
@@ -55,7 +55,7 @@
       <label style="line-height:20px;width:145px;">
         <g:message code="sale.label.type" default="Usertype"/>
       </label>
-      <%
+      <%--
       def timerreq = saleInstance?.userType
       def Ychecked=""
       def Nchecked=""
@@ -65,13 +65,19 @@
          Nchecked = "checked"
       }
       
-      %>
-      <div style="float:left;line-height:18px">
+      --%>
+      <!-- <div style="float:left;line-height:18px">
         <input type="radio" name="userType" id="userType" value="SalesManager" ${Nchecked}/><span><g:message code="sale.label.salemgr" default="SalesManager"/></span>
       </div>
       <div style="float:right;padding-right:150px;line-height:18px">
         <input type="radio" name="userType" id="userType" value="SalesUser" ${Ychecked}><g:message code="sale.label.saleusr" default="SalesUser"/>
-      </div>
+      </div> -->
+     <select name="userType" id="userType">
+    	<option value="Admin" <% if(saleInstance?.userType=="Admin"){ %> selected="selected"<% } %>><g:message code="admin.label" default="Admin" /></option>
+    	<option value="VendsySalesManager" <% if(saleInstance?.userType=="VendsySalesManager"){ %> selected="selected"<% } %>><g:message code="vendsy.sales.manager" default="Vendsy Sales Manager" /></option>
+    	<option value="VenueManager" <% if(saleInstance?.userType=="VenueManager"){ %> selected="selected"<% } %>><g:message code="venue.manager" default="Venue Manager" /></option>
+     	<option value="Promoter" <% if(saleInstance?.userType=="Promoter"){ %> selected="selected"<% } %>><g:message code="promoter" default="Promoter" /></option>
+    </select>
     </div>
     <div class="button-con"> 
       <g:submitButton name="create" class="ybtn" value="${message(code: 'default.button.update.label', default: 'Update')}" />

@@ -6,7 +6,7 @@
     <title><g:message code="users.list.label" default="Users List" /></title>
   </head>
   <body>
-  <h2><g:message code="users.list.label" default="Users List" /></h2><div style="float:right; font-weight:bold; padding-bottom:6px;"><g:link action="createSaleUser">New Sales Account</g:link></div>
+  <h2><g:message code="users.list.label" default="Users List" /></h2><div style="float:right; font-weight:bold; padding-bottom:6px;"><g:link action="createSaleUser"><g:message code="new.account.label" default="New Account" /></g:link></div>
     <g:if test="${flash.message}">
       <div class="message" role="status">${flash.message}</div>
     </g:if>	<% flash.clear() %>
@@ -19,10 +19,11 @@
     	<!--<option value="SalesManager" <% if(saleParam.userType=="SalesManager"){ %> selected="selected"<% } %>>SalesManager</option>-->
     	<option value="VendsySalesManager" <% if(saleParam.userType=="VendsySalesManager"){ %> selected="selected"<% } %>><g:message code="vendsy.sales.manager" default="Vendsy Sales Manager" /></option>
     	<option value="VenueManager" <% if(saleParam.userType=="VenueManager"){ %> selected="selected"<% } %>><g:message code="venue.manager" default="Venue Manager" /></option>
-     	<option value="Promoter" <% if(saleParam.userType=="Promoter"){ %> selected="selected"<% } %>>Promoter</option>
+     	<option value="Promoter" <% if(saleParam.userType=="Promoter"){ %> selected="selected"<% } %>><g:message code="promoter" default="Promoter" /></option>
     </select>
     &nbsp;&nbsp;
     <select name="status" id="status" onchange="javascript:document.frm.submit();">
+    <option value="">All</option>
     <option value="1" <% if(saleParam.status=="1"){ %> selected="selected"<% } %>>Active</option>
     <option value="0" <% if(saleParam.status=="0"){ %> selected="selected"<% } %>>In-active</option>
     </select>

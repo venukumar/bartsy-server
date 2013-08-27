@@ -843,16 +843,18 @@ class AdminController {
 	def saleuserList(){
 		try{
 			def query={
-				if(params.userType)
+				if(params.userType){
 					eq("userType", params.userType)
-				if(params.status)
+				}
+				if(params.status){
 					eq("status", Integer.parseInt(params.status.toString()))
+				}
 				if(params.keyword && (!params.keyword.equals("null") || !params.keyword.equals(""))){
-						or{
-							like("firstName",params.keyword+"%")
-							like("lastName",params.keyword+"%")
-						}
-					}				
+					or{
+						like("firstName",params.keyword+"%")
+						like("lastName",params.keyword+"%")
+					}
+				}				
 			}
 			//def salesList = AdminUser.findAllByUserTypeInList(["SalesUser", "SalesManager"])
 			def salesList = AdminUser.createCriteria().list(query)
@@ -866,7 +868,7 @@ class AdminController {
 	def createSaleUser(){
 		try{
 			if(params.act){
-				def saleInfo = AdminUser.findAllByUsernameAndUserType(params.username,params.userType)
+				def saleInfo = AdminUser.findAllByUsernameAndUserType(params.username, params.userType)
 				if(!saleInfo){
 					int stat = 1
 					def saleAcc = new AdminUser()
@@ -879,11 +881,15 @@ class AdminController {
 					saleAcc.setStatus(stat)
 					def promoCode = generatePromoCode()
 					saleAcc.setPromoterCode(promoCode)
-					saleAcc.save(flush:true)
-					flash.message =  "Sales Account created successfully"
-					forward(action:"saleuserList")
+					if (!saleAcc.save(flush:true)){
+						flash.error = "Problem creating account"
+						[saleInstance:params]
+					}else{
+						flash.message =  "Account created successfully"
+						forward(action:"saleuserList")
+					}
 				}else{
-					flash.error = "Sales Account already exists with the same Username"
+					flash.error = "Account already exists with the same Username"
 					[saleInstance:params]
 				}
 
@@ -891,7 +897,7 @@ class AdminController {
 			[saleInstance:params]
 
 		}catch(Exception e){
-			log.error("Exception in create Sale User ==>"+e.getMessage())
+			log.error("Exception in create User ==>"+e.getMessage())
 		}
 	}
 
@@ -906,20 +912,20 @@ class AdminController {
 					saleInfo.setPassword(params.password)
 					saleInfo.setUserType(params.userType)
 					if(!saleInfo.save(flush:true)){
-						flash.error =  "Sales Account updation failed"
+						flash.error =  "Account updation failed"
 						[saleInstance:params]
 					}else{
-						flash.message =  "Sales Account updated successfully"
+						flash.message =  "Account updated successfully"
 						forward(action:"saleuserList")
 					}
 				}
 				[saleInstance:saleInfo]
 			}else{
-				flash.error = "Sale Account doesn't exist"
+				flash.error = "Account doesn't exist"
 				forward(action:"saleuserList")
 			}
 		}catch(Exception e){
-			log.error("Exception in create Sale User ==>"+e.getMessage())
+			log.error("Exception in edit User ==>"+e.getMessage())
 		}
 	}
 
@@ -928,14 +934,14 @@ class AdminController {
 			def saleInfo = AdminUser.get(params.id)
 			if(saleInfo){
 				saleInfo.delete(flush:true)
-				flash.message =  "Sales Account deleted successfully"
+				flash.message =  "Account deleted successfully"
 				forward(action:"saleuserList")
 			}else{
-				flash.error = "Sale Account doesn't exist"
+				flash.error = "Account doesn't exist"
 				forward(action:"saleuserList")
 			}
 		}catch(Exception e){
-			log.error("Exception in create Sale User ==>"+e.getMessage())
+			log.error("Exception in delete User ==>"+e.getMessage())
 		}
 	}
 	

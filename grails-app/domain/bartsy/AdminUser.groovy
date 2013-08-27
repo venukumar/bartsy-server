@@ -8,7 +8,7 @@ class AdminUser {
 		email(nullable:true)
 		username()
 		password()
-		userType(inList: ["Admin","SalesUser","SalesManager","Promoter"])
+		userType(inList: ["Admin","VendsySalesManager","VenueManager","Promoter"])
 		dateCreated()
 		lastUpdated()
 		promoterCode(nullable:true)
