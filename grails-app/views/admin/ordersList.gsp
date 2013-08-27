@@ -29,22 +29,22 @@
 				<th width="10%"><g:link controller="admin" action="summary"><g:message code="summary.label" default="Summary" /></g:link></th>
 				<th width="10%"><g:link controller="admin" action="categories"><g:message code="categories.label" default="Categories" /></g:link></th>
 				<th width="10%"><g:link controller="admin" action="ordersList"><g:message code="items.label" default="Items" /></g:link></th>
-				<th width="10%"><g:message code="guests.label" default="Guests" /></th>
+				<th width="10%"><g:link controller="admin" action="usersList"><g:message code="guests.label" default="Guests" /></g:link></th>
 			</tr>
 		</table>
 	</div>
+	<fieldset>
+	 <g:form method="post" controller="admin" action="ordersList">
+		<g:message code="start.date.label" default="Start Date" />: <input type="text" id="datepicker" name="startDate"  value="${jqStart }"/>&nbsp; 
+		<g:message code="end.date.label" default="End Date" />: <input type="text" id="datepicker1" name="endDate" value="${jqEnd }" />
+		<input type="submit" value="search">
+	</g:form>
+	</fieldset>
 	<%if (ordersTotal > 0){%>
 		<div align="right">
 			<export:formats params='["startDate":"${jqStart }", "endDate":"${jqEnd }"]' formats="['csv', 'excel', 'pdf']" />
 		</div>
 	<%}%>
-	<fieldset>
-	 <g:form method="post" controller="admin" action="ordersList">
-		<g:message code="start.date.label" default="Start Date" />: <input type="text" id="datepicker" name="startDate"  value="${jqStart }"/>&nbsp; 
-		<g:message code="end.date.label" default="End Date" />: <input type="text" id="datepicker1" name="endDate" value="${jqEnd }" />
-		<input type="submit" value="search"> 
-	</g:form>
-	</fieldset>
 	<div>
 		<table class="tbl-data">
 			<tr>

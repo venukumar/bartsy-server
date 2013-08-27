@@ -89,7 +89,6 @@ class CommonMethods {
 		if(thisMonth == monthDOB && thisDay < dayDOB){
 			age = age-1;
 		}
-		System.out.println("The age of user is : " + age);
 		return age
 	}
 	static final String num = "123456789";

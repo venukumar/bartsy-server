@@ -46,12 +46,12 @@
 		<div class="main_navi_right">
 			<div class="main_navi_right_divs"><g:message code="" default="" />
 				<g:if test="${session.user}">
-					${session.user.username}
+					<g:link action="editSaleUser" id="${session.user.id}">${session.user.username}</g:link>
 				</g:if>
 			</div>
 			<div class="main_navi_right_divs"><g:message code="" default="" />
 				<g:if test="${session.user}">
-					${session.user.email}
+					<g:link action="editSaleUser" id="${session.user.id}">${session.user.email}</g:link>
 				</g:if>
 			</div>
 			<div class="main_navi_right_divs" style="color:#ffffff;"><g:link controller="admin" action="logout"><g:message code="logout.label" default="Logout" /></g:link></div>

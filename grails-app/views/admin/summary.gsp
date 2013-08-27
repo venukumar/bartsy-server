@@ -18,7 +18,7 @@
 				<th width="10%" style="text-align:center;"><g:link controller="admin" action="summary"><g:message code="summary.label" default="Summary" /></g:link></th>
 				<th width="20%" style="text-align:center;"><g:link controller="admin" action="categories"><g:message code="categories.label" default="Categories" /></g:link></th>
 				<th width="20%" style="text-align:center;"><g:link controller="admin" action="ordersList"><g:message code="items.label" default="Items" /></g:link></th>
-				<th width="20%" style="text-align:center;"><g:message code="guests.label" default="Guests" /></th>
+				<th width="20%" style="text-align:center;"><g:link controller="admin" action="usersList"><g:message code="guests.label" default="Guests" /></g:link></th>
 			</tr>
 		</table>
 	</div>

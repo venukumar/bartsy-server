@@ -1617,4 +1617,18 @@ class AdminController {
 		
 	}
 	
+	/**
+	 * Service to show user profile information
+	 * @return user info.
+	 */
+	def userDetails() {
+		try{
+			if(params){
+				def userProfile = UserProfile.findByBartsyId(params.id)
+				render(view:"userDetails", model:[selectedUser:userProfile])
+			}
+		}catch(Exception e){
+			log.error("Error in retrieving user details ==>"+e.getMessage())
+		}
+	}
 }

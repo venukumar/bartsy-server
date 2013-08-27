@@ -10,46 +10,70 @@
   <g:if test="${flash.message}">
       <div class="message" role="status">${flash.message}</div>
     </g:if>	<% flash.clear() %>
+    <div>
+		<table class="tbl-data">
+			<tr>
+				<th width="10%"><g:link controller="admin" action="summary"><g:message code="summary.label" default="Summary" /></g:link></th>
+				<th width="10%"><g:link controller="admin" action="categories"><g:message code="categories.label" default="Categories" /></g:link></th>
+				<th width="10%"><g:link controller="admin" action="ordersList"><g:message code="items.label" default="Items" /></g:link></th>
+				<th width="10%"><g:link controller="admin" action="usersList"><g:message code="guests.label" default="Guests" /></g:link></th>
+			</tr>
+		</table>
+	</div>
 	<div>
-      <table width="100%" border="0" cellspacing="0" cellpadding="0" class="tbl-data">
+      <table class="tbl-data">
         <tr>
         <th width="10%"><g:message code="user.id.label" default="Bartsy Id" /></th>
-		<th width="20%"><g:message code="user.name.label" default="Name" /></th>
-		<th width="20%"><g:message code="user.email.label" default="Email" /></th>
+		<th width="15%"><g:message code="user.name.label" default="Name" /></th>
+		<th width="25%"><g:message code="user.email.label" default="Email" /></th>
+		<th width="10%"><g:message code="user.age.label" default="Age" /></th>
 		<th width="20%"><g:message code="user.checked.venues" default="Checked In Venues" /></th>
-		<th width="20%"><g:message code="user.lastorderdate.label" default="Last Ordered Date" /></th>
-		<th width="10%"><g:message code="user.total.order" default="Total Orders" /></th>
+		<th width="20%"><g:message code="user.lastorderdate.label" default="Order Date" /></th>
+		<th width="10%"><g:message code="user.total.order" default="Orders" /></th>
 		</tr>
 		<!-- <modalbox:createLink controller="admin" action="userDetails" id="${userInfo?.bartsyId}" title="Show User Information" width="750"></modalbox:createLink>-->
     <% if(usersTotal>0){%>
       <g:each in="${usersList}" status="i" var="userInfo">
 	  <% 
 	  	 def checkedInVenues = UserCheckInDetails.findAllByUserProfile(userInfo)*.venue.unique()
-		  def venueName=''
-		   if(checkedInVenues){
-				checkedInVenues.each{
-					def venueId = it.venueId
-					def venue = Venue.findByVenueId(venueId)
-					venueName+=venue.venueName+","
-				}
-				venueName = venueName.substring(0, venueName.length() - 1)
-		   }
+		 def venueName=''
+		 if(checkedInVenues){
+		 	checkedInVenues.each{
+				def venueId = it.venueId
+				def venue = Venue.findByVenueId(venueId)
+				venueName+=venue.venueName+","
+			}
+			venueName = venueName.substring(0, venueName.length() - 1)
+		 }
 		  
 	  	 def orderList = Orders.createCriteria().list(){
-			   eq("user",userInfo)
-			
-			   order "id", "desc"
-			 }
+		 	eq("user",userInfo)
+			order "id", "desc"
+		 }
+	  	
+	  	 CommonMethods commonMethods = new CommonMethods()
+		 def age
+		 if(userInfo.getDateOfBirth()){
+		 	age= commonMethods.getAge(userInfo.getDateOfBirth())
+		 }
 	  %>
 	    <tr>
           <td>${userInfo.bartsyId}</td>
-          <td><% if(userInfo.firstName){%>
+          <td>
+		  	<modalbox:createLink controller="admin" action="userDetails" id="${userInfo?.bartsyId}" title="Show User Information" width="750">
+		  	<% if(userInfo.firstName){%>
 			  ${userInfo.firstName} ${userInfo.lastName}
 		  	  <% }else{ %>
 				${userInfo.nickName}
-			  <% } %>
+			<% } %>
+		  	</modalbox:createLink>
 		  </td>
-          <td>${userInfo.email}</td>
+          <td>
+		  	<modalbox:createLink controller="admin" action="userDetails" id="${userInfo?.bartsyId}" title="Show User Information" width="750">
+		  	${userInfo.email}
+			</modalbox:createLink>
+		  </td>
+	  	  <td>${age?:''}</td>
 	  	  <td>${venueName}</td>
 		  <td>${orderList[0]?.dateCreated?.format('hh:mm a, MMM dd,yyyy')}</td>
 	  	  <td>${orderList.size()}</td>
