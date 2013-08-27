@@ -188,7 +188,7 @@ img {
 .label-row {
 	width: auto;
 	padding: 0px;
-	margin-top: 16px;
+	/*margin-top: 16px;*/
 	overflow: hidden;
 }
 
@@ -1059,8 +1059,8 @@ a.skip {
 }
 
 .main_navigation ul li:hover {
-	background: url(../images/main_navi_hover_bg.png) center center no-repeat;
-	font-size:11px;
+	background: url(../images/small_btn_bluebg.png) center center no-repeat;
+ 	font-size:11px;
 }
 
 .main_navi_right {
@@ -1072,8 +1072,53 @@ a.skip {
 }
 
 .main_navi_right_divs {
-	padding:0px 4px;
-	float:left;
-	color: #acacac;
-	font-size:11px;
+ padding:0px 10px;
+ float:left;
+ color: #acacac;
+ font-size:11px;
+}
+
+.main_navi_right_divs a {
+ color:#ffffff;
+ font-size:11px;
+}
+
+.main_navi_right_divs a:hover {
+ color: #0c79a2;
+ font-weight:bold;
+}
+
+.btns {
+ float:left;
+ padding:2px;
+}
+
+.dollar_discount_btn {
+ background: url(../images/medium_btn_bluebg.png) center center no-repeat;
+ color:#ffffff;
+ border-style:none;
+ padding:6px 19px;
+}
+
+.dollar_discount_btn input {
+ font-weight:bold;
+}
+
+.general_btn {
+ background: url(../images/small_btn_bluebg.png) no-repeat;
+ color:#ffffff;
+ border-style:none;
+ padding:6px 19px; 
+}
+
+.general_btn input {
+ font-weight:bold;
+}
+
+.configure_btn {
+ background: url(../images/large_btn_bluebg.png) center center no-repeat;
+ color:#ffffff;
+ border-style:none;
+ padding:15px 22px;
+ font-weight:bold;
 }

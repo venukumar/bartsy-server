@@ -23,12 +23,34 @@ label.error {
 	</g:if>
 	<% flash.clear() %>
 	<div>
-		<div>
+		<div class="left" style="margin-top:8px;">
 			<label><g:message code="venue.name.label" default="Venue Name"/> :</label>
 			${venue.venueName}
 		</div>
-		<div>
-			<table width="100%" border="0" cellspacing="0" cellpadding="0" class="tbl-data">
+		<div class="right">
+   			<div class="left" style="margin:8px;"><g:message code="add.reward.type.label" default="Add a reward of type:" /></div>
+   			<div id="userTimeout" class="label-row" style="float:left;padding:3px;">
+     			<div class="btns">
+     				<modalbox:createLink controller="admin" action="addEditVenueReward" params="${[venueId:venue.venueId, rewardType:"1"]}" title="Dollar discount" width="750">
+     					<g:submitButton name="update" type="submit" value='Dollar Discount' class="dollar_discount_btn" />
+     				</modalbox:createLink>	
+     			</div>
+    			<div class="btns">
+    				<modalbox:createLink controller="admin" action="addEditVenueReward" params="${[venueId:venue.venueId, rewardType:"2"]}" title="General" width="750">
+    					<g:submitButton name="update" type="submit" value='General' class="general_btn" />
+    				</modalbox:createLink>
+    			</div>	
+    			<div class="btns"><img src="${resource(dir: 'images', file: 'icon.png')}" class="tooltip imagToolTip"
+    				title="Dollar discounts are automatically applied to orders as long as the user has the number of points specified, or more. General rewards describe explicitly what the reward is for. They show as dialogs on the patron's mobile phone. A staff member can simply click on those rewards to mark them used. When a discount is applied, the user point balance is adjusted automatically by subtracting the points used." />
+    			</div>
+    			<div class="clr"></div>
+  			</div>
+  			<div class="clr"></div>
+ 		</div>
+ 		<div class="clr"></div>
+   	</div>
+   	<div>
+			<table class="tbl-data">
 				<tr>
 					<th width="20%"><g:message code="reward.points.label" default="Reward Points"/></th>
 					<th width="20%"><g:message code="value.label" default="Value"/></th>
@@ -55,17 +77,6 @@ label.error {
         			<tr><td colspan="5" align="center"><div class="errors"><g:message code="page.list.not.found" default="No Records Found" /></div></td></tr>
       			<% } %>
 			</table>
-			<g:message code="add.reward.type.label" default="Add a reward of type:" />
-			<div id="userTimeout" class="label-row">
-				<modalbox:createLink controller="admin" action="addEditVenueReward" params="${[venueId:venue.venueId, rewardType:"1"]}" title="Dollar discount" width="750">
-					${"Dollar discount"}
-				</modalbox:createLink>
-				<modalbox:createLink controller="admin" action="addEditVenueReward" params="${[venueId:venue.venueId, rewardType:"2"]}" title="General" width="750">
-					${"General"}
-				</modalbox:createLink>
-				<img src="${resource(dir: 'images', file: 'icon.png')}" class="tooltip imagToolTip"
-				title="Dollar discounts are automatically applied to orders as long as the user has the number of points specified, or more. General rewards describe explicitly what the reward is for. They show as dialogs on the patron's mobile phone. A staff member can simply click on those rewards to mark them used. When a discount is applied, the user point balance is adjusted automatically by subtracting the points used." />
-			</div>
 			<% if(configListSize>10){%>
       		<div class="pagination">
         		<g:paginate total="${configListSize}" />

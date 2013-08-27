@@ -7,8 +7,15 @@
 		default="Venue List" /></title>
 </head>
 <body>
-	<h2>Venue List</h2>
-	<div><g:link action="venueConfig" params="${[vc:1]}"><g:img dir="images" file="add_btn.png" /></g:link></div>
+	
+	<div>
+		<div class="left"><h2>Venue List</h2></div>
+		<div class="right">
+			<g:link action="venueConfig" params="${[vc:1]}"><g:submitButton name="update" type="submit" value='Configure New Venue' class="configure_btn" /></g:link>
+		</div>
+		<div class="clr"></div>
+	</div>
+	
 	<g:if test="${flash.message}">
 		<div class="message" role="status">
 			${flash.message}
