@@ -145,8 +145,6 @@ class DataController {
 				def venue = Venue.findByVenueId(venueId.toString())
 				def bartsyId=json.bartsyId
 				def userProfile = UserProfile.findByBartsyId(bartsyId)
-				println"venue "+venue
-				println"userProfile "+userProfile
 				if(venue && userProfile){
 					def checkedInUsers = CheckedInUsers.findAllByVenueAndStatus(venue,1)
 					println"checkedInUsers "+checkedInUsers.size()
