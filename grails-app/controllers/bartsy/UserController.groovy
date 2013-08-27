@@ -302,7 +302,7 @@ class UserController {
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
-			log.info("Exception is ===> "+e.getMessage())
+			log.info("Exception is ===> In saveUserProfile "+e.getMessage())
 			println"excep "+e.getMessage()
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
@@ -454,7 +454,7 @@ class UserController {
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
-			log.info("Exception is ===> "+e.getMessage())
+			log.info("Exception is ===> userCheckIn "+e.getMessage())
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
 		}
@@ -564,7 +564,7 @@ class UserController {
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
-			log.info("Exception is ===> "+e.getMessage())
+			log.info("Exception is ===> userCheckOut "+e.getMessage())
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
 		}
@@ -767,7 +767,7 @@ class UserController {
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
-			log.info("Exception is ===> "+e.getMessage())
+			log.info("Exception is ===> heartBeat "+e.getMessage())
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
 		}
@@ -836,7 +836,7 @@ class UserController {
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
-			log.info("Exception is ===> "+e.getMessage())
+			log.info("Exception is ===>setShowProfile  "+e.getMessage())
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
 		}
@@ -986,7 +986,7 @@ class UserController {
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
-			log.info("Exception is ===> "+e.getMessage())
+			log.info("Exception is ===> syncUserDetails "+e.getMessage())
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
 		}
@@ -1063,7 +1063,7 @@ class UserController {
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
-			log.info("Exception is ===> "+e.getMessage())
+			log.info("Exception is ===> bartsyUserLogin "+e.getMessage())
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
 		}
@@ -1133,7 +1133,7 @@ class UserController {
 			response.put("currentTime",new Date().toGMTString())
 			render(text:response as JSON ,  contentType:"application/json")
 		}catch (Exception e) {
-			log.info("Exception Found !!!! "+e.getMessage())
+			log.info("Exception Found !!!! getUserPublicDetails "+e.getMessage())
 			render(text:response as JSON ,  contentType:"application/json")
 		}
 
@@ -1223,7 +1223,7 @@ class UserController {
 		}
 		catch(Exception e){
 			//if an exception occurs send errorCode 200 along with the exception message
-			log.info("Exception is ===> "+e.getMessage())
+			log.info("Exception is ===>getUserProfile "+e.getMessage())
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
 		}
