@@ -219,6 +219,8 @@ class InventoryController {
 		String description
 		String categorys
 		if(ingredients && ingredients.size()>0){
+			int count= 0
+			boolean checkFirstHasCategory = true
 			ingredients.each {
 				def ingredient=it
 				def ingForcheck = IngredientCategory.findByCategory(ingredient.toString().trim())
@@ -228,14 +230,19 @@ class InventoryController {
 					else
 						categorys=categorys+","+ingForcheck.id
 				}else{
+					if(count==0){
+						checkFirstHasCategory=false
+					}
 					if(!description)
 						description=ingredient
 					else
 						description=description+","+ingredient
 				}
+				count++
 			}
 			result.put("description",description)
 			result.put("categorys",categorys)
+			result.put("checkFirstHasCategory", checkFirstHasCategory)
 		}
 		return result
 	}
@@ -270,7 +277,7 @@ class InventoryController {
 									cocktails.each{
 										def cocktail =  it
 										def cocktailsToSave = SpecialMenuItems.findByMenuItemIdAndVenueAndSpecialMenu(Long.parseLong(cocktail.menuId),venue,menu)
-										println"cocktailsToSave "+cocktailsToSave
+
 										if(cocktailsToSave){
 											cocktailsToSave.setPrice(Float.parseFloat(cocktail.price))
 											cocktailsToSave.setAvailable(cocktail.available)
@@ -286,7 +293,7 @@ class InventoryController {
 												if(categories){
 													//def ingForcheck = Ingredients.findByName(ingredint)
 													cocktailsToSave =  new SpecialMenuItems()
-													cocktailsToSave.setMenuItemId(cocktail.name?Long.parseLong(cocktail.menuId):0.0)
+													cocktailsToSave.setMenuItemId(cocktail.menuId?Long.parseLong(cocktail.menuId):0.0)
 													cocktailsToSave.setName(cocktail.name?cocktail.name:"")
 													cocktailsToSave.setCategory(cocktail.category?cocktail.category:"")
 													cocktailsToSave.setGlass(cocktail.glass?cocktail.glass:"")
@@ -297,6 +304,13 @@ class InventoryController {
 													cocktailsToSave.setIngredients(cocktail.ingredients)
 													cocktailsToSave.setDescription(cocktail.description?cocktail.description:"")
 													cocktailsToSave.setShopping(categories.categorys?categories.categorys:"")
+
+													if(categories.checkFirstHasCategory){
+														cocktailsToSave.setType(cocktail.type)
+													}else{
+														cocktailsToSave.setType("ITEM")
+													}
+
 													cocktailsToSave.setVenue(venue)
 													cocktailsToSave.setSpecialMenu(menu)
 

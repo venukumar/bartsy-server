@@ -113,12 +113,18 @@ class VenueController {
 						venue.description=json.description
 					if(json.communityRating)
 						venue.communityRating=json.communityRating
-					if(json.has("tableOrdering"))
+
+					if(json.has("tableOrdering")){
 						venue.tableOrdering=json.tableOrdering
-					if(json.has("tables"))
-						venue.tables=json.tables
-					if(json.has("pickupLocation")){
-						venue.pickupLocation=json.pickupLocation
+					}
+					if(json.has("deliveryTables")){
+						venue.deliveryTables=json.deliveryTables.toString()
+					}
+					if(json.has("pickupLocations")){
+						venue.pickupLocations=json.pickupLocations.toString()
+					}
+					if(json.has("isPickupLocution")){
+						venue.isPickupLocution=json.isPickupLocution
 					}
 
 					//venue.venueImagePath=venueImagePath
@@ -176,12 +182,17 @@ class VenueController {
 						venue.openHours =parsedData?parsedData.objects[0].open_hours:""
 					venue.wifiNetworkType=json.has("wifiNetworkType")?json.wifiNetworkType:""
 
-					if(json.has("tableOrdering"))
+					if(json.has("tableOrdering")){
 						venue.tableOrdering=json.tableOrdering
-					if(json.has("tables"))
-						venue.tables=json.tables
-					if(json.has("pickupLocation")){
-						venue.pickupLocation=json.pickupLocation
+					}
+					if(json.has("deliveryTables")){
+						venue.deliveryTables=json.deliveryTables.toString()
+					}
+					if(json.has("pickupLocations")){
+						venue.pickupLocations=json.pickupLocations.toString()
+					}
+					if(json.has("isPickupLocution")){
+						venue.isPickupLocution=json.isPickupLocution
 					}
 
 					/*	venue.venueName = json.has("venueName")?(json.venueName?json.venueName:parsedData?parsedData.objects[0].name:""):(parsedData?parsedData.objects[0].name:"")
@@ -434,9 +445,14 @@ class VenueController {
 							venueMap.put("currentTime",new Date().toGMTString())
 							venueMap.put("wifiNetworkType",venue.wifiNetworkType)
 							venueMap.put("tableOrdering",venue.tableOrdering ?: Boolean.FALSE)
-							if(venue.tables)
-								venueMap.put("tables",new JSONArray(venue.tables))
-							venueMap.put("pickupLocation",venue.pickupLocation ?: "")
+							venueMap.put("isPickupLocution",venue.isPickupLocution ?: Boolean.FALSE)
+
+							if(venue.deliveryTables){
+								venueMap.put("deliveryTables",venue.deliveryTables ?: "")
+							}
+							if(venue.pickupLocations){
+								venueMap.put("pickupLocations",venue.pickupLocations ?: "")
+							}
 							venueMap.put("open_hours",venue.openHours ?: "")
 							common.response(0, response, "venue Details Available")
 							response.put("venueDetails",venueMap)
@@ -794,10 +810,18 @@ class VenueController {
 						venueMap.put("totalTaxRate",venue.totalTaxRate)
 						venueMap.put("currentTime",new Date().toGMTString())
 						venueMap.put("wifiNetworkType",venue.wifiNetworkType)
+
 						venueMap.put("tableOrdering",venue.tableOrdering ?: Boolean.FALSE)
-						if(venue.tables)
-							venueMap.put("tables",venue.tables)
-						venueMap.put("pickupLocation",venue.pickupLocation ?: "")
+						venueMap.put("isPickupLocution",venue.isPickupLocution ?: Boolean.FALSE)
+
+						if(venue.deliveryTables){
+							venueMap.put("deliveryTables",venue.deliveryTables ?: "")
+						}
+						if(venue.pickupLocations){
+							venueMap.put("pickupLocations",venue.pickupLocations ?: "")
+						}
+
+
 						//add the venue object to the list defined earlier
 						totalVenueList.add(venueMap)
 					}

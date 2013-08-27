@@ -5,6 +5,7 @@ import com.sun.org.apache.xerces.internal.impl.dv.util.Base64
 import java.security.KeyPair
 import java.security.PrivateKey
 import java.security.PublicKey
+import org.codehaus.groovy.grails.web.json.JSONArray
 import bartsy.CommonMethods
 
 
@@ -902,6 +903,19 @@ class UserController {
 						response.put("totalTaxRate",checkedInUser.venue.totalTaxRate)
 						response.put("orderTimeout",checkedInUser.venue.getCancelOrderTime())
 						response.put("typeOfAuthentication",checkedInUser.venue.getTypeOfAuthentication())
+						
+						
+						response.put("tableOrdering",checkedInUser.venue.tableOrdering ?: Boolean.FALSE)
+						response.put("isPickupLocution",checkedInUser.venue.isPickupLocution ?: Boolean.FALSE)
+
+						if(checkedInUser.venue.deliveryTables){
+							response.put("deliveryTables",checkedInUser.venue.deliveryTables ?: "")
+						}
+						if(checkedInUser.venue.pickupLocations){
+							response.put("pickupLocations",checkedInUser.venue.pickupLocations ?: "")
+						}
+						
+						
 						def orders = Orders.findAllByUser(userProfile)
 						if(orders){
 							response.put("unlocked","true")
