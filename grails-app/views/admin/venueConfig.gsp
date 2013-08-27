@@ -26,12 +26,12 @@ label.error {
 	<div class="left_container">
 		<ul>
 			<li class="left_panel"><g:link action="venueConfig" params="${[vc:1]}" id="${venue?.venueId}"><g:message code="how.users.will.see.your.venue" default="How users will see your venue" /></g:link></li>
-    		<li class="left_panel"><g:link action="venueConfig" params="${[mgr:2]}" id="${venue?.venueId}"><g:message code="vendsy.manager.label" default="Manager" /></g:link></li>
-    		<li class="left_panel"><g:link action="venueConfig" params="${[vRep:3]}" id="${venue?.venueId}"><g:message code="vendsy.representative.label" default="Vendsy representative" /></g:link></li>
-    		<li class="left_panel"><g:link action="venueConfig" params="${[menu:4]}" id="${venue?.venueId}"><g:message code="menu.label" default="Menu" /></g:link></li>
-    		<li class="left_panel"><g:link action="venueConfig" params="${[orders:5]}" id="${venue?.venueId}"><g:message code="venue.orders.label" default="Orders" /></g:link></li>
-    		<li class="left_panel"><g:link action="venueConfig" params="${[bankAcct:6]}" id="${venue?.venueId}"><g:message code="bank.account.label" default="Bank account" /></g:link></li>
-    		<li class="left_panel"><g:link action="venueConfig" params="${[wifi:7]}" id="${venue?.venueId}"><g:message code="wifi.label" default="WiFi" /></g:link></li>
+    		<li class="left_panel"><g:link action="venueConfig" onclick="${venue?'return true':'return false'}" params="${[mgr:2]}" id="${venue?.venueId}"><g:message code="vendsy.manager.label" default="Manager" /></g:link></li>
+    		<li class="left_panel"><g:link action="venueConfig" onclick="${venue?'return true':'return false'}" params="${[vRep:3]}" id="${venue?.venueId}"><g:message code="vendsy.representative.label" default="Vendsy representative" /></g:link></li>
+    		<li class="left_panel"><g:link action="venueConfig" onclick="${venue?'return true':'return false'}" params="${[menu:4]}" id="${venue?.venueId}"><g:message code="menu.label" default="Menu" /></g:link></li>
+    		<li class="left_panel"><g:link action="venueConfig" onclick="${venue?'return true':'return false'}" params="${[orders:5]}" id="${venue?.venueId}"><g:message code="venue.orders.label" default="Orders" /></g:link></li>
+    		<li class="left_panel"><g:link action="venueConfig" onclick="${venue?'return true':'return false'}" params="${[bankAcct:6]}" id="${venue?.venueId}"><g:message code="bank.account.label" default="Bank account" /></g:link></li>
+    		<li class="left_panel"><g:link action="venueConfig" onclick="${venue?'return true':'return false'}" params="${[wifi:7]}" id="${venue?.venueId}"><g:message code="wifi.label" default="WiFi" /></g:link></li>
   		</ul>
 	</div>
 <g:form action="saveVenueConfig" method="post">

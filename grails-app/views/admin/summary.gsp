@@ -15,10 +15,10 @@
 	<div>
 		<table class="tbl-data">
 			<tr>
-				<th width="10%"><g:link controller="admin" action="summary"><g:message code="summary.label" default="Summary" /></g:link></th>
-				<th width="20%"><g:link controller="admin" action="categories"><g:message code="categories.label" default="Categories" /></g:link></th>
-				<th width="20%"><g:link controller="admin" action="ordersList"><g:message code="items.label" default="Items" /></g:link></th>
-				<th width="20%"><g:message code="guests.label" default="Guests" /></th>
+				<th width="10%" style="text-align:center;"><g:link controller="admin" action="summary"><g:message code="summary.label" default="Summary" /></g:link></th>
+				<th width="20%" style="text-align:center;"><g:link controller="admin" action="categories"><g:message code="categories.label" default="Categories" /></g:link></th>
+				<th width="20%" style="text-align:center;"><g:link controller="admin" action="ordersList"><g:message code="items.label" default="Items" /></g:link></th>
+				<th width="20%" style="text-align:center;"><g:message code="guests.label" default="Guests" /></th>
 			</tr>
 		</table>
 	</div>

@@ -64,7 +64,7 @@ label.error {
 					${"General"}
 				</modalbox:createLink>
 				<img src="${resource(dir: 'images', file: 'icon.png')}" class="tooltip imagToolTip"
-				title="Dollar discounts are automatically applied to orders as long as the user has the number of points specified, or more." />
+				title="Dollar discounts are automatically applied to orders as long as the user has the number of points specified, or more. General rewards describe explicitly what the reward is for. They show as dialogs on the patron's mobile phone. A staff member can simply click on those rewards to mark them used. When a discount is applied, the user point balance is adjusted automatically by subtracting the points used." />
 			</div>
 			<% if(configListSize>10){%>
       		<div class="pagination">

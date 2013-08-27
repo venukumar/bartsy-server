@@ -1002,7 +1002,7 @@ class AdminController {
 				def venueId = params.id
 				def venue = Venue.findByVenueId(venueId)
 				[venue:venue]
-			}else if (params.vc){
+			}else if (!params.id && params.vc){
 				String[] monday, tuesday, wednesday, thursday, friday, saturday, sunday
 				monday = parseOpenHours(monday)
 				tuesday = parseOpenHours(tuesday)
@@ -1328,47 +1328,70 @@ class AdminController {
 				}
 			}
 			// Add new venue
-			else if (params.vc){
+			else if (!params.venueId && params.vc){
 				String[] monday, tuesday, wednesday, thursday, friday, saturday, sunday
 				Venue venue = new Venue()
 				venue.venueName = params.venueName
 				venue.address = params.address
 				def openHoursUpd = formatVenueOpenHours(params)
 				venue.openHours = openHoursUpd.toString()
-				
-				venue.country = null
-				venue.hasLocuMenu = null
-				venue.locuId = null
-				venue.locuSection = null
-				venue.totalTaxRate = null
-				venue.routingNumber = null
-				venue.accountNumber = null
-				venue.lat = null
-				venue.locality = null
-				venue.longtd = null
-				venue.phone = null
-				venue.postalCode = null
-				venue.region = null
-				venue.address = null
-				venue.streetAddress = null
-				venue.websiteURL = null
+				venue.country = ""
+				venue.hasLocuMenu = ""
+				venue.locuId = ""
+				venue.locuSection = ""
+				venue.locuUsername = ""
+				venue.locuPassword = ""
+				venue.totalTaxRate = ""
+				venue.routingNumber = ""
+				venue.accountNumber = ""
+				venue.lat = ""
+				venue.locality = ""
+				venue.longtd = ""
+				venue.phone = ""
+				venue.postalCode = ""
+				venue.region = ""
+				venue.streetAddress = ""
+				venue.websiteURL = ""
 				venue.hasBarSection = 0
-				venue.facebookURL = null
-				venue.openHours = null
-				venue.twitterId = null
+				venue.facebookURL = ""
+				venue.twitterId = ""
 				//get the latest venueId from DB and increase it by 1 and set it to the venue object
 				def maxId = Venue.createCriteria().get { projections { max "venueId" } } as Long
 				if(maxId){
 					maxId = maxId+1
-				}
-				else{
+				}else{
 					maxId = 100001
 				}
 				venue.venueId = maxId
-				venue.wifiName = null
-				venue.wifiPassword = null
-				venue.typeOfAuthentication = null
-				venue.deviceToken = null
+				venue.wifiName = ""
+				venue.wifiPassword = ""
+				venue.typeOfAuthentication = ""
+				venue.deviceToken = ""
+				venue.deviceType = ""
+				venue.wifiPresent = 0
+				venue.dateCreated = new Date()
+				venue.lastUpdated = new Date()
+				venue.cancelOrderTime = 0
+				venue.status = 'OPEN'
+				venue.lastHBResponse = new Date()
+				venue.vendsyRepName = ""
+				venue.vendsyRepEmail = ""
+				venue.vendsyRepPhone = ""
+				venue.managerName = ""
+				venue.managerEmail = ""
+				venue.managerPassword = ""
+				venue.managerCell = ""
+				venue.venueLogin = ""
+				venue.venuePassword = ""
+				venue.lastActivity = new Date()
+				venue.venueImagePath = ""
+				venue.phoneNumber = ""
+				venue.description = ""
+				venue.communityRating = ""
+				venue.wifiNetworkType = ""
+				venue.pickupLocation = ""
+				venue.tables = ""
+				venue.tableOrdering = ""
 				
 				if (!venue.save(flush:true)){
 					flash.message = "Problem saving venue details."
@@ -1388,6 +1411,7 @@ class AdminController {
 				render(view:"venueConfig",  model:[venue:venue, mon:monday, tues:tuesday, wed:wednesday, thurs:thursday, fri:friday, sat:saturday, sun:sunday, params:params])
 			}
 		}catch(Exception e){
+			println "exception -->"+e.getMessage()
 			log.error("Exception in saving venue config details ==>"+e.getMessage())
 		}
 	}
@@ -1508,7 +1532,7 @@ class AdminController {
 	 * @return total guests, total checks etc.. as int
 	 */
 	def summary() {
-		try{println "here"
+		try{
 			/*Date  startDate, endDate
 			Date date = new Date()
 			DateFormat jQdateFormat = new SimpleDateFormat("MM/dd/yyyy")
