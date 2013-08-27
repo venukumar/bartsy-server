@@ -33,6 +33,8 @@ class VenueController {
 				json = JSON.parse(params.details)
 			else
 				json = JSON.parse(request)
+
+			println"save venue json "+json
 			//check to make sure the apiVersion sent in the request matches the correct apiVersion
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 			if(apiVersion.value.toString().equalsIgnoreCase(json.apiVersion.toString())){
@@ -127,6 +129,22 @@ class VenueController {
 						venue.isPickupLocution=json.isPickupLocution
 					}
 
+					if(json.has("managerEmail")){
+						venue.managerEmail=json.managerEmail
+					}
+					if(json.has("managerPassword")){
+						venue.managerPassword=json.managerPassword
+					}
+					if(json.has("managerCell")){
+						venue.managerCell=json.managerCell
+					}
+					if(json.has("locuUsername")){
+						venue.locuUsername=json.locuUsername
+					}
+					if(json.has("locuPassword")){
+						venue.locuPassword=json.locuPassword
+					}
+
 					//venue.venueImagePath=venueImagePath
 
 					if(venue.save(flush:true)){
@@ -193,6 +211,22 @@ class VenueController {
 					}
 					if(json.has("isPickupLocution")){
 						venue.isPickupLocution=json.isPickupLocution
+					}
+
+					if(json.has("managerEmail")){
+						venue.managerEmail=json.managerEmail
+					}
+					if(json.has("managerPassword")){
+						venue.managerPassword=json.managerPassword
+					}
+					if(json.has("managerCell")){
+						venue.managerCell=json.managerCell
+					}
+					if(json.has("locuUsername")){
+						venue.locuUsername=json.locuUsername
+					}
+					if(json.has("locuPassword")){
+						venue.locuPassword=json.locuPassword
 					}
 
 					/*	venue.venueName = json.has("venueName")?(json.venueName?json.venueName:parsedData?parsedData.objects[0].name:""):(parsedData?parsedData.objects[0].name:"")
@@ -347,7 +381,6 @@ class VenueController {
 					}
 				}
 			}
-
 		}catch(Exception e){
 			println"exception found in parseAndSaveLocuMenuItems "+e.getMessage()
 			log.info("exception found in parseAndSaveLocuMenuItems "+e.getMessage())
@@ -452,6 +485,18 @@ class VenueController {
 							if(venue.pickupLocations){
 								venueMap.put("pickupLocations",venue.pickupLocations ?: "")
 							}
+
+
+							venueMap.put("locuId",venue.locuId)
+							venueMap.put("managerEmail",venue.managerEmail)
+							venueMap.put("managerPassword",venue.managerPassword)
+							venueMap.put("managerCell",venue.managerCell)
+							venueMap.put("locuUsername",venue.locuUsername)
+							venueMap.put("locuPassword",venue.locuPassword)
+							venueMap.put("venueLogin",venue.venueLogin)
+							venueMap.put("venuePassword",venue.venuePassword)
+
+
 							venueMap.put("open_hours",venue.openHours ?: "")
 							common.response(0, response, "venue Details Available")
 							response.put("venueDetails",venueMap)
@@ -548,6 +593,7 @@ class VenueController {
 			//parse the request sent as input to the syscall
 			def json = JSON.parse(request)
 			//check to make sure the apiVersion sent in the request matches the correct apiVersion
+			println"json "+json
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 			if(apiVersion.value.toInteger() == Integer.parseInt(json.apiVersion.toString())){
 				//retrieve the venueId from the parsed request and retrieve the venue based on venueId
@@ -556,6 +602,7 @@ class VenueController {
 				//check if venue exists with that venueId
 				if(venue){
 					if(venue.locuSection){
+						println"locu section"
 						def sections = venue.locuSection.trim().split(",")
 						if(sections){
 							def menuJson=[]
@@ -681,7 +728,6 @@ class VenueController {
 		try{
 			def json = JSON.parse(request)
 			if(json){
-
 				def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 				if(json.has("apiVersion") && apiVersion.value.toInteger() == json.apiVersion.toInteger()){
 					venueService.getLocuMenu(json,response)
