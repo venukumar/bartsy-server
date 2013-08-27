@@ -17,6 +17,7 @@ class SpecialMenuItems {
 		description(nullable:true)
 		shopping(nullable:true)
 		price(nullable:true)
+		type(nullable:true)
 	}
 	static belongsTo =[venue:Venue,specialMenu:SpecialMenus]
 	static mapping = {
@@ -36,4 +37,5 @@ class SpecialMenuItems {
 	Date lastUpdated
 	String description
 	String shopping
+	String type
 }
