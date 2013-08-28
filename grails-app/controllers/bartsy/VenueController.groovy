@@ -446,6 +446,58 @@ class VenueController {
 			}
 		}
 	}
+	/**
+	 * This call used to get the venue table and pickup locations of the venue
+	 */
+	def getVenueLocations={
+		def response=[:]
+		CommonMethods common = new CommonMethods()
+		try{
+			def json = JSON.parse(request)
+			if(json.apiVersion){
+				def apiVersion = BartsyConfiguration.findByConfigName("apiVersion").value
+				if(json.apiVersion.toString().equalsIgnoreCase(apiVersion)){
+					if(json.venueId){
+						def venue = Venue.findByVenueId(json.venueId.toString())
+						if(venue){
+							def venueMap=[:]
+							venueMap.put("venueName",venue.getVenueName())
+							venueMap.put("venueId",venue.getVenueId())
+							venueMap.put("currentTime",new Date().toGMTString())
+							venueMap.put("tableOrdering",venue.tableOrdering ?: Boolean.FALSE)
+							venueMap.put("isPickupLocution",venue.isPickupLocution ?: Boolean.FALSE)
+							if(venue.deliveryTables){
+								venueMap.put("deliveryTables",venue.deliveryTables ?: "")
+							}
+							if(venue.pickupLocations){
+								venueMap.put("pickupLocations",venue.pickupLocations ?: "")
+							}
+							common.response(0, response, "venue Details Available")
+							response.put("venueLocations",venueMap)
+						}else{
+							common.response(3, response, "venue doesn't exist")
+						}
+					}else{
+						common.response(2, response, "VenueId is missing in your request")
+					}
+				}else{
+					common.response(100, response, "Apiversion doesn't match")
+				}
+			}else{
+				common.response(1, response, "Apiversion is missing in your request")
+			}
+
+		}catch(Exception e){
+			println "Exception found in getVenueDetails "+e.getMessage()
+			log.info("Exception found in getVenueDetails "+e.getMessage())
+			common.exceptionFound(e, response)
+			response.put("currentTime",new Date().toGMTString())
+			render(text:response as JSON,contentType:"application/json")
+		}
+		response.put("currentTime",new Date().toGMTString())
+		render(text:response as JSON,contentType:"application/json")
+
+	}
 
 	def getVenueDetails={
 		def response=[:]
