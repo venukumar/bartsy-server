@@ -219,8 +219,8 @@ class InventoryController {
 		String description
 		String categorys
 		if(ingredients && ingredients.size()>0){
-			int count= 0
-			boolean checkFirstHasCategory = true
+
+
 			ingredients.each {
 				def ingredient=it
 				def ingForcheck = IngredientCategory.findByCategory(ingredient.toString().trim())
@@ -230,19 +230,15 @@ class InventoryController {
 					else
 						categorys=categorys+","+ingForcheck.id
 				}else{
-					if(count==0){
-						checkFirstHasCategory=false
-					}
+
 					if(!description)
 						description=ingredient
 					else
 						description=description+","+ingredient
 				}
-				count++
 			}
 			result.put("description",description)
 			result.put("categorys",categorys)
-			result.put("checkFirstHasCategory", checkFirstHasCategory)
 		}
 		return result
 	}
@@ -304,13 +300,7 @@ class InventoryController {
 													cocktailsToSave.setIngredients(cocktail.ingredients)
 													cocktailsToSave.setDescription(cocktail.description?cocktail.description:"")
 													cocktailsToSave.setShopping(categories.categorys?categories.categorys:"")
-
-													if(categories.checkFirstHasCategory){
-														cocktailsToSave.setType(cocktail.type)
-													}else{
-														cocktailsToSave.setType("ITEM")
-													}
-
+													cocktailsToSave.setType(cocktail.type)
 													cocktailsToSave.setVenue(venue)
 													cocktailsToSave.setSpecialMenu(menu)
 
