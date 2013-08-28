@@ -125,7 +125,7 @@ class VenueController {
 					if(json.has("pickupLocations")){
 						venue.pickupLocations=json.pickupLocations.toString()
 					}
-					if(json.has("isPickupLocution")){
+					if(json.has("isPickupLocation")){
 						venue.isPickupLocution=json.isPickupLocution
 					}
 
@@ -209,7 +209,7 @@ class VenueController {
 					if(json.has("pickupLocations")){
 						venue.pickupLocations=json.pickupLocations.toString()
 					}
-					if(json.has("isPickupLocution")){
+					if(json.has("isPickupLocation")){
 						venue.isPickupLocution=json.isPickupLocution
 					}
 
@@ -465,7 +465,7 @@ class VenueController {
 							venueMap.put("venueId",venue.getVenueId())
 							venueMap.put("currentTime",new Date().toGMTString())
 							venueMap.put("tableOrdering",venue.tableOrdering ?: Boolean.FALSE)
-							venueMap.put("isPickupLocution",venue.isPickupLocution ?: Boolean.FALSE)
+							venueMap.put("isPickupLocation",venue.isPickupLocution ?: Boolean.FALSE)
 							if(venue.deliveryTables){
 								venueMap.put("deliveryTables",venue.deliveryTables ?: "")
 							}
@@ -529,7 +529,7 @@ class VenueController {
 							venueMap.put("currentTime",new Date().toGMTString())
 							venueMap.put("wifiNetworkType",venue.wifiNetworkType)
 							venueMap.put("tableOrdering",venue.tableOrdering ?: Boolean.FALSE)
-							venueMap.put("isPickupLocution",venue.isPickupLocution ?: Boolean.FALSE)
+							venueMap.put("isPickupLocation",venue.isPickupLocution ?: Boolean.FALSE)
 
 							if(venue.deliveryTables){
 								venueMap.put("deliveryTables",venue.deliveryTables ?: "")

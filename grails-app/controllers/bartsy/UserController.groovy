@@ -908,7 +908,7 @@ class UserController {
 
 
 						response.put("tableOrdering",checkedInUser.venue.tableOrdering ?: Boolean.FALSE)
-						response.put("isPickupLocution",checkedInUser.venue.isPickupLocution ?: Boolean.FALSE)
+						response.put("isPickupLocation",checkedInUser.venue.isPickupLocution ?: Boolean.FALSE)
 
 						if(checkedInUser.venue.deliveryTables){
 							response.put("deliveryTables",checkedInUser.venue.deliveryTables ?: "")
