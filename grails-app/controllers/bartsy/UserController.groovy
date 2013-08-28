@@ -859,7 +859,7 @@ class UserController {
 			//check to make sure the apiVersion sent in the request matches the correct apiVersion
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 			def sessionCode = System.currentTimeMillis().toString()
-			if(apiVersion.value.toInteger() == json.apiVersion.toInteger()){
+			if(apiVersion.value.toString().equalsIgnoreCase(json.apiVersion.toString())){
 				//define the variable to retrieve and store the user profile object
 				def userProfile
 				if(json.type.equals("facebook")){
@@ -873,10 +873,12 @@ class UserController {
 				}
 				//check if user profile exists
 				if(userProfile){
-
+					println"user exists"
 					//if user profile exists set device type and device token sent in the syscall request
 					userProfile.setDeviceToken(json.deviceToken)
-					userProfile.setDeviceType(json.deviceType as int)
+					if(json.deviceType){
+						userProfile.setDeviceType(json.deviceType as int)
+					}
 					userProfile.setSessionCode(sessionCode)
 					//save the user profile object
 					userProfile.save()
@@ -903,8 +905,8 @@ class UserController {
 						response.put("totalTaxRate",checkedInUser.venue.totalTaxRate)
 						response.put("orderTimeout",checkedInUser.venue.getCancelOrderTime())
 						response.put("typeOfAuthentication",checkedInUser.venue.getTypeOfAuthentication())
-						
-						
+
+
 						response.put("tableOrdering",checkedInUser.venue.tableOrdering ?: Boolean.FALSE)
 						response.put("isPickupLocution",checkedInUser.venue.isPickupLocution ?: Boolean.FALSE)
 
@@ -914,8 +916,8 @@ class UserController {
 						if(checkedInUser.venue.pickupLocations){
 							response.put("pickupLocations",checkedInUser.venue.pickupLocations ?: "")
 						}
-						
-						
+
+
 						def orders = Orders.findAllByUser(userProfile)
 						if(orders){
 							response.put("unlocked","true")
@@ -982,6 +984,7 @@ class UserController {
 					}
 				}
 				else{
+					println"user not exists"
 					//if user profile does not exists send negative response
 					if(json.type.equals("facebook") || json.type.equals("google") || json.type.equals("login")){
 						response=handleNegativeResponse(response,"User not registered")
