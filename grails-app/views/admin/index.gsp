@@ -5,8 +5,9 @@
     <meta name="layout" content="main"/>
     <title><g:message code="page.admin.login.title" default="Admin Login" /></title>
   </head>
-   <body>
-    <div class="login-con">
+  
+<body>
+	<div style="height:300px;padding-top:100px;">
         <g:if test="${flash.message}">
           <div class="message" id="ferr" role="status">${flash.message}</div>
         </g:if>
@@ -14,7 +15,7 @@
           <div class="errors" id="ferr">${flash.errors}</div>
         </g:if>
        
-	<div class="error-msg" id="err" style="display: none"></div>
+		<div class="error-msg" id="err" style="display: none"></div>
         <g:hasErrors bean="${adminUserInstance}">
           <ul class="errors" role="alert">
             <g:eachError bean="${adminUserInstance}" var="error">
@@ -27,27 +28,22 @@
         </g:hasErrors>
         <div class="error-msg" id="msg_error"></div>
         <% flash.clear() %>
-        <g:form action="adminLogin" method="post">
-   	   <div class="label-row  ${hasErrors(bean: adminUserInstance, field: 'username', 'error')} required">
-        <label style="line-height:26px;">
-          <g:message code="adminUser.username.label" default="Username" /> 
-          <span class="required-indicator">*</span>
-        </label>
-        <input type="text" name="username" id="username" value="${adminUserInstance?.username}" class="txt-field required" style="line-height:30px\0/;" />
+      
+      <g:form action="adminLogin" method="post">
+   	  <div class="login_fields" class="${hasErrors(bean: adminUserInstance, field: 'username', 'error')} required">
+			<g:message code="adminUser.username.label" default="Username" /><span class="required-indicator">*</span>
+			<input type="text" name="username" id="username" value="${adminUserInstance?.username}" class="txt-field required" />
       </div>
-      <div class="label-row  ${hasErrors(bean: adminUserInstance, field: 'password', 'error')} required">
-        <label style="line-height:26px;">
-          <g:message code="adminUser.pwd.label" default="Password" /> 
-          <span class="required-indicator">*</span>
-        </label>
-        <input type="password" name="password" id="password" value="${adminUserInstance?.password}" class="txt-field required" style="line-height:30px\0/;" />
+      
+      <div class="login_fields" class="${hasErrors(bean: adminUserInstance, field: 'password', 'error')} required">
+			<g:message code="adminUser.pwd.label" default="Password" /><span class="required-indicator">*</span>
+			<input type="password" name="password" id="password" value="${adminUserInstance?.password}" class="txt-field required" />
       </div>
-        <div class="button-con">
-             <input name="login" type="submit" value="${message(code: 'loginbutton.label', default: 'Login')}" class="ybtn " />
-        </div>
-        </g:form>
+      
+      <div class="button-con">
+		<input name="login" type="submit" value="${message(code: 'loginbutton.label', default: 'Login')}" />
       </div>
-    </div>
-  </body>
+      </g:form>
+	</div>
+</body>
 </html>	
-</html>

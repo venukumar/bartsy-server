@@ -188,8 +188,9 @@ img {
 .label-row {
 	width: auto;
 	padding: 0px;
-	/*margin-top: 16px;*/
+	margin-top: 16px;
 	overflow: hidden;
+	text-align:center;
 }
 
 .label-row label {
@@ -202,8 +203,17 @@ img {
 }
 
 .button-con {
-	padding-left: 140px;
+	padding-left: 382px;
 	margin-top: 16px;
+}
+
+.button-con input {
+	background: url(../images/small_btn_graybg.png) center center no-repeat;
+	color:#ffffff;
+	font-weight:bold;
+	border-style:none;
+	padding:5px 25px;
+	cursor:auto;
 }
 
 .label-row input,select,textarea,option {
@@ -219,10 +229,9 @@ img {
 
 .txt-field,.txt-fieldn {
 	background: #EEEEEE;
-	width: 244px;
+	width: 250px;
 	padding: 0px 8px;
 	border: none;
-	line-height: 30px\0/;
 	-webkit-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16) inset;
 	-webkit-border-radius: 5px;
 	border-radius: 5px;
@@ -484,12 +493,10 @@ input:focus,select:focus,textarea:focus {
 }
 
 .required-indicator {
-	color: #48802C;
-	display: inline-block;
-	font-weight: bold;
-	margin-left: 0.3em;
+	color: #0c79a2;
+	margin: 0px 25px 0px 5px;
 	position: relative;
-	top: 0.1em;
+	top: 3px;
 }
 
 ul.one-to-many {
@@ -1098,21 +1105,17 @@ a.skip {
  color:#ffffff;
  border-style:none;
  padding:6px 19px;
-}
-
-.dollar_discount_btn input {
  font-weight:bold;
+ cursor:auto;
 }
 
 .general_btn {
- background: url(../images/small_btn_bluebg.png) no-repeat;
+ background: url(../images/small_btn_bluebg.png) center center no-repeat;
  color:#ffffff;
  border-style:none;
- padding:6px 19px; 
-}
-
-.general_btn input {
+ padding:6px 19px;
  font-weight:bold;
+ cursor:auto;
 }
 
 .configure_btn {
@@ -1121,4 +1124,12 @@ a.skip {
  border-style:none;
  padding:15px 22px;
  font-weight:bold;
+ cursor:auto;
+}
+
+.login_fields {
+ padding:10px;
+ text-align:center;
+ font-weight:bold;
+ color:#0c79a2
 }
