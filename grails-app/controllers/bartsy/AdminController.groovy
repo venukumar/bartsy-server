@@ -260,7 +260,7 @@ class AdminController {
 				def venueReward = VenueConfig.findById(venueRewardId)
 				render(view:"addEditVenueReward", model:[venueReward:venueReward, venueId:params.venueId])
 			}else{
-				render(view:"addEditVenueReward", model:[venueId:params.venueId, rewardType:params.rewardType])
+				render(view:"addEditVenueReward", model:[venueId:params.venueId])
 			}
 		}catch(Exception e){
 			log.error("Exception in retrieving venue list ==>"+e.getMessage())
@@ -285,11 +285,9 @@ class AdminController {
 			}
 			if(params.type){
 				type = params.type
-			}else{
-				type = params.rewardType
 			}
 			if(params.value){
-				value=params.value
+				value = params.value
 			}
 			if(params.venueRewardId){
 				venueRewardId = params.venueRewardId
@@ -316,7 +314,7 @@ class AdminController {
 			}else{
 				flash.message = "Please fill reward points."
 			}
-			redirect(action:"venueRewards", id:venue.venueId)
+			redirect(action:"venueConfig", id:venue.venueId, params: [rew: 8])
 		}catch(Exception e){
 			log.error("Exception found "+e.getMessage())
 		}
@@ -401,7 +399,8 @@ class AdminController {
 				// total price
 				def totPrice = order.totalPrice
 				def formattedTotPrice = formatNumStr(totPrice.toString())
-				render(view:"orderDetails",model:[selectedOrder:order, orderStatus:orderStatus, orderLastState:orderLastState, itemName:itemName, tipPercentage:formattedTip+'%', totalPrice:'$ '+formattedTotPrice, , basePrice:'$ '+formattedBasePrice])
+				render(view:"orderDetails",model:[selectedOrder:order, orderStatus:orderStatus, orderLastState:orderLastState, itemName:itemName, 
+					tipPercentage:formattedTip+'%', totalPrice:'$'+formattedTotPrice, , basePrice:'$'+formattedBasePrice])
 			}
 		}catch(Exception e){
 			log.error("Error in order details ==>"+e.getMessage())
@@ -459,30 +458,13 @@ class AdminController {
 			def perGuestGrossTotal = [:], perGuestTaxTotal = [:], perGuestCompTotal = [:], perGuestNetTotal = [:]
 			def perGuestGrossTot = 0, perGuestTaxTot = 0, perGuestCompTot = 0, perGuestNetTot = 0
 			Set uniqueGuest = new HashSet()
-			//def orderslist = Orders.createCriteria().list(params){ order "id", "desc" }
-			//def orderlistTotal = Orders.count()
+			
 			def orderslist = Orders.createCriteria().list(params, query)
 			def orderlistTotal = Orders.createCriteria().count(query)
 			if(orderslist){
 				orderslist.each {
 					def order=it
 					def key = order.orderId
-					/*def itemName = order.itemName
-					def itemsList = order.itemsList
-					if(itemsList){
-						def listOfItems = new JSONArray(itemsList)
-						listOfItems.each{
-							def item = it
-							if(itemName){
-								itemName=itemName+","+item.itemName
-							}else{
-								itemName=item.itemName
-							}
-						}
-					}
-
-					orders.put(key,itemName)*/
-					
 					// To retrieve items from orderItems for each order 
 					def itemNames = "", gross = 0
 					def orderItemsList = OrderItems.createCriteria().list {
@@ -492,9 +474,7 @@ class AdminController {
 						orderItemsList.each {
 							def orderItem = it
 							def finalBasePrice = formatNumStr(orderItem.basePrice)
-							
-							itemNames += orderItem.itemName + " - \$ " + finalBasePrice + "</br>"
-							
+							itemNames += orderItem.itemName + " - \$" + finalBasePrice + "</br>"
 							Double base = new Double(finalBasePrice)
 							gross += base
 						}
@@ -503,22 +483,22 @@ class AdminController {
 					orders.put(key, itemNames)
 					// gross
 					def formattedGross = formatNumStr(gross.toString())
-					itemsGross.put(key, '$ '+formattedGross)
+					itemsGross.put(key, '$'+formattedGross)
 					// tax
 					def formattedTax = formatNumStr(order.venue.totalTaxRate)
-					orderTax.put(key, '$ '+formattedTax)
+					orderTax.put(key, '$'+formattedTax)
 					// tip percentage
 					def tip = order.tipPercentage
-					def formattedTip = formatNumStr(tip.toString())
+					def formattedTip = formatTipNumStr(tip.toString())
 					tipPercentage.put(key, formattedTip+'%')
 					// comp
 					def compVal = (gross * new Double(tip)) / 100
 					def formattedCompVal = formatNumStr(compVal.toString())
-					comp.put(key, '$ '+formattedCompVal)
+					comp.put(key, '$'+formattedCompVal)
 					// net
 					def netVal = new Double(formattedGross) + new Double(formattedTax) + new Double(formattedCompVal)
 					def formattedNetVal = formatNumStr(netVal.toString())
-					net.put(key, '$ '+formattedNetVal)
+					net.put(key, '$'+formattedNetVal)
 					
 					// Total calculation
 					// unique guests
@@ -529,60 +509,60 @@ class AdminController {
 					// gross total
 					grossTot += new Double(formattedGross)
 					def formattedGrossTotal = formatNumStr(grossTot.toString())
-					grossTotal.put("grossTotal", '$ '+formattedGrossTotal)
+					grossTotal.put("grossTotal", '$'+formattedGrossTotal)
 					// tax total
 					taxTot += new Double(formattedTax)
 					def formattedTaxTotal = formatNumStr(taxTot.toString())
-					taxTotal.put("taxTotal", '$ '+formattedTaxTotal)
+					taxTotal.put("taxTotal", '$'+formattedTaxTotal)
 					// comp total
 					compTot += compVal
 					def formattedCompTot = formatNumStr(compTot.toString())
-					compTotal.put("compTotal", '$ '+formattedCompTot)
+					compTotal.put("compTotal", '$'+formattedCompTot)
 					// percentage total
 					percentageTot += new Double(tip)
 					def pTot = percentageTot/orderlistTotal
-					def formattedPTot = formatNumStr(pTot.toString())
+					def formattedPTot = formatTipNumStr(pTot.toString())
 					percentageTotal.put("percentageTotal", formattedPTot+'%')
 					// net total
 					netTot += netVal
 					def formattedNetTot = formatNumStr(netTot.toString())
-					netTotal.put("netTotal", '$ '+formattedNetTot)
+					netTotal.put("netTotal", '$'+formattedNetTot)
 					
 					// Average calculation
 					// gross total average
 					avgGrossTot = new Double(formattedGrossTotal) / orderlistTotal
 					def formattedAvgGrossTotal = formatNumStr(avgGrossTot.toString())
-					avgGrossTotal.put("avgGrossTotal", '$ '+formattedAvgGrossTotal)
+					avgGrossTotal.put("avgGrossTotal", '$'+formattedAvgGrossTotal)
 					// tax total average
 					avgTaxTot = new Double(formattedTaxTotal) / orderlistTotal
 					def formattedAvgTaxTotal = formatNumStr(avgTaxTot.toString())
-					avgTaxTotal.put("avgTaxTotal", '$ '+formattedAvgTaxTotal)
+					avgTaxTotal.put("avgTaxTotal", '$'+formattedAvgTaxTotal)
 					// comp total average
 					avgCompTot = new Double(formattedCompTot) / orderlistTotal
 					def formattedAvgCompTotal = formatNumStr(avgCompTot.toString())
-					avgCompTotal.put("avgCompTotal", '$ '+formattedAvgCompTotal)
+					avgCompTotal.put("avgCompTotal", '$'+formattedAvgCompTotal)
 					// net total average
 					avgNetTot = new Double(formattedNetTot) / orderlistTotal
 					def formattedAvgNetTotal = formatNumStr(avgNetTot.toString())
-					avgNetTotal.put("avgNetTotal", '$ '+formattedAvgNetTotal)
+					avgNetTotal.put("avgNetTotal", '$'+formattedAvgNetTotal)
 					
 					// Per guest calculation
 					// gross total per guest
 					perGuestGrossTot = new Double(formattedGrossTotal) / guests
 					def formattedPerGuestGrossTotal = formatNumStr(perGuestGrossTot.toString())
-					perGuestGrossTotal.put("perGuestGrossTotal", '$ '+formattedPerGuestGrossTotal)
+					perGuestGrossTotal.put("perGuestGrossTotal", '$'+formattedPerGuestGrossTotal)
 					// tax total per guest
 					perGuestTaxTot = new Double(formattedTaxTotal) / guests
 					def formattedPerGuestTaxTotal = formatNumStr(perGuestTaxTot.toString())
-					perGuestTaxTotal.put("perGuestTaxTotal", '$ '+formattedPerGuestTaxTotal)
+					perGuestTaxTotal.put("perGuestTaxTotal", '$'+formattedPerGuestTaxTotal)
 					// comp total per guest
 					perGuestCompTot = new Double(formattedCompTot) / guests
 					def formattedPerGuestCompTotal = formatNumStr(perGuestCompTot.toString())
-					perGuestCompTotal.put("perGuestCompTotal", '$ '+formattedPerGuestCompTotal)
+					perGuestCompTotal.put("perGuestCompTotal", '$'+formattedPerGuestCompTotal)
 					// net total per guest
 					perGuestNetTot = new Double(formattedNetTot) / guests
 					def formattedPerGuestNetTotal = formatNumStr(perGuestNetTot.toString())
-					perGuestNetTotal.put("perGuestNetTotal", '$ '+formattedPerGuestNetTotal)
+					perGuestNetTotal.put("perGuestNetTotal", '$'+formattedPerGuestNetTotal)
 					
 				}
 			}
@@ -591,14 +571,19 @@ class AdminController {
 				response.contentType = grailsApplication.config.grails.mime.types[params.format]
 				response.setHeader("Content-disposition", "attachment; filename=Orders_${jqStart}.${params.extension}")
 				List fields = ["dateCreated", "orderId", "itemsList", "sender", "recipient", "gross", "taxl", "compl", "tipl", "nett"]
-				Map labels = ["dateCreated": "Time", "orderId": "Transaction Id", "itemsList": "Item", "sender":"Sender", "recipient":"Recipient", "gross":"Gross", "taxl":"Tax", "compl":"Comp", "tipl":"Tip %", "nett":"Net"]
+				Map labels = ["dateCreated": "Time", "orderId": "Id", "itemsList": "Item", "sender":"Sender", "recipient":"Recipient", "gross":"Gross", "taxl":"Tax", "compl":"Comp", "tipl":"Tip %", "nett":"Net"]
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 				
 				// Formatter closure
 				def upperCase = { domain, value ->
 					return value.toUpperCase()
 				}
 				def time = { domain, value ->
-					return domain?.dateCreated
+					def dateCreated = domain?.dateCreated
+					if (dateCreated){
+						return sdf.format(dateCreated)
+					}
+					//return domain?.dateCreated
 				}
 				def tid = { domain, value ->
 					return domain?.orderId
@@ -615,7 +600,7 @@ class AdminController {
 					listOfItems.each{
 						def itemInfo = it
 						def finalBasePrice = formatNumStr(itemInfo.price)
-						uniPar += itemInfo.itemName + " - \$ " + finalBasePrice + "\n"
+						uniPar += itemInfo.itemName + " - \$" + finalBasePrice + "\n"
 					}
 					return uniPar
 				}
@@ -629,11 +614,11 @@ class AdminController {
 						gross += base
 					}
 					def formattedGross = formatNumStr(gross.toString())
-					return '$ '+formattedGross
+					return '$'+formattedGross
 				}
 				def taxl = {domain, value ->
 					def formattedTax = formatNumStr(domain?.venue?.totalTaxRate)
-					return '$ '+formattedTax
+					return '$'+formattedTax
 				}
 				def compl = {domain, value ->
 					def listOfItems = new JSONArray(domain?.itemsList)
@@ -647,17 +632,17 @@ class AdminController {
 					def tipls = domain?.tipPercentage
 					def compVal = (grossl * new Double(tipls)) / 100
 					def formattedCompVal = formatNumStr(compVal.toString())
-					return '$ '+formattedCompVal
+					return '$'+formattedCompVal
 				}
 				def tipl = {domain, value ->
 					def tipL = domain?.tipPercentage
-					def formattedTipVal = formatNumStr(tipL.toString())
+					def formattedTipVal = formatTipNumStr(tipL.toString())
 					return formattedTipVal+"%"
 				}
 				def nett = {domain, value->
 					def total = domain?.totalPrice
 					def formattedTotal = formatNumStr(total.toString())
-					return '$ '+formattedTotal
+					return '$'+formattedTotal
 				}
 				Map formatters = [dateCreated:time, orderId:tid, itemsList:item, sender:sender, recipient:recipient, gross:gross, taxl:taxl, compl:compl, tipl:tipl, nett:nett]
 				Map parameters
@@ -678,24 +663,47 @@ class AdminController {
 	 * @return formatted string
 	 */
 	def formatNumStr(def inputNumStr) {
-		String tempBasePrice, finalBasePrice
+		String tempNumStr, finalNumStr
 		DecimalFormat decimalFormat = new DecimalFormat("#.##")
 		
 		if (inputNumStr.contains(".")){
-			tempBasePrice = inputNumStr.substring(inputNumStr.indexOf(".") + 1)
-			if (tempBasePrice.length() == 1){
-				finalBasePrice = inputNumStr + '0'
-			}else if(tempBasePrice.length() > 2){
+			tempNumStr = inputNumStr.substring(inputNumStr.indexOf(".") + 1)
+			if (tempNumStr.length() == 1){
+				finalNumStr = inputNumStr + '0'
+			}else if(tempNumStr.length() > 2){
 				Double basePriceDouble = new Double(inputNumStr)
-				finalBasePrice = decimalFormat.format(basePriceDouble)
+				finalNumStr = decimalFormat.format(basePriceDouble)
 			}else{
-				finalBasePrice = inputNumStr
+				finalNumStr = inputNumStr
 			}
 		}else{
-			finalBasePrice = inputNumStr + ".00"
+			finalNumStr = inputNumStr + ".00"
 		}
 		
-		return finalBasePrice
+		return finalNumStr.trim()
+	}
+	
+	/**
+	 * Method to convert a trip string representing a number to '##.#' format
+	 * @return formatted string
+	 */
+	def formatTipNumStr(def inputNumStr) {
+		String tempNumStr, finalNumStr
+		DecimalFormat decimalFormat = new DecimalFormat("#.#")
+		
+		if (inputNumStr.contains(".")){
+			tempNumStr = inputNumStr.substring(inputNumStr.indexOf(".") + 1)
+			if(tempNumStr.length() > 1){
+				Double basePriceDouble = new Double(inputNumStr)
+				finalNumStr = decimalFormat.format(basePriceDouble)
+			}else{
+				finalNumStr = inputNumStr
+			}
+		}else{
+			finalNumStr = inputNumStr
+		}
+		
+		return finalNumStr.trim()
 	}
 	
 	def downloadCSV(){
@@ -961,6 +969,8 @@ class AdminController {
 				if(venue){
 					if (venue.openHours){
 						def openHoursJSON = new JSONObject(venue.openHours)
+						//def hrs = '{"Thursday":[" - "],"Saturday":[" - "],"Monday":[" - "],"Tuesday":[" - "],"Wednesday":[" - "],"Friday":[" - "],"Sunday":[" - "]}'
+						//def openHoursJSON = new JSONObject(hrs)
 						monday = parseOpenHours(openHoursJSON.get("Monday")) 
 						tuesday = parseOpenHours(openHoursJSON.get("Tuesday"))
 						wednesday = parseOpenHours(openHoursJSON.get("Wednesday"))
@@ -1008,6 +1018,15 @@ class AdminController {
 				def venueId = params.id
 				def venue = Venue.findByVenueId(venueId)
 				[venue:venue]
+			}else if (params.id && params.rew){
+				def venueId = params.id
+				def venue = Venue.findByVenueId(venueId)
+				def configList = VenueConfig.createCriteria().list() {
+					eq("venue", venue)
+					order("rewardPoints", "asc")
+				}
+				def configListSize = configList.size()
+				[venue:venue, venueList:configList, configListSize:configListSize]
 			}else if (!params.id && params.vc){
 				String[] monday, tuesday, wednesday, thursday, friday, saturday, sunday
 				monday = parseOpenHours(monday)
@@ -1042,6 +1061,12 @@ class AdminController {
 			}
 		}else{
 			dayHrsTemp[0] = "00:00:00"
+			dayHrsTemp[1] = "00:00:00"
+		}
+		if (dayHrsTemp[0].equals(" ") || dayHrsTemp[0] == null){
+			dayHrsTemp[0] = "00:00:00"
+		}
+		if (dayHrsTemp[1].equals(" ") || dayHrsTemp[1] == null){
 			dayHrsTemp[1] = "00:00:00"
 		}
 		return dayHrsTemp

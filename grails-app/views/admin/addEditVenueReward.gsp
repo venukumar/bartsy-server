@@ -26,10 +26,17 @@
 	});*/
 	
 	jQuery(document).ready(function() {
-		console.log("READY");
+		var rewardType = jQuery('.pick').val();
+		if (rewardType == 1){
+			jQuery('.desc').hide()
+			jQuery('.reVal').show()
+		}else if (rewardType == 2){
+			jQuery('.reVal').hide()
+			jQuery('.desc').show()
+		}
 	});
 	var $j = jQuery.noConflict();
-	function validateForm() {
+	/*function validateForm() {
 		var rewardPoints = jQuery(".rewards").val();
 		console.log("Reward points-->"+rewardPoints)
 		if (rewardPoints != "" && rewardPoints != null) {
@@ -62,7 +69,17 @@
 			alert("No value in Reward Points field");
 			return false;
 		}
-	}
+	}*/
+	jQuery('.pick').change(function() {
+		var rewardType = jQuery('.pick').val();
+		if (rewardType == 1){
+			jQuery('.desc').hide()
+			jQuery('.reVal').show()
+		}else if (rewardType == 2){
+			jQuery('.reVal').hide()
+			jQuery('.desc').show()
+		}
+	});
 </script>
 <style type="text/css">
 label.error {
@@ -82,25 +99,8 @@ label.error {
 	<div>
 		<g:form action="saveVenueReward" method="post" onSubmit="return validateForm()">
 			<input type="hidden" name="venueId" value='${venueId}'>
-			<%if (venueReward) {%>
-				<input type="hidden" name="venueRewardId" value='${venueReward.id}'>
-			<%}
-			  if (rewardType){
-			%>
-				<input type="hidden" name="rewardType" value='${rewardType}'>
-			<%
-			  }
-			%>
+			<input type="hidden" name="venueRewardId" value='${venueReward?.id}'>
 			<div class='venu-con'>
-				<div id="userTimeout" class="label-row">
-					<label><g:message code="reward.points.label" default="Reward Points"/> :</label>
-					<input type="text" name="rewardPoints" value="${(venueReward?.rewardPoints)}" class="txt-field rewards">
-				</div>
-				<div id="userTimeout" class="label-row">
-					<label><g:message code="description.label" default="Description"/> :</label>
-					<textarea name="description" class="txt-field description" rows="3"	cols="5">${(venueReward?.description)}</textarea>
-				</div>
-				<%if (!rewardType){%>
 				<div id="userTimeout" class="label-row">
 					<label><g:message code="reward.type.label" default="Reward Type"/> :</label> 
 					<select class="txt-field pick" name="type">
@@ -108,8 +108,15 @@ label.error {
 						<option value="2" ${(venueReward?(venueReward.type.equals("Text")?'selected=selected':''):'')}><g:message code="text.label" default="Text"/></option>
 					</select>
 				</div>
-				<%}%>
 				<div id="userTimeout" class="label-row">
+					<label><g:message code="reward.points.label" default="Reward Points"/> :</label>
+					<input type="text" name="rewardPoints" value="${(venueReward?.rewardPoints)}" class="txt-field rewards">
+				</div>
+				<div id="userTimeout" class="label-row desc">
+					<label><g:message code="description.label" default="Description"/> :</label>
+					<textarea name="description" class="txt-field description" rows="3"	cols="5">${(venueReward?.description)}</textarea>
+				</div>
+				<div id="userTimeout" class="label-row reVal">
 					<label><g:message code="value.label" default="Value"/> :</label> 
 					<input type="text" name="value" value="${(venueReward?.value)}" class="txt-field value"></input>
 				</div>

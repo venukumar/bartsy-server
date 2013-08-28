@@ -28,7 +28,7 @@
 		<th width="25%"><g:message code="user.email.label" default="Email" /></th>
 		<th width="10%"><g:message code="user.age.label" default="Age" /></th>
 		<th width="20%"><g:message code="user.checked.venues" default="Checked In Venues" /></th>
-		<th width="20%"><g:message code="user.lastorderdate.label" default="Order Date" /></th>
+		<th width="20%"><g:message code="user.lastorderdate.label" default="Last Ordered Date" /></th>
 		<th width="10%"><g:message code="user.total.order" default="Orders" /></th>
 		</tr>
 		<!-- <modalbox:createLink controller="admin" action="userDetails" id="${userInfo?.bartsyId}" title="Show User Information" width="750"></modalbox:createLink>-->

@@ -65,8 +65,8 @@
           			<td style="text-align:center">
 						  <table class="actions-tbl">
  			 				<tr>
-		         				<td width="30%" style="padding: 0px 4px 0px 4px;"><g:link action="venueConfig" params="${[vc:1]}" id="${venue.venueId}"><g:message code="settings.label" default="Settings" /></g:link></td>
-								<td width="30%" style="padding: 0px 4px 0px 4px;"><g:link action="venueRewards" id="${venue.venueId}"><g:message code="rewards.label" default="Rewards" /></g:link></td>
+		         				<td width="30%" style="padding: 0px 4px 0px 4px;"><g:link class="edit" action="venueConfig" params="${[vc:1]}" id="${venue.venueId}"><g:message code="editbutton.title" default="Edit" /></g:link></td>
+								<!--<td width="30%" style="padding: 0px 4px 0px 4px;"><g:link action="venueRewards" id="${venue.venueId}"><g:message code="rewards.label" default="Rewards" /></g:link></td>-->
    				 				<!--<td width="30%"><g:link class="edit" action="edit" id="${venue.id}"><g:message code="editbutton.title" default="Edit" /></g:link></td>-->
    				 				<td width="40%" style="padding: 0px 4px 0px 4px;"><g:link class="delete" action="deleteVenue" id="${venue.venueId}" onclick="return confirm('${message(code: 'default.button.delete.sender.message', default: 'Are you sure you wish to delete this Venue?')}');"><g:message code="deletebutton.title" default="Delete" /></g:link></td>
   							</tr>

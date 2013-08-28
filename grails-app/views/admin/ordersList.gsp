@@ -1,4 +1,5 @@
 <%@page import="bartsy.Orders"%>
+<%@page import="java.text.SimpleDateFormat"%>
 <!doctype html>
 <html>
 <head>
@@ -49,7 +50,7 @@
 		<table class="tbl-data">
 			<tr>
 				<th width="10%"><g:message code="time.label" default="Time" /></th>
-				<th width="6%"><g:message code="transaction.id.label" default="Transaction Id" /></th>
+				<th width="6%"><g:message code="id.label" default="Id" /></th>
 				<th width="20%"><g:message code="item.label" default="Item" /></th>
 				<th width="12%"><g:message code="sender.label" default="Sender" /></th>
 				<th width="12%"><g:message code="recipient.label" default="Recipient" /></th>
@@ -64,6 +65,7 @@
 			%>
       			<g:each in="${ordersList}" status="i" var="orderInfo">
 	  		<%
+			    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 	  			def orderId = orderInfo.orderId
 	  			def itemName = itemsNames.get(orderId)
 				def gross = gross.get(orderId)
@@ -73,7 +75,7 @@
 				def net = net.get(orderId)
 	  		%>
 	    	<tr>
-				<td>${orderInfo.dateCreated}</td>
+				<td>${sdf.format(orderInfo.dateCreated)}</td>
           		<td><modalbox:createLink controller="admin" action="orderDetails" id="${orderInfo.orderId}" title="Order details" width="750">${orderInfo.orderId}</modalbox:createLink></td>
           		<td>${itemName}</td>
           		<td>${orderInfo.user.nickName}</td>
