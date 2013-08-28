@@ -258,7 +258,6 @@ class InventoryService {
 						def subSectionsMap=[:]
 						int price=0
 						int check=0
-						println"before loop"
 						cocktails.each {
 							def cocktail=it
 							println "cocktail "+cocktail
@@ -269,7 +268,7 @@ class InventoryService {
 								def options=[]
 								contentsMap=getCocktailMap(cocktail)
 								contentsMap.put("photos",photos)
-								
+
 								if(cocktail.shopping && cocktail.shopping.length()>0){
 									println "true "
 									def categoryList = cocktail.shopping.trim().split(",")
@@ -279,9 +278,10 @@ class InventoryService {
 											def category=IngredientCategory.findById(categoryId)
 											if(category){
 												String name =category.category
-												if(!options.contains(name))
-													options.add(name)
 												def ingredient = Ingredients.findByCategoryAndVenue(category,venue)
+
+												if(!options.contains(name) && ingredient)
+													options.add(name)
 												if(ingredient && check==0){
 													ingredient.each {
 														def ing =it
@@ -293,7 +293,6 @@ class InventoryService {
 										}
 									}
 								}
-								println"after first if"
 								if(options.size()>0)
 								{
 									def options_groups=[]
@@ -310,7 +309,7 @@ class InventoryService {
 										}
 										optionsMapList.add(name)
 									}
-		
+
 									options_groups_map.put("options",optionsMapList)
 									options_groups.add(options_groups_map)
 									contentsMap.put("option_groups",options_groups)
@@ -322,7 +321,7 @@ class InventoryService {
 						subSectionsMap.put("subsection_name","")
 						subSections.add(subSectionsMap)
 						sectionsMap.put("subsections",subSections)
-		
+
 						sections.add(sectionsMap)
 						menusMap.put("sections",sections)
 					}
