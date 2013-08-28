@@ -7,9 +7,10 @@ import grails.converters.JSON
 class ApplePNService {
 
 	def sendPN(Map pnMessage,String token,String bad,String body) {
+		println"IOS sendPN body:: "+body
 		ApnsService service = APNS.newService()
-//				.withCert("/home/swethab/swetha/Bartsy/Certificates.p12", "123456")
-				.withCert("/usr/local/Bartsy/Certificates.p12", "123456")
+				.withCert("/home/srikantht/Bartsy_logs/Certificates.p12", "123456")
+			//	.withCert("/usr/local/Bartsy/Certificates.p12", "123456")
 				.withSandboxDestination()
 				.build();
 
@@ -23,12 +24,15 @@ class ApplePNService {
 				.sound("default")
 				.build();
 		service.push(token, payload);
+		println"IOS sendPN body END:: "+body
+
 	}
-	
+
 	def sendPNOrderTimeout(Map pnMessage,String token,String bad,String body) {
+		println"IOS sendPNOrderTimeout body:: "+body
 		ApnsService service = APNS.newService()
-//				.withCert("/home/swethab/swetha/Bartsy/Certificates.p12", "123456")
-				.withCert("/usr/local/Bartsy/Certificates.p12", "123456")
+				.withCert("/home/srikantht/Bartsy_logs/Certificates.p12", "123456")
+			//	.withCert("/usr/local/Bartsy/Certificates.p12", "123456")
 				.withSandboxDestination()
 				.build();
 
@@ -39,12 +43,14 @@ class ApplePNService {
 				.sound("default")
 				.build();
 		service.push(token, payload);
+		println"IOS sendPNOrderTimeout body END:: "+body
 	}
-	
+
 	def sendPNHeartBeat(Map pnMessage,String token,String bad,String body) {
+		println"IOS sendPNHeartBeat body:: "+body
 		ApnsService service = APNS.newService()
-//				.withCert("/home/swethab/swetha/Bartsy/Certificates.p12", "123456")
-				.withCert("/usr/local/Bartsy/Certificates.p12", "123456")
+				.withCert("/home/srikantht/Bartsy_logs/Certificates.p12", "123456")
+					//.withCert("/usr/local/Bartsy/Certificates.p12", "123456")
 				.withSandboxDestination()
 				.build();
 
@@ -60,12 +66,14 @@ class ApplePNService {
 				//.sound("default")
 				.build();
 		service.push(token, payload);
-	}	
-	
+		println"IOS sendPNHeartBeat body:: END "+body
+	}
+
 	def sendPNUserTimeout(Map pnMessage,String token,String bad,String body) {
+		println"IOS sendPNUserTimeout body:: "+body
 		ApnsService service = APNS.newService()
-//				.withCert("/home/swethab/swetha/Bartsy/Certificates.p12", "123456")
-				.withCert("/usr/local/Bartsy/Certificates.p12", "123456")
+				.withCert("/home/srikantht/Bartsy_logs/Certificates.p12", "123456")
+					//.withCert("/usr/local/Bartsy/Certificates.p12", "123456")
 				.withSandboxDestination()
 				.build();
 
@@ -76,13 +84,14 @@ class ApplePNService {
 				//.sound("default")
 				.build();
 		service.push(token, payload);
+		println"IOS sendPNUserTimeout body:: END "+body
 	}
-	
-	def sendPNDrinkOffered(Map pnMessage,String token,String bad,String body) {		
-		println "came in drinkoffered push"
+
+	def sendPNDrinkOffered(Map pnMessage,String token,String bad,String body) {
+		println"IOS sendPNDrinkOffered body:: "+body
 		ApnsService service = APNS.newService()
-//				.withCert("/home/swethab/swetha/Bartsy/Certificates.p12", "123456")
-				.withCert("/usr/local/Bartsy/Certificates.p12", "123456")
+				.withCert("/home/srikantht/Bartsy_logs/Certificates.p12", "123456")
+				//	.withCert("/usr/local/Bartsy/Certificates.p12", "123456")
 				.withSandboxDestination()
 				.build();
 
@@ -104,13 +113,12 @@ class ApplePNService {
 				.sound("default")
 				.build();
 		service.push(token, payload);
-		println payload
-	}
-	
+		println"IOS sendPNDrinkOffered body:: END "+body	}
 	def sendPNMessage(Map pnMessage,String token,String bad,String body) {
+		println"IOS sendPNMessage body:: "+body
 		ApnsService service = APNS.newService()
-//				.withCert("/home/swethab/swetha/Bartsy/Certificates.p12", "123456")
-				.withCert("/usr/local/Bartsy/Certificates.p12", "123456")
+				.withCert("/home/srikantht/Bartsy_logs/Certificates.p12", "123456")
+				//		.withCert("/usr/local/Bartsy/Certificates.p12", "123456")
 				.withSandboxDestination()
 				.build();
 
@@ -123,7 +131,6 @@ class ApplePNService {
 				.sound("default")
 				.build();
 		service.push(token, payload);
-		println payload
+		println"IOS sendPNMessage body::END "+body
 	}
-	
-	}
+}
