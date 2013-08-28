@@ -210,9 +210,12 @@ class CommonMethods {
 			//else{
 			userRewardsPoints = new UserRewardPoints()
 			//}
+			println"userRewardsPoints "+userRewardsPoints
 			userRewardsPoints.setOrder(order)
 			userRewardsPoints.setRewardPoints(rewards)
 			userRewardsPoints.setBartsyPoints(rewards)
+			userRewardsPoints.setVenue(order.venue)
+			userRewardsPoints.setUser(order.user)
 			userRewardsPoints.save(flush:true)
 
 
