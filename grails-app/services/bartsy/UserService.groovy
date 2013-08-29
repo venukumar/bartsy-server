@@ -64,7 +64,7 @@ class UserService {
 				venueRewards.each {
 					def venueReward = it
 					def rewardObj = [:]
-					
+
 					if(venueReward.type){
 						rewardObj.put("type",venueReward.type)
 					}
@@ -77,14 +77,11 @@ class UserService {
 					if(venueReward.description){
 						rewardObj.put("text",venueReward.description)
 					}
-					println"rewardObj "+rewardObj
-					//if(rewardObj.)
 					rewards.add(rewardObj)
 				}
-				println"rewards "+rewards
 				output.put("errorCode",0)
 				output.put("errorMessage","Venue rewards available")
-				output.put("rewards",rewards)
+				output.put("rewardsTypes",rewards)
 			}else{
 				output.put("errorCode",5)
 				output.put("errorMessage","No venue rewards available")
@@ -93,7 +90,6 @@ class UserService {
 			log.info("Exception found in getVenueRewards service "+e.getMessage())
 			common.exceptionFound(e,output)
 		}
-		println"output "+output
 		return output
 	}
 
