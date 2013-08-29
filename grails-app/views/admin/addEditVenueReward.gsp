@@ -99,27 +99,42 @@ label.error {
 			<input type="hidden" name="venueId" value='${venueId}'>
 			<input type="hidden" name="venueRewardId" value='${venueReward?.id}'>
 			<div class='venu-con'>
-				<div id="userTimeout" class="label-row">
-					<label><g:message code="reward.type.label" default="Reward Type"/> :</label> 
-					<select class="txt-field pick" name="type">
-						<option value="1" ${(venueReward?(venueReward.type.equals("Discount")?'selected=selected':''):'')}><g:message code="discount.label" default="Discount"/></option>
-						<option value="2" ${(venueReward?(venueReward.type.equals("General")?'selected=selected':''):'')}><g:message code="general.label" default="General"/></option>
-					</select>
+				
+				<div>
+					<div id="userTimeout" class="left">
+						<label class="left margin_top"><g:message code="reward.type.label" default="Reward Type" /> :</label> 
+						  <div class="selector right">	
+						  	<span>Reward Type</span>
+							<select class="pick" name="type">
+								<option value="1" ${(venueReward?(venueReward.type.equals("Discount")?'selected=selected':''):'')}><g:message code="discount.label" default="Discount"/></option>
+								<option value="2" ${(venueReward?(venueReward.type.equals("General")?'selected=selected':''):'')}><g:message code="general.label" default="General"/></option>
+							</select>
+						  </div>
+						<div class="clr"></div>
+					</div>
+				
+					<div id="userTimeout" class="reVal left">
+						<label><g:message code="value.label" default="Value"/> :</label> 
+						<input type="text" name="value" value="${(venueReward?.value)}" class="value input_field"></input>
+					</div>
+				
+					<div class="clr"></div>
 				</div>
-				<div id="userTimeout" class="label-row reVal">
-					<label><g:message code="value.label" default="Value"/> :</label> 
-					<input type="text" name="value" value="${(venueReward?.value)}" class="txt-field value"></input>
-				</div>
-				<div id="userTimeout" class="label-row">
+				
+				<div id="userTimeout">
 					<label><g:message code="reward.points.label" default="Reward Points"/> :</label>
-					<input type="text" name="rewardPoints" value="${(venueReward?.rewardPoints)}" class="txt-field rewards">
+					<input type="text" name="rewardPoints" value="${(venueReward?.rewardPoints)}" class="rewards input_field">
 				</div>
-				<div id="userTimeout" class="label-row desc">
-					<label><g:message code="description.label" default="Description"/> :</label>
-					<textarea name="description" class="txt-field description" rows="3"	cols="5">${(venueReward?.description)}</textarea>
+				
+				<div id="userTimeout">
+					<label class="left margin_top"><g:message code="description.label" default="Description"/> :</label>
+					<textarea name="description" class="description" class="right">${(venueReward?.description)}</textarea>
+					<div class="clr"></div>
 				</div>
-				<div id="userTimeout" class="label-row">
-					<g:submitButton name="create" class="ybtn" value="Save" />
+				
+				<div id="userTimeout" style="padding:10px 0px 0px 105px;">
+					<g:submitButton name="create" value="Save" class="btn_bg" />
+					<g:submitButton name="create" value="Cancel" class="btn_bg" />
 				</div>
 			</div>
 		</g:form>
