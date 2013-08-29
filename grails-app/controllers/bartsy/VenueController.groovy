@@ -144,6 +144,15 @@ class VenueController {
 					if(json.has("locuPassword")){
 						venue.locuPassword=json.locuPassword
 					}
+					if(json.phoneNumber){
+						venue.phoneNumber=json.phoneNumber
+					}
+					if(json.description){
+						venue.description=json.description
+					}
+					if(json.communityRating){
+						venue.communityRating=json.communityRating
+					}
 
 					//venue.venueImagePath=venueImagePath
 
@@ -1343,8 +1352,6 @@ class VenueController {
 			//check to make sure the apiVersion sent in the request matches the correct apiVersion
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 			if(apiVersion.value.toString().equalsIgnoreCase(json.apiVersion.toString())){
-
-
 				if(json.has("venueId") && json.has("bartsyId") && json.has("isFromVenue")){
 					def venue=Venue.findByVenueId(json.venueId)
 					if(venue){
@@ -1484,8 +1491,6 @@ class VenueController {
 
 					if(compList){
 						def messagesList = []
-						response.put("errorCode",0)
-						response.put("errorMessage","Messages sent")
 						compList.each{
 							def message = it
 							def messageMap = [:]
@@ -1503,6 +1508,8 @@ class VenueController {
 								message.save(flush:true)
 							}
 						}
+						response.put("errorCode",0)
+						response.put("errorMessage","Messages Available")
 						response.put("messages",messagesList)
 					}
 					else{
