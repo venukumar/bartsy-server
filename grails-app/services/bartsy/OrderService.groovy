@@ -46,6 +46,7 @@ class OrderService {
 
 	def getRecentOrders(UserProfile user,Venue venue){
 		def output=[:]
+		println"getRecentOrders  "
 		try{
 			def orders = Orders.createCriteria()
 
@@ -197,7 +198,11 @@ class OrderService {
 														contentsMap.put("special_instructions",itemsList.specialInstructions)
 													}
 													contentsMap.put("type",itemsList.type)
-													contentsMap.put("option_groups",options_group)
+													if(itemsList.option_groups){
+														contentsMap.put("option_groups",new JSONArray(itemsList.option_groups))
+													}else{
+														contentsMap.put("option_groups",options_group)
+													}
 
 													contents.add(contentsMap)
 												}

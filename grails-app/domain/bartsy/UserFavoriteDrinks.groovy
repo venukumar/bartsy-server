@@ -16,10 +16,15 @@ class UserFavoriteDrinks {
 		selectedItems(nullable:true)
 		specialInstructions(nullable:true)
 		optionDescription(nullable:true)
+		options(nullable:true)
+		option_groups(nullable:true)
 	}
 
 
-	static mapping = { itemsList type: 'text' }
+	static mapping = {
+		itemsList type: 'text'
+		option_groups type: 'text'
+	}
 
 	static belongsTo = [user:UserProfile,venue:Venue]
 
@@ -37,4 +42,6 @@ class UserFavoriteDrinks {
 	String selectedItems
 	String specialInstructions
 	String optionDescription
+	String options
+	String option_groups
 }

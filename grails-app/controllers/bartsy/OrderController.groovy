@@ -319,8 +319,10 @@ class OrderController {
 			def basePrice = itemDetails.price
 			def quantity = itemDetails.quantity
 			def specialInstructions = itemDetails.special_instructions
-
+			def options
+			println"type "+type
 			if(option_groups && option_groups.size()>0){
+				println "option_groups  "+option_groups
 				option_groups.each {
 					def option = it
 					def text = option.text
@@ -333,9 +335,11 @@ class OrderController {
 								category = categoryObj.id
 							}
 						}
+						println"categoryObj "+categoryObj
 					}
-					def options = option.options
+					options = option.options
 					if(options && options.size()>0){
+						println"options "+options
 						options.each {
 							def ingredient = it
 							def selected = ingredient.selected
@@ -347,6 +351,8 @@ class OrderController {
 									selectedItems = ingredientName
 								}
 							}
+							println"ingredient "+ingredient
+							println "selected "+selected
 						}
 					}
 				}
@@ -372,6 +378,8 @@ class OrderController {
 			orderItem.setType(type)
 			orderItem.setCategorys(category)
 			orderItem.setSelectedItems(selectedItems)
+			orderItem.setOption_groups(option_groups.toString())
+			orderItem.setOptions(options.toString())
 			orderItem.setOrder(order)
 			orderItem.setItemList(itemDetails.toString())
 			orderItem.setSpecialInstructions(specialInstructions)
@@ -1005,6 +1013,7 @@ class OrderController {
 		def response = [:]
 		try{
 			def json = JSON.parse(request)
+			println"json "+json
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
 			if(json.apiVersion && apiVersion.value.toString().equalsIgnoreCase(json.apiVersion.toString())){
 				if(json.has("bartsyId") && json.has("venueId")){
@@ -1012,6 +1021,7 @@ class OrderController {
 					if(venue){
 						def user = UserProfile.findByBartsyId(json.bartsyId)
 						if(user){
+							println"getRecentOrders  "
 							response=orderService.getRecentOrders(user,venue)
 						}else{
 							response.put("errorCode","3")

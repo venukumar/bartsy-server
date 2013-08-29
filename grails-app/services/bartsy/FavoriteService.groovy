@@ -28,6 +28,7 @@ class FavoriteService {
 					def option_groups=itemDetails.option_groups
 					String category
 					String selectedItems
+					def options
 					if(option_groups && option_groups.size()>0){
 						option_groups.each {
 							def option = it
@@ -43,7 +44,7 @@ class FavoriteService {
 									}
 								}
 							}
-							def options = option.options
+							options = option.options
 							if(options && options.size()>0){
 								options.each {
 									def ingredient=it
@@ -71,6 +72,8 @@ class FavoriteService {
 					usrFvtDrnk.setOptionDescription(options_description)
 					usrFvtDrnk.setQuantity(quantity)
 					usrFvtDrnk.setType(type)
+					usrFvtDrnk.setOption_groups(option_groups.toString())
+					usrFvtDrnk.setOptions(options.toString())
 					usrFvtDrnk.setUser(user)
 					usrFvtDrnk.setVenue(venue)
 					usrFvtDrnk.setCategorys(category)
@@ -249,8 +252,15 @@ class FavoriteService {
 													contentsMap.put("special_instructions",item.special_instructions)
 												}
 												contentsMap.put("type",item.type)
-												contentsMap.put("option_groups",options_group)
-
+												
+												
+												contentsMap.put("type",itemsList.type)
+												if(item.option_groups){
+													contentsMap.put("option_groups",new JSONArray(item.option_groups))
+												}else{
+													contentsMap.put("option_groups",options_group)
+												}
+												
 												contents.add(contentsMap)
 											}
 										}
