@@ -103,8 +103,8 @@ label.error {
 				<div>
 					<div id="userTimeout" class="left">
 						<label class="left margin_top"><g:message code="reward.type.label" default="Reward Type" /> :</label> 
-						  <div class="selector right">	
-						  	<span>Reward Type</span>
+						  <div class="right">	
+						  	
 							<select class="pick" name="type">
 								<option value="1" ${(venueReward?(venueReward.type.equals("Discount")?'selected=selected':''):'')}><g:message code="discount.label" default="Discount"/></option>
 								<option value="2" ${(venueReward?(venueReward.type.equals("General")?'selected=selected':''):'')}><g:message code="general.label" default="General"/></option>
