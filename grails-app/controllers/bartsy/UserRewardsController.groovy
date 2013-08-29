@@ -142,10 +142,8 @@ class UserRewardsController {
 
 							def venue = Venue.findByVenueId(json.venueId)
 							if(venue){
-								println"venue "+venue
 								response = userService.getVenueRewards(venue)
 								response.put("venueId",venue.venueId)
-								println"response "+response
 								if(json.bartsyId){
 									boolean bartsyId = common.verifyBartsyId(json.bartsyId)
 									if(bartsyId){
@@ -160,15 +158,9 @@ class UserRewardsController {
 													sum("rewardPoints")
 												}
 											}
+											println"rewardsDetails "+rewardsDetails
 											if(rewardsDetails){
-												rewardsDetails.each{
-													def userRewards = it
-													def availableRewards=userRewards[0]
-													def rewardVenue = userRewards[1]
-													if(venue.venueId.toString().equalsIgnoreCase(rewardVenue.venueId)) {
-														response.put("rewards",availableRewards)
-													}
-												}
+												response.put("userAvailableRewards",rewardsDetails[0])
 											}else{
 												response.put("rewardPoints", 0)
 											}
@@ -203,6 +195,7 @@ class UserRewardsController {
 			}
 		}catch(Exception e){
 			log.info("Exception found in getVenueRewards "+e.getMessage())
+			println"Exception found in getVenueRewards "+e.getMessage()
 			common.exceptionFound(e,response)
 		}
 		response.put("currentTime",new Date().toGMTString())
