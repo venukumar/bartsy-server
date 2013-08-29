@@ -892,8 +892,9 @@ a.skip {
 	padding: 6px 28px;
 	margin-bottom: 10px;
 }
-.venu-con .pick   {
+.venu-con .pick {
 	width: 140px;
+	height:30px;
 	margin-left:10px;
 	/* background: #EEEEEE; */
 	padding: 0px 5px;
@@ -905,7 +906,7 @@ a.skip {
 	font: normal 12px Tahoma;
 }
 
-.venu-con textarea {
+.venu-con select,textarea {
 	background: #EEEEEE;
 	padding: 0px 5px;
 	-webkit-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16) inset;
@@ -1188,7 +1189,7 @@ a.skip {
 	font: normal 12px Tahoma;
 }
 
-div.selector, 
+/* div.selector, 
 div.selector span {
   background-image: url(../images/sprite.png);
   background-repeat: no-repeat;
@@ -1210,7 +1211,7 @@ div.selector {
 }
 
 div.selector select {
-  /* change these to adjust positioning of select element */
+  change these to adjust positioning of select element
   top: 0px;
   left: 0px;
   min-width: 150px;
@@ -1240,4 +1241,4 @@ div.selector span {
   vertical-align: middle;
   zoom: 1;
   *display: inline;
-}
+} */
