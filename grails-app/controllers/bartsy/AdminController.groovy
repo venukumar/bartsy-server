@@ -304,7 +304,7 @@ class AdminController {
 				configVenue.setRewardPoints(Integer.parseInt(rewardPoints))
 				configVenue.setDescription(description)
 				configVenue.setValue(value)
-				configVenue.setType((type.toString().equals("1") ? "Discount" : "Text"))
+				configVenue.setType((type.toString().equals("1") ? "Discount" : "General"))
 				configVenue.setVenue(venue)
 				if(!configVenue.save(flush:true)){
 					flash.message = "Please try again."
