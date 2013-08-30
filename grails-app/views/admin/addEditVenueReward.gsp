@@ -133,8 +133,10 @@ label.error {
 				</div>
 				
 				<div id="userTimeout" style="padding:10px 0px 0px 105px;">
-					<g:submitButton name="create" value="Save" class="btn_bg" />
-					<g:submitButton name="create" value="Cancel" class="btn_bg" />
+					<!--<g:submitButton name="create" value="Save" class="btn_bg" />-->
+					<!--<g:submitButton name="create" value="Cancel" class="btn_bg" />-->
+					<input type="submit" name="create" value="Save" class="btn_bg" />
+					<g:link action="venueConfig" class="btn_bg" params="${[rew:8]}" id="${venueId}" style="color: white;"><g:message code="cancelbutton.label" default="Cancel" /></g:link>
 				</div>
 			</div>
 		</g:form>
