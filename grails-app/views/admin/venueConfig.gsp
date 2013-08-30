@@ -278,7 +278,7 @@ label.error {
 				<div class="right">
 					<div id="userTimeout" class="label-row" style="float:left;padding:3px;">
 			  			<div class="btns">
-				 			<modalbox:createLink controller="admin" action="addEditVenueReward" params="${[venueId:venue.venueId]}" title="Add Reward" width="750">
+				 			<modalbox:createLink controller="admin" action="addEditVenueReward" params="${[venueId:venue.venueId]}" title="Add Reward" width="500">
 					 			<g:submitButton name="update" type="submit" value='Add Reward' class="general_btn" />
 				 			</modalbox:createLink>
 			 			</div>
@@ -307,7 +307,7 @@ label.error {
 						<td><label>${configList.type}</label></td>
 						<td><label>${configList.description}</label></td>
 						<td>
-							<modalbox:createLink controller="admin" action="addEditVenueReward" params="${[venueId:venue.venueId]}" id="${configList.id}" title="Edit reward" width="750">
+							<modalbox:createLink controller="admin" action="addEditVenueReward" params="${[venueId:venue.venueId]}" id="${configList.id}" title="Edit reward" width="500">
 								<label class="edit"><g:message code="editbutton.title" default="Edit" /></label>
 							</modalbox:createLink>
 						</td>

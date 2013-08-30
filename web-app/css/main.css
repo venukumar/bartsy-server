@@ -896,14 +896,6 @@ a.skip {
 	width: 140px;
 	height:30px;
 	margin-left:10px;
-	/* background: #EEEEEE; */
-	padding: 0px 5px;
-	-webkit-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16) inset;
-	-webkit-border-radius: 5px;
-	border-radius: 5px;
-	border: 1px solid #C1C1C1;
-	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16) inset;
-	font: normal 12px Tahoma;
 }
 
 .venu-con select,textarea {
@@ -1172,7 +1164,7 @@ a.skip {
  color:#ffffff;
  border-style:none;
  font-weight:bold;
- cursor:auto;
+ cursor:pointer;
  padding:12px 26px;
 }
 
