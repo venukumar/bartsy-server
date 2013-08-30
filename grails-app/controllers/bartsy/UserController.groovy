@@ -677,87 +677,93 @@ class UserController {
 			def json = JSON.parse(request)
 			//check to make sure the apiVersion sent in the request matches the correct apiVersion
 			def apiVersion = BartsyConfiguration.findByConfigName("apiVersion")
-			if(apiVersion.value.toString().equalsIgnoreCase(json.apiVersion.toString())){
-				//retrieve the user profile and venue objects based on the bartsyId sent in the syscall request
-				def userProfile = UserProfile.findByBartsyId(json.bartsyId)
-				def venue = Venue.findByVenueId(json.venueId)
-				//check if user profile and venue both exists
-				if(userProfile && venue){
-					//check whether venue is online or not
-					if(!venue.status.toString().equalsIgnoreCase("online")){
-						//if user profile and venue both exists check if user is checked into that venue
-						def checkedInUsers = CheckedInUsers.findByUserProfileAndVenueAndStatus(userProfile,venue,1)
-						if(checkedInUsers){
-							//if checked in into that venue update the lastHBResponse column for that user with current date time
-							checkedInUsers.setLastHBResponse(new Date())
-							//save the object
-							checkedInUsers.save(flush:true)
-							def checkedInUsersList = []
-							def userList = CheckedInUsers.findAllByVenueAndStatus(venue,1)
-							if(userList){
-								userList.each{
-									def user = it
-									checkedInUsersList.add(user.userProfile.bartsyId)
-								}
-								def openOrdersCriteria = Orders.createCriteria()
-								def openOrders = openOrdersCriteria.list {
-									or{
-										eq("user",userProfile)
-										eq("receiverProfile",userProfile)
+			if(json.apiVersion && apiVersion.value.toString().equalsIgnoreCase(json.apiVersion.toString())){
+				if(json.bartsyId && json.venueId){
+					//retrieve the user profile and venue objects based on the bartsyId sent in the syscall request
+					def userProfile = UserProfile.findByBartsyId(json.bartsyId)
+					def venue = Venue.findByVenueId(json.venueId)
+					//check if user profile and venue both exists
+					if(userProfile && venue){
+						//check whether venue is online or not
+						if(!venue.status.toString().equalsIgnoreCase("online")){
+							//if user profile and venue both exists check if user is checked into that venue
+							def checkedInUsers = CheckedInUsers.findByUserProfileAndVenueAndStatus(userProfile,venue,1)
+							if(checkedInUsers){
+								//if checked in into that venue update the lastHBResponse column for that user with current date time
+								checkedInUsers.setLastHBResponse(new Date())
+								//save the object
+								checkedInUsers.save(flush:true)
+								def checkedInUsersList = []
+								def userList = CheckedInUsers.findAllByVenueAndStatus(venue,1)
+								if(userList){
+									userList.each{
+										def user = it
+										checkedInUsersList.add(user.userProfile.bartsyId)
 									}
-									and{ eq("venue",venue) }
-									and{
-										'in'("orderStatus",[
-											"0",
-											"1",
-											"2",
-											"3",
-											"4",
-											"5",
-											"6",
-											"7",
-											"8",
-											"9"
-										])
+									def openOrdersCriteria = Orders.createCriteria()
+									def openOrders = openOrdersCriteria.list {
+										or{
+											eq("user",userProfile)
+											eq("receiverProfile",userProfile)
+										}
+										and{ eq("venue",venue) }
+										and{
+											'in'("orderStatus",[
+												"0",
+												"1",
+												"2",
+												"3",
+												"4",
+												"5",
+												"6",
+												"7",
+												"8",
+												"9"
+											])
+										}
 									}
-								}
-								def ordersList = []
-								if(openOrders){
-									openOrders.each{
-										def order=it
-										ordersList.add(order.orderId)
+									def ordersList = []
+									if(openOrders){
+										openOrders.each{
+											def order=it
+											ordersList.add(order.orderId)
+										}
 									}
-								}
-								response.put("bartsyId",userProfile.bartsyId)
-								response.put("venueId",venue.venueId)
-								response.put("venueName",venue.venueName)
-								response.put("venueImagePath",venue.venueImagePath)
-								response.put("messageType","heartBeat")
-								response.put("userCount",checkedInUsersList.size())
-								response.put("openOrders",ordersList)
-								response.put("orderCount",ordersList.size())
-								response.put("checkedInUsersList",checkedInUsersList)
-								response.put("currentTime",new Date().toGMTString())
+									response.put("bartsyId",userProfile.bartsyId)
+									response.put("venueId",venue.venueId)
+									response.put("venueName",venue.venueName)
+									response.put("venueImagePath",venue.venueImagePath)
+									response.put("messageType","heartBeat")
+									response.put("userCount",checkedInUsersList.size())
+									response.put("openOrders",ordersList)
+									response.put("orderCount",ordersList.size())
+									response.put("checkedInUsersList",checkedInUsersList)
+									response.put("currentTime",new Date().toGMTString())
 
-								def unReadNotifications = Notifications.findAllByUserAndStatus(userProfile,0)
-								if(unReadNotifications){
-									response.put("unReadNotifications",unReadNotifications.size())
-								}else{
-									response.put("unReadNotifications",0)
-								}
+									def unReadNotifications = Notifications.findAllByUserAndStatus(userProfile,0)
+									if(unReadNotifications){
+										response.put("unReadNotifications",unReadNotifications.size())
+									}else{
+										response.put("unReadNotifications",0)
+									}
 
+								}
 							}
+							//send the error code 0 acknowleding the request received
+							response.put("errorCode","0")
+							response.put("errorMessage","Request Received")
+						}else{
+							response.put("errorCode","1")
+							response.put("errorMessage","Venue is closed")
 						}
-						//send the error code 0 acknowleding the request received
-						response.put("errorCode","0")
-						response.put("errorMessage","Request Received")
 					}else{
 						response.put("errorCode","1")
-						response.put("errorMessage","Venue is closed")
+						response.put("errorMessage","Venue or User does not exists")
 					}
 				}else{
+					//if apiVersion do not match send errorCode 100
 					response.put("errorCode","1")
-					response.put("errorMessage","Venue or User does not exists")
+					response.put("errorMessage","BartsyId or venueId is missing in your request")
 				}
 			}
 			else{

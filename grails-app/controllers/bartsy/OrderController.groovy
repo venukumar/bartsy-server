@@ -610,7 +610,7 @@ class OrderController {
 			response.put("currentTime",new Date().toGMTString())
 		}
 		catch(Exception e){
-			log.info("Exception is ===> "+e.getMessage())
+			log.info("Exception is updateOrderStatus ===> "+e.getMessage())
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
 		}
@@ -760,7 +760,7 @@ class OrderController {
 			response.put("currentTime",new Date().toGMTString())
 		}
 		catch(Exception e){
-			log.info("Exception is ===> "+e.getMessage())
+			log.info("Exception is updateOfferedDrinkStatus ===> "+e.getMessage())
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
 		}
@@ -933,7 +933,7 @@ class OrderController {
 			}
 		}
 		catch(Exception e){
-			log.info("Exception is ===> "+e.getMessage())
+			log.info("Exception is getPastOrders ===> "+e.getMessage())
 			response.put("errorCode",200)
 			response.put("errorMessage",e.getMessage())
 		}
