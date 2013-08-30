@@ -24,6 +24,7 @@
 	</div>
 	<div class="form-con" style="width:470px">
   		<g:form action="summary" method="post">
+  			<%if (totalGuests > 0){ %>
     		<div id="totalguests" class="label-row">
       			<label style="line-height:20px;width:145px;">
         			<g:message code="summary.total.guests.label" default="Total Guests"/> :
@@ -87,6 +88,9 @@
 				<td>$${perGuestNet}</td>
 			</tr>
 		</table>
+		<%}else{%>
+			<div class="errors"><g:message code="page.list.not.found" default="No Records Found" /></div>
+		<%}%>
   		</g:form>
 	</div>
 </body>

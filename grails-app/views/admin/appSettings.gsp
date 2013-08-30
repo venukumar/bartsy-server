@@ -97,8 +97,37 @@
       <label style="line-height:20px;width:145px;">
         <g:message code="appsettings.tradingDay" default="Trading Day Time" />
       </label>
-      <% def tradeTime = BartsyConfiguration.findByConfigName("tradingDay") %>
-      <input type="text" name="tradingDay" id="tradingDay" value="${tradeTime.value }"  class="txt-field">
+      <% 
+		  def tradeTime = BartsyConfiguration.findByConfigName("tradingDay")
+		  def startTime = 0, calcStartTime = 0
+		  if (tradeTime){
+		  	startTime = Integer.parseInt(tradeTime.value)
+		  }
+		  if (startTime > 12){
+		  	calcStartTime = startTime - 12
+		  }else{
+		  	calcStartTime = startTime
+		  }
+      %>
+      <!--  <input type="text" name="tradingDay" id="tradingDay" value="${tradeTime.value }"  class="txt-field">-->
+      <select class="pick" name=tradingDay>
+		<option ${(calcStartTime == 1 ? 'selected=selected': '')} value="1">01:00</option>
+		<option ${(calcStartTime == 2 ? 'selected=selected': '')} value="2">02:00</option>
+		<option ${(calcStartTime == 3 ? 'selected=selected': '')} value="3">03:00</option>
+		<option ${(calcStartTime == 4 ? 'selected=selected': '')} value="4">04:00</option>
+		<option ${(calcStartTime == 5 ? 'selected=selected': '')} value="5">05:00</option>
+		<option ${(calcStartTime == 6 ? 'selected=selected': '')} value="6">06:00</option>
+		<option ${(calcStartTime == 7 ? 'selected=selected': '')} value="7">07:00</option>
+		<option ${(calcStartTime == 8 ? 'selected=selected': '')} value="8">08:00</option>
+		<option ${(calcStartTime == 9 ? 'selected=selected': '')} value="9">09:00</option>
+		<option ${(calcStartTime == 10 ? 'selected=selected': '')} value="10">10:00</option>
+		<option ${(calcStartTime == 11 ? 'selected=selected': '')} value="11">11:00</option>
+		<option ${(calcStartTime == 12 ? 'selected=selected': '')} value="12">12:00</option>
+	  </select>
+	  <select class="pick" name="tradingTime">
+	  	<option ${((((startTime >= 1 && startTime <= 11) || startTime == 24)) ? 'selected=selected' : '')} value="am">AM</option>
+	  	<option ${((((startTime >= 13 && startTime <= 23) || startTime == 12)) ? 'selected=selected' : '')} value="pm">PM</option>
+	  </select>
     </div>
     <div style="padding:10px 0px 0px 148px;"> 
       <g:submitButton name="create" class="btn_bg" value="${message(code: 'default.button.update.label', default: 'Update')}" />

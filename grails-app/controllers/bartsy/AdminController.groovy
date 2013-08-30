@@ -927,9 +927,24 @@ class AdminController {
 				}
 			}
 
-			if(params.tradingDay){
+			/*if(params.tradingDay){
 				def tradingreq = BartsyConfiguration.findByConfigName("tradingDay")
 				tradingreq.value = params.tradingDay
+				if(!tradingreq.save(flush:true)){
+					log.error("Trading time update failed ==>"+tradingreq.errors)
+					err++
+				}
+			}*/
+			if(params.tradingDay && params.tradingTime){
+				def tradingreq = BartsyConfiguration.findByConfigName("tradingDay")
+				def amPm = params.tradingTime
+				def time = Integer.parseInt(params.tradingDay)
+				if (amPm.equals("pm") && time != 12){
+					time += 12
+				}else if (amPm.equals("am") && time == 12){
+					time += 12
+				}
+				tradingreq.value = time.toString()
 				if(!tradingreq.save(flush:true)){
 					log.error("Trading time update failed ==>"+tradingreq.errors)
 					err++
@@ -1692,6 +1707,9 @@ class AdminController {
 			def checkedInUsers = CheckedInUsers.findAllByStatus(1)
 			
 			// Calculate Base, Tax, Comps, Comps% and Total
+			def fTotalBase, fTotalTax, fTotalComps, tipTotCompPer, fTotalCompPer, fTotal
+			def formattedAvgBase, formattedAvgTax, formattedAvgComp, formattedAvgCompPer, formattedAvgTot
+			def fPerGuestGrossTotal, fPerGuestTaxTotal, fPerGuestCompTotal, fPerGuestCompPerTotal, fPerGuestNetTotal
 			def guests = 0
 			def totalBase = 0, totalTax = 0, compTotal = 0, compPercentTot = 0, total = 0
 			def avgBase = 0, avgTax = 0, avgComp = 0, avgCompPer = 0, avgTotal = 0
@@ -1757,47 +1775,48 @@ class AdminController {
 						guests++
 					}
 				}
+				
+				fTotalBase = formatNumStr(totalBase.toString())
+				fTotalTax = formatNumStr(totalTax.toString())
+				fTotalComps = formatNumStr(compTotal.toString())
+				tipTotCompPer = compPercentTot / ordersCount
+				fTotalCompPer = formatTipNumStr(tipTotCompPer.toString())
+				fTotal = formatNumStr(total.toString())
+				
+				// Calculate average
+				avgBase = totalBase / ordersCount
+				avgTax = totalTax / ordersCount
+				avgComp = compTotal / ordersCount
+				avgCompPer = compPercentTot / ordersCount
+				avgTotal = total / ordersCount
+				
+				formattedAvgBase = formatNumStr(avgBase.toString())
+				formattedAvgTax = formatNumStr(avgTax.toString())
+				formattedAvgComp = formatNumStr(avgComp.toString())
+				formattedAvgCompPer = formatTipNumStr(avgCompPer.toString())
+				formattedAvgTot = formatNumStr(avgTotal.toString())
+				
+				// Per guest calculation
+				// gross total per guest
+				def perGuestGrossTot = new Double(fTotalBase) / guests
+				fPerGuestGrossTotal = formatNumStr(perGuestGrossTot.toString())
+				
+				// tax total per guest
+				def perGuestTaxTot = new Double(fTotalTax) / guests
+				fPerGuestTaxTotal = formatNumStr(perGuestTaxTot.toString())
+				
+				// comp total per guest
+				def perGuestCompTot = new Double(fTotalComps) / guests
+				fPerGuestCompTotal = formatNumStr(perGuestCompTot.toString())
+				
+				// comp percentage total per guest
+				def perGuestCompPerTot = compPercentTot / guests
+				fPerGuestCompPerTotal = formatTipNumStr(perGuestCompPerTot.toString())
+				
+				// net total per guest
+				def perGuestNetTot = new Double(fTotal) / guests
+				fPerGuestNetTotal = formatNumStr(perGuestNetTot.toString())
 			}
-			def fTotalBase = formatNumStr(totalBase.toString())
-			def fTotalTax = formatNumStr(totalTax.toString())
-			def fTotalComps = formatNumStr(compTotal.toString())
-			def tipTotCompPer = compPercentTot / ordersCount
-			def fTotalCompPer = formatTipNumStr(tipTotCompPer.toString())
-			def fTotal = formatNumStr(total.toString())
-			
-			// Calculate average
-			avgBase = totalBase / ordersCount
-			avgTax = totalTax / ordersCount
-			avgComp = compTotal / ordersCount
-			avgCompPer = compPercentTot / ordersCount
-			avgTotal = total / ordersCount
-			
-			def formattedAvgBase = formatNumStr(avgBase.toString())
-			def formattedAvgTax = formatNumStr(avgTax.toString())
-			def formattedAvgComp = formatNumStr(avgComp.toString())
-			def formattedAvgCompPer = formatTipNumStr(avgCompPer.toString())
-			def formattedAvgTot = formatNumStr(avgTotal.toString())
-			
-			// Per guest calculation
-			// gross total per guest
-			def perGuestGrossTot = new Double(fTotalBase) / guests
-			def fPerGuestGrossTotal = formatNumStr(perGuestGrossTot.toString())
-			
-			// tax total per guest
-			def perGuestTaxTot = new Double(fTotalTax) / guests
-			def fPerGuestTaxTotal = formatNumStr(perGuestTaxTot.toString())
-			
-			// comp total per guest
-			def perGuestCompTot = new Double(fTotalComps) / guests
-			def fPerGuestCompTotal = formatNumStr(perGuestCompTot.toString())
-			
-			// comp percentage total per guest
-			def perGuestCompPerTot = compPercentTot / guests
-			def fPerGuestCompPerTotal = formatTipNumStr(perGuestCompPerTot.toString())
-			
-			// net total per guest
-			def perGuestNetTot = new Double(fTotal) / guests
-			def fPerGuestNetTotal = formatNumStr(perGuestNetTot.toString())
 			
 			[totalGuests:totalGuests.size(), totalChecks:checkedInUsers.size(), guestsAvg:12.26, checksAvg:22.22,
 				base:fTotalBase, tax:fTotalTax, comps:fTotalComps, compsPer:fTotalCompPer, totals:fTotal,
