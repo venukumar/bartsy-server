@@ -279,12 +279,22 @@ img {
 	color: #000;
 	font-weight: bold;
 	font-size: 12px;
+	text-align:center;
 }
 
 .tbl-data td {
 	padding: 6px 0px 6px 8px;
 	text-align: left;
 	border-bottom: solid 1px #ccc;
+}
+
+.tbl-data th:hover {
+	background-color: #0c79a2;
+	color:#ffffff !important;
+}
+
+.tbl-data th a:hover {
+	color:#ffffff !important;
 }
 
 .edit {
@@ -417,11 +427,11 @@ img {
 
 /* CREATE/EDIT FORMS AND SHOW PAGES */
 fieldset,.property-list {
-	margin: 0.6em 1.25em 0 1.25em;
-	padding: 0.3em 1.8em 1.25em;
+	/*margin: 0.6em 1.25em 0 1.25em;
 	position: relative;
 	zoom: 1;
-	border: none;
+	border: none;*/
+	padding: 0.3em 1.8em 1.25em;
 }
 
 .property-list .fieldcontain {
@@ -651,9 +661,9 @@ th a {
 	text-decoration: none;
 }
 
-th a:link,th a:visited {
+/* th a:link,th a:visited {
 	color: #666666;
-}
+} */
 
 th a:hover,th a:focus {
 	color: #333333;
@@ -894,12 +904,12 @@ a.skip {
 }
 .venu-con .pick {
 	width: 140px;
-	height:30px;
 	margin-left:10px;
 }
 
-.venu-con select,textarea {
+.venu-con select,textarea ,#timer select ,#userType, #status {
 	background: #EEEEEE;
+	height:30px;
 	padding: 0px 5px;
 	-webkit-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16) inset;
 	-webkit-border-radius: 5px;
@@ -987,7 +997,7 @@ a.skip {
 
 .left_container li:hover {
   color:#fff;
-  background: url(../images/hover_img.png);
+  background: #0c79a2;
   background-size:230px; 
 }
 
@@ -1125,13 +1135,14 @@ a.skip {
  padding:2px;
 }
 
-.dollar_discount_btn {
+.new_account_btn {
  background: url(../images/medium_btn_bluebg.png) center center no-repeat;
  color:#ffffff;
  border-style:none;
- padding:6px 19px;
  font-weight:bold;
  cursor:auto;
+ width:120px;
+ height:27px;
 }
 
 .general_btn {
@@ -1234,3 +1245,11 @@ div.selector span {
   zoom: 1;
   *display: inline;
 } */
+
+.menuButton {
+	margin-right:15px;
+}
+
+.menuButton a {
+	padding-left:20px !important;
+}

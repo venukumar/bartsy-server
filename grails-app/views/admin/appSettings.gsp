@@ -132,7 +132,7 @@
     <div style="padding:10px 0px 0px 148px;"> 
       <g:submitButton name="create" class="btn_bg" value="${message(code: 'default.button.update.label', default: 'Update')}" />
       <!--  <input type="button" name="cancel" class="ybtn" value="${message(code: 'cancelbutton.label', default: 'Cancel')}" onclick="window.location.href='${request.getContextPath()}/admin/venueList'" />-->
-      <g:link action="summary" class="btn_bg" style="color: white;"><g:message code="cancelbutton.label" default="Cancel" /></g:link>
+      <g:link action="summary" class="btn_bg" style="color: #ffffff;font-size:11px;"><g:message code="cancelbutton.label" default="Cancel" /></g:link>
     </div>
   </g:form>
 </div>

@@ -6,13 +6,16 @@
     <title><g:message code="users.list.label" default="Users List" /></title>
   </head>
   <body>
-  <h2><g:message code="users.list.label" default="Users List" /></h2><div style="float:right; font-weight:bold; padding-bottom:6px;"><g:link action="createSaleUser"><g:message code="new.account.label" default="New Account" /></g:link></div>
+  <h2><g:message code="users.list.label" default="Users List" /></h2>
+  <%--<div style="float:right; font-weight:bold; padding-bottom:6px;" ><g:link action="createSaleUser"><g:message code="new.account.label" default="New Account" class="dollar_discount_btn"/></g:link></div>--%>
+  <div style="float:right; font-weight:bold;margin:5px 10px 0px 0px;" ><g:link action="createSaleUser"><g:submitButton name="New Account" type="submit" value='New Account' class="new_account_btn" /></g:link></div>
+ 
     <g:if test="${flash.message}">
       <div class="message" role="status">${flash.message}</div>
     </g:if>	<% flash.clear() %>
     <div>
     <g:form method="post" controller="admin" action="saleuserList" name="frm">
-    <select name="userType" id="userType" onchange="javascript:document.frm.submit();">
+    <select name="userType" id="userType" onchange="javascript:document.frm.submit();" style="margin:5px 15px 0px 5px;">
     	<option value="">All</option>
     	<option value="Admin" <% if(saleParam.userType=="Admin"){ %> selected="selected"<% } %>><g:message code="admin.label" default="Admin" /></option>
     	<!--<option value="SalesUser" <% if(saleParam.userType=="SalesUser"){ %> selected="selected"<% } %>>SalesUser</option>-->
@@ -22,14 +25,14 @@
      	<option value="Promoter" <% if(saleParam.userType=="Promoter"){ %> selected="selected"<% } %>><g:message code="promoter" default="Promoter" /></option>
     </select>
     &nbsp;&nbsp;
-    <select name="status" id="status" onchange="javascript:document.frm.submit();">
+    <select name="status" id="status" onchange="javascript:document.frm.submit();" style="margin:5px 0px 0px 0px;">
     <option value="">All</option>
     <option value="1" <% if(saleParam.status=="1"){ %> selected="selected"<% } %>>Active</option>
     <option value="0" <% if(saleParam.status=="0"){ %> selected="selected"<% } %>>In-active</option>
     </select>
     &nbsp;
-    <input type="text" name="keyword" id="keyword" value="${saleParam.keyword }">
-    <input type="submit" name="search" value="Search">
+    <input type="text" name="keyword" id="keyword" class="txt-field" value="${saleParam.keyword }" style="margin-bottom:10px;">
+    <input type="submit" name="search" value="Search" class="btn_bg">
     </g:form>
     </div>
 	<div>

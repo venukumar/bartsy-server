@@ -34,18 +34,25 @@
 			</tr>
 		</table>
 	</div>
-	<fieldset>
+	
+	<div>
+	<fieldset class="left">
 	 <g:form method="post" controller="admin" action="ordersList">
 		<g:message code="start.date.label" default="Start Date" />: <input type="text" id="datepicker" name="startDate"  value="${jqStart }"/>&nbsp; 
 		<g:message code="end.date.label" default="End Date" />: <input type="text" id="datepicker1" name="endDate" value="${jqEnd }" />
-		<input type="submit" value="search">
+		<input type="submit" value="search" class="btn_bg">
 	</g:form>
 	</fieldset>
+	
 	<%if (ordersTotal > 0){%>
-		<div align="right">
+		<div class="right" style="padding: 0.6em 1.8em 1.25em;">
 			<export:formats params='["startDate":"${jqStart }", "endDate":"${jqEnd }"]' formats="['csv', 'excel', 'pdf']" />
 		</div>
 	<%}%>
+	
+	<div class="clr"></div>
+	</div>
+	
 	<div>
 		<table class="tbl-data">
 			<tr>

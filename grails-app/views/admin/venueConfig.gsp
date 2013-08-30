@@ -276,7 +276,7 @@ label.error {
 		<div class="right_container">
 			<div>
 				<div class="right">
-					<div id="userTimeout" class="label-row" style="float:left;padding:3px;">
+					<div id="userTimeout" style="float:left;padding:3px;">
 			  			<div class="btns">
 				 			<modalbox:createLink controller="admin" action="addEditVenueReward" params="${[venueId:venue.venueId]}" title="Add Reward" width="500">
 					 			<g:submitButton name="update" type="submit" value='Add Reward' class="general_btn" />
