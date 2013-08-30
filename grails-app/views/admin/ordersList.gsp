@@ -113,6 +113,7 @@
 			def perGuestGrossTotal = perGuestGrossTotal.get("perGuestGrossTotal")
 			def perGuestTaxTotal = perGuestTaxTotal.get("perGuestTaxTotal")
 			def perGuestCompTotal = perGuestCompTotal.get("perGuestCompTotal")
+			def perGuestCompPerTotal = perGuestCompPerTotal.get("perGuestCompPerTotal")
 			def perGuestNetTotal = perGuestNetTotal.get("perGuestNetTotal")
 		%>
 		<table class="tbl-data">
@@ -149,7 +150,7 @@
 				<td width="8%">${perGuestGrossTotal}</td>
 				<td width="8%">${perGuestTaxTotal}</td>
 				<td width="8%">${perGuestCompTotal}</td>
-				<td width="8%">${percentageTotal}</td>
+				<td width="8%">${perGuestCompPerTotal}</td>
 				<td width="10%">${perGuestNetTotal}</td>
 			</tr>
 		</table>

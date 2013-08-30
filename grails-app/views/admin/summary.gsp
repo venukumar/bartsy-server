@@ -64,27 +64,27 @@
 			</tr>
 			<tr>	
 				<td><g:message code="totals.label" default="Totals" /></td>
-				<td>$ ${base}</td>
-				<td>$ ${tax}</td>
-				<td>$ ${comps}</td>
-				<td>% ${compsPer}</td>
-				<td>$5</td>
+				<td>$${base}</td>
+				<td>$${tax}</td>
+				<td>$${comps}</td>
+				<td>${compsPer}%</td>
+				<td>$${totals}</td>
 			</tr>
 			<tr>	
 				<td><g:message code="average.label" default="Average" /></td>
-				<td>$1</td>
-				<td>$2</td>
-				<td>$3</td>
-				<td>%4</td>
-				<td>$5</td>
+				<td>$${avgBase}</td>
+				<td>$${avgTax}</td>
+				<td>$${avgComp}</td>
+				<td>${avgCompPer}%</td>
+				<td>$${avgTot}</td>
 			</tr>
 			<tr>	
 				<td><g:message code="per.person.label" default="Per Person" /></td>
-				<td>$1</td>
-				<td>$2</td>
-				<td>$3</td>
-				<td>%4</td>
-				<td>$5</td>
+				<td>$${perGuestBase}</td>
+				<td>$${perGuestTax }</td>
+				<td>$${perGuestComp}</td>
+				<td>${perGuestCompPer}%</td>
+				<td>$${perGuestNet}</td>
 			</tr>
 		</table>
   		</g:form>

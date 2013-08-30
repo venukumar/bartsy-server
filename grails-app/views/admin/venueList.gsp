@@ -52,8 +52,16 @@
 				%>  
 	    		<tr>
           			<!--<td><div style="width:250px;word-wrap:break-word;display:block;">${venue.venueId}</div></td>-->
-					<td>${venue.venueId}</td>
-          			<td>${venue.venueName}</td>
+					<td>
+						<modalbox:createLink controller="admin" action="venueDetails" id="${venue?.venueId}" title="Venue details" width="750">
+							${venue.venueId}
+						</modalbox:createLink>
+					</td>
+          			<td>
+						<modalbox:createLink controller="admin" action="venueDetails" id="${venue?.venueId}" title="Venue details" width="750">
+					  		${venue.venueName}
+						</modalbox:createLink>
+					</td>
 					<td>${checkIns}</td>
 					<td>${orders}</td>
 					<td>${checkInsLast30Days}</td>

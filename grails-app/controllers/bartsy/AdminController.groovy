@@ -455,8 +455,8 @@ class AdminController {
 			def guests = 0, grossTot = 0, taxTot = 0, compTot = 0, percentageTot = 0, netTot = 0
 			def avgGrossTotal = [:], avgTaxTotal = [:], avgCompTotal = [:], avgNetTotal = [:]
 			def avgGrossTot = 0, avgTaxTot = 0, avgCompTot = 0, avgNetTot = 0
-			def perGuestGrossTotal = [:], perGuestTaxTotal = [:], perGuestCompTotal = [:], perGuestNetTotal = [:]
-			def perGuestGrossTot = 0, perGuestTaxTot = 0, perGuestCompTot = 0, perGuestNetTot = 0
+			def perGuestGrossTotal = [:], perGuestTaxTotal = [:], perGuestCompTotal = [:], perGuestCompPerTotal = [:], perGuestNetTotal = [:]
+			def perGuestGrossTot = 0, perGuestTaxTot = 0, perGuestCompTot = 0, perGuestCompPerTot = 0, perGuestNetTot = 0
 			Set uniqueGuest = new HashSet()
 			
 			def orderslist = Orders.createCriteria().list(params, query)
@@ -473,7 +473,11 @@ class AdminController {
 					if (orderItemsList){
 						orderItemsList.each {
 							def orderItem = it
-							def finalBasePrice = formatNumStr(orderItem.basePrice)
+							def basePrice = orderItem.basePrice
+							if (!basePrice){
+								basePrice = 0
+							}
+							def finalBasePrice = formatNumStr(basePrice.toString())
 							itemNames += orderItem.itemName + " - \$" + finalBasePrice + "</br>"
 							Double base = new Double(finalBasePrice)
 							gross += base
@@ -481,92 +485,141 @@ class AdminController {
 					}
 					// items
 					orders.put(key, itemNames)
+					
 					// gross
 					def formattedGross = formatNumStr(gross.toString())
 					itemsGross.put(key, '$'+formattedGross)
+					
 					// tax
-					def formattedTax = formatNumStr(order.venue.totalTaxRate)
+					def totTaxRate = order.venue.totalTaxRate
+					if (!totTaxRate){
+						totTaxRate = 0
+					}
+					def calcTax = (gross * new Double(totTaxRate)) / 100
+					def formattedTax = formatNumStr(calcTax.toString())
 					orderTax.put(key, '$'+formattedTax)
-					// tip percentage
+					
+					// comp and tip are same
 					def tip = order.tipPercentage
-					def formattedTip = formatTipNumStr(tip.toString())
-					tipPercentage.put(key, formattedTip+'%')
-					// comp
-					def compVal = (gross * new Double(tip)) / 100
-					def formattedCompVal = formatNumStr(compVal.toString())
-					comp.put(key, '$'+formattedCompVal)
+					if (!tip){
+						tip = 0
+					}
+					def formattedTip = formatNumStr(tip.toString())
+					comp.put(key, '$'+formattedTip)
+					
+					// comp percentage or tip percentage
+					def tipPercent
+					if (gross > 0){
+						tipPercent = (100 * new Double(tip)) / gross
+					}else{
+						tipPercent = 0
+					}
+					def formattedTipPercent = formatTipNumStr(tipPercent.toString())
+					tipPercentage.put(key, formattedTipPercent+'%')
+					
 					// net
-					def netVal = new Double(formattedGross) + new Double(formattedTax) + new Double(formattedCompVal)
+					//def netVal = new Double(formattedGross) + new Double(formattedTax) + new Double(formattedTip)
+					def totPrice = order.totalPrice
+					if (!totPrice){
+						totPrice = 0
+					}
+					def netVal = new Double(totPrice)
 					def formattedNetVal = formatNumStr(netVal.toString())
 					net.put(key, '$'+formattedNetVal)
 					
-					// Total calculation
+					// Totals calculation
 					// unique guests
 					if (uniqueGuest.add(order.userId)){
 						guests++
 					}
 					totalGuests.put("totalGuests", guests)
+					
 					// gross total
 					grossTot += new Double(formattedGross)
-					def formattedGrossTotal = formatNumStr(grossTot.toString())
-					grossTotal.put("grossTotal", '$'+formattedGrossTotal)
+					
 					// tax total
 					taxTot += new Double(formattedTax)
-					def formattedTaxTotal = formatNumStr(taxTot.toString())
-					taxTotal.put("taxTotal", '$'+formattedTaxTotal)
-					// comp total
-					compTot += compVal
-					def formattedCompTot = formatNumStr(compTot.toString())
-					compTotal.put("compTotal", '$'+formattedCompTot)
-					// percentage total
-					percentageTot += new Double(tip)
-					def pTot = percentageTot/orderlistTotal
-					def formattedPTot = formatTipNumStr(pTot.toString())
-					percentageTotal.put("percentageTotal", formattedPTot+'%')
+					
+					// comp = tip total
+					compTot += new Double(tip)
+					
+					// comp or tip percentage total
+					percentageTot += new Double(tipPercent)
+					
 					// net total
 					netTot += netVal
-					def formattedNetTot = formatNumStr(netTot.toString())
-					netTotal.put("netTotal", '$'+formattedNetTot)
-					
-					// Average calculation
-					// gross total average
-					avgGrossTot = new Double(formattedGrossTotal) / orderlistTotal
-					def formattedAvgGrossTotal = formatNumStr(avgGrossTot.toString())
-					avgGrossTotal.put("avgGrossTotal", '$'+formattedAvgGrossTotal)
-					// tax total average
-					avgTaxTot = new Double(formattedTaxTotal) / orderlistTotal
-					def formattedAvgTaxTotal = formatNumStr(avgTaxTot.toString())
-					avgTaxTotal.put("avgTaxTotal", '$'+formattedAvgTaxTotal)
-					// comp total average
-					avgCompTot = new Double(formattedCompTot) / orderlistTotal
-					def formattedAvgCompTotal = formatNumStr(avgCompTot.toString())
-					avgCompTotal.put("avgCompTotal", '$'+formattedAvgCompTotal)
-					// net total average
-					avgNetTot = new Double(formattedNetTot) / orderlistTotal
-					def formattedAvgNetTotal = formatNumStr(avgNetTot.toString())
-					avgNetTotal.put("avgNetTotal", '$'+formattedAvgNetTotal)
-					
-					// Per guest calculation
-					// gross total per guest
-					perGuestGrossTot = new Double(formattedGrossTotal) / guests
-					def formattedPerGuestGrossTotal = formatNumStr(perGuestGrossTot.toString())
-					perGuestGrossTotal.put("perGuestGrossTotal", '$'+formattedPerGuestGrossTotal)
-					// tax total per guest
-					perGuestTaxTot = new Double(formattedTaxTotal) / guests
-					def formattedPerGuestTaxTotal = formatNumStr(perGuestTaxTot.toString())
-					perGuestTaxTotal.put("perGuestTaxTotal", '$'+formattedPerGuestTaxTotal)
-					// comp total per guest
-					perGuestCompTot = new Double(formattedCompTot) / guests
-					def formattedPerGuestCompTotal = formatNumStr(perGuestCompTot.toString())
-					perGuestCompTotal.put("perGuestCompTotal", '$'+formattedPerGuestCompTotal)
-					// net total per guest
-					perGuestNetTot = new Double(formattedNetTot) / guests
-					def formattedPerGuestNetTotal = formatNumStr(perGuestNetTot.toString())
-					perGuestNetTotal.put("perGuestNetTotal", '$'+formattedPerGuestNetTotal)
-					
 				}
+				// Total calculation
+				// gross total
+				def formattedGrossTotal = formatNumStr(grossTot.toString())
+				grossTotal.put("grossTotal", '$'+formattedGrossTotal)
+				
+				// tax total
+				def formattedTaxTotal = formatNumStr(taxTot.toString())
+				taxTotal.put("taxTotal", '$'+formattedTaxTotal)
+				
+				// comp = tip total
+				def formattedCompTot = formatNumStr(compTot.toString())
+				compTotal.put("compTotal", '$'+formattedCompTot)
+				
+				// tip percentage total
+				def pTot = percentageTot/orderlistTotal
+				def formattedPTot = formatTipNumStr(pTot.toString())
+				percentageTotal.put("percentageTotal", formattedPTot+'%')
+				
+				// net total
+				def formattedNetTot = formatNumStr(netTot.toString())
+				netTotal.put("netTotal", '$'+formattedNetTot)
+				
+				// Average calculation
+				// gross total average
+				avgGrossTot = new Double(formattedGrossTotal) / orderlistTotal
+				def formattedAvgGrossTotal = formatNumStr(avgGrossTot.toString())
+				avgGrossTotal.put("avgGrossTotal", '$'+formattedAvgGrossTotal)
+				
+				// tax total average
+				avgTaxTot = new Double(formattedTaxTotal) / orderlistTotal
+				def formattedAvgTaxTotal = formatNumStr(avgTaxTot.toString())
+				avgTaxTotal.put("avgTaxTotal", '$'+formattedAvgTaxTotal)
+				
+				// comp total average
+				avgCompTot = new Double(formattedCompTot) / orderlistTotal
+				def formattedAvgCompTotal = formatNumStr(avgCompTot.toString())
+				avgCompTotal.put("avgCompTotal", '$'+formattedAvgCompTotal)
+				
+				// net total average
+				avgNetTot = new Double(formattedNetTot) / orderlistTotal
+				def formattedAvgNetTotal = formatNumStr(avgNetTot.toString())
+				avgNetTotal.put("avgNetTotal", '$'+formattedAvgNetTotal)
+				
+				// Per guest calculation
+				// gross total per guest
+				perGuestGrossTot = new Double(formattedGrossTotal) / guests
+				def formattedPerGuestGrossTotal = formatNumStr(perGuestGrossTot.toString())
+				perGuestGrossTotal.put("perGuestGrossTotal", '$'+formattedPerGuestGrossTotal)
+				
+				// tax total per guest
+				perGuestTaxTot = new Double(formattedTaxTotal) / guests
+				def formattedPerGuestTaxTotal = formatNumStr(perGuestTaxTot.toString())
+				perGuestTaxTotal.put("perGuestTaxTotal", '$'+formattedPerGuestTaxTotal)
+				
+				// comp total per guest
+				perGuestCompTot = new Double(formattedCompTot) / guests
+				def formattedPerGuestCompTotal = formatNumStr(perGuestCompTot.toString())
+				perGuestCompTotal.put("perGuestCompTotal", '$'+formattedPerGuestCompTotal)
+				
+				// comp percentage total per guest
+				perGuestCompPerTot = percentageTot / guests
+				def fPerGuestCompPerTotal = formatTipNumStr(perGuestCompPerTot.toString())
+				perGuestCompPerTotal.put("perGuestCompPerTotal", fPerGuestCompPerTotal+'%')
+				
+				// net total per guest
+				perGuestNetTot = new Double(formattedNetTot) / guests
+				def formattedPerGuestNetTotal = formatNumStr(perGuestNetTot.toString())
+				perGuestNetTotal.put("perGuestNetTotal", '$'+formattedPerGuestNetTotal)
 			}
 			
+			// Export
 			if(params?.format && params.format != "html"){
 				response.contentType = grailsApplication.config.grails.mime.types[params.format]
 				response.setHeader("Content-disposition", "attachment; filename=Orders_${jqStart}.${params.extension}")
@@ -599,7 +652,11 @@ class AdminController {
 					def uniPar = ""
 					listOfItems.each{
 						def itemInfo = it
-						def finalBasePrice = formatNumStr(itemInfo.price)
+						def basePrice = itemInfo.price
+						if (!basePrice){
+							basePrice = 0
+						}
+						def finalBasePrice = formatNumStr(basePrice.toString())
 						uniPar += itemInfo.itemName + " - \$" + finalBasePrice + "\n"
 					}
 					return uniPar
@@ -609,7 +666,11 @@ class AdminController {
 					def gross=0
 					listOfItems.each{
 						def itemInfo = it
-						def finalBasePrice = formatNumStr(itemInfo.price)
+						def basePrice1 = itemInfo.price
+						if (!basePrice1){
+							basePrice1 = 0
+						}
+						def finalBasePrice = formatNumStr(basePrice1.toString())
 						Double base = new Double(finalBasePrice)
 						gross += base
 					}
@@ -617,30 +678,65 @@ class AdminController {
 					return '$'+formattedGross
 				}
 				def taxl = {domain, value ->
-					def formattedTax = formatNumStr(domain?.venue?.totalTaxRate)
+					def listOfItems = new JSONArray(domain?.itemsList)
+					def grossTax = 0
+					listOfItems.each{
+						def itemInfo = it
+						def basePrice2 = itemInfo.price
+						if (!basePrice2){
+							basePrice2 = 0
+						}
+						def finalBasePrice = formatNumStr(basePrice2.toString())
+						Double base = new Double(finalBasePrice)
+						grossTax += base
+					}
+					def totTax = domain?.venue?.totalTaxRate
+					if (!totTax){
+						totTax = 0
+					}
+					def taxCalc = (grossTax * new Double(totTax)) / 100
+					def formattedTax = formatNumStr(taxCalc.toString())
 					return '$'+formattedTax
 				}
 				def compl = {domain, value ->
-					def listOfItems = new JSONArray(domain?.itemsList)
-					def grossl = 0
-					listOfItems.each{
-						def itemInfo = it
-						def finalBasePrice = formatNumStr(itemInfo.price)
-						Double base = new Double(finalBasePrice)
-						grossl += base
-					}
 					def tipls = domain?.tipPercentage
-					def compVal = (grossl * new Double(tipls)) / 100
-					def formattedCompVal = formatNumStr(compVal.toString())
-					return '$'+formattedCompVal
+					if (!tipls){
+						tipls = 0
+					}
+					def formattedTip =  formatNumStr(tipls.toString())
+					return '$'+formattedTip
 				}
 				def tipl = {domain, value ->
+					def listOfItems = new JSONArray(domain?.itemsList)
+					def grossTipPer = 0
+					listOfItems.each{
+						def itemInfo = it
+						def basePrice3 = itemInfo.price
+						if (!basePrice3){
+							basePrice3 = 0
+						}
+						def finalBasePrice = formatNumStr(basePrice3.toString())
+						Double base = new Double(finalBasePrice)
+						grossTipPer += base
+					}
 					def tipL = domain?.tipPercentage
-					def formattedTipVal = formatTipNumStr(tipL.toString())
+					if (!tipL){
+						tipL = 0
+					}
+					def tipPercent
+					if (grossTipPer > 0){
+						tipPercent = (100 * new Double(tipL)) / grossTipPer
+					}else{
+						tipPercent = 0
+					}
+					def formattedTipVal = formatTipNumStr(tipPercent.toString())
 					return formattedTipVal+"%"
 				}
 				def nett = {domain, value->
 					def total = domain?.totalPrice
+					if (!total){
+						total = 0
+					}
 					def formattedTotal = formatNumStr(total.toString())
 					return '$'+formattedTotal
 				}
@@ -652,7 +748,7 @@ class AdminController {
 			[jqStart:jqStart,jqEnd:jqEnd,ordersList:orderslist, ordersTotal:orderlistTotal, itemsNames:orders, gross:itemsGross, tax:orderTax, tip:tipPercentage, comp:comp, net:net, 
 				totalGuests:totalGuests, grossTotal:grossTotal, taxTotal:taxTotal, compTotal:compTotal, percentageTotal:percentageTotal, netTotal:netTotal, 
 				avgGrossTotal:avgGrossTotal, avgTaxTotal:avgTaxTotal, avgCompTotal:avgCompTotal, avgNetTotal:avgNetTotal,
-				perGuestGrossTotal:perGuestGrossTotal, perGuestTaxTotal:perGuestTaxTotal, perGuestCompTotal:perGuestCompTotal, perGuestNetTotal:perGuestNetTotal]
+				perGuestGrossTotal:perGuestGrossTotal, perGuestTaxTotal:perGuestTaxTotal, perGuestCompTotal:perGuestCompTotal, perGuestCompPerTotal:perGuestCompPerTotal, perGuestNetTotal:perGuestNetTotal]
 		}catch(Exception e){
 			log.error("Error in Orders List ==>"+e.getMessage())
 		}
@@ -1420,9 +1516,10 @@ class AdminController {
 				venue.description = ""
 				venue.communityRating = ""
 				venue.wifiNetworkType = ""
-				venue.pickupLocation = ""
-				venue.tables = ""
+				venue.pickupLocations = ""
+				venue.deliveryTables = ""
 				venue.tableOrdering = ""
+				venue.isPickupLocution = ""
 				
 				if (!venue.save(flush:true)){
 					flash.message = "Problem saving venue details."
@@ -1595,9 +1692,14 @@ class AdminController {
 			def checkedInUsers = CheckedInUsers.findAllByStatus(1)
 			
 			// Calculate Base, Tax, Comps, Comps% and Total
-			def totalBase = 0, totalTax = 0, compTotal = 0, compPercent = 0
+			def guests = 0
+			def totalBase = 0, totalTax = 0, compTotal = 0, compPercentTot = 0, total = 0
+			def avgBase = 0, avgTax = 0, avgComp = 0, avgCompPer = 0, avgTotal = 0
+			Set uniqueGuest = new HashSet()
+			
 			//def orderslist = Orders.createCriteria().list(params, query)
 			def orderslist = Orders.list()
+			def ordersCount = orderslist.size()
 			if(orderslist){
 				orderslist.each {
 					def order = it
@@ -1609,30 +1711,98 @@ class AdminController {
 					if (orderItemsList){
 						orderItemsList.each {
 							def orderItem = it
-							def finalBasePrice = formatNumStr(orderItem.basePrice)
+							def basePrice = orderItem.basePrice
+							if (!basePrice){
+								basePrice = 0
+							}
+							def finalBasePrice = formatNumStr(basePrice)
 							Double base = new Double(finalBasePrice)
+							// total base price
 							totalBase += base
 							gross += base
 						}
 					}
-					totalTax += order.venue.totalTaxRate
-					// tip percentage
+					// total tax
+					def taxCalc = order.venue.totalTaxRate
+					if (!taxCalc){
+						taxCalc = 0
+					}
+					totalTax += (gross * new Double(taxCalc)) / 100
+					
+					// comp = tip 
 					def tip = order.tipPercentage
-					// comp
-					def compVal = (gross * new Double(tip)) / 100
-					compTotal += compVal
+					if (!tip){
+						tip = 0
+					}
+					compTotal += new Double(tip)
+					
+					// comp = tip percentage
+					def compPer
+					if (gross > 0){
+						compPer = (100 * new Double(tip)) / gross
+					}else{
+						compPer = 0
+					}
+					compPercentTot += compPer
+					
+					// Totals
+					def totPrice = order.totalPrice
+					if (!totPrice){
+						totPrice = 0
+					}
+					total += new Double(totPrice)
+					
+					// unique guests
+					if (uniqueGuest.add(order.userId)){
+						guests++
+					}
 				}
-				
-				// percentage comps
-				compPercent = compTotal/orderslist.size()
 			}
-			def formattedBase = formatNumStr(totalBase.toString())
-			def formattedTax = formatNumStr(totalTax.toString())
-			def formattedComps = formatNumStr(compTotal.toString())
-			def formattedCompPer = formatNumStr(compPercent.toString())
+			def fTotalBase = formatNumStr(totalBase.toString())
+			def fTotalTax = formatNumStr(totalTax.toString())
+			def fTotalComps = formatNumStr(compTotal.toString())
+			def tipTotCompPer = compPercentTot / ordersCount
+			def fTotalCompPer = formatTipNumStr(tipTotCompPer.toString())
+			def fTotal = formatNumStr(total.toString())
+			
+			// Calculate average
+			avgBase = totalBase / ordersCount
+			avgTax = totalTax / ordersCount
+			avgComp = compTotal / ordersCount
+			avgCompPer = compPercentTot / ordersCount
+			avgTotal = total / ordersCount
+			
+			def formattedAvgBase = formatNumStr(avgBase.toString())
+			def formattedAvgTax = formatNumStr(avgTax.toString())
+			def formattedAvgComp = formatNumStr(avgComp.toString())
+			def formattedAvgCompPer = formatTipNumStr(avgCompPer.toString())
+			def formattedAvgTot = formatNumStr(avgTotal.toString())
+			
+			// Per guest calculation
+			// gross total per guest
+			def perGuestGrossTot = new Double(fTotalBase) / guests
+			def fPerGuestGrossTotal = formatNumStr(perGuestGrossTot.toString())
+			
+			// tax total per guest
+			def perGuestTaxTot = new Double(fTotalTax) / guests
+			def fPerGuestTaxTotal = formatNumStr(perGuestTaxTot.toString())
+			
+			// comp total per guest
+			def perGuestCompTot = new Double(fTotalComps) / guests
+			def fPerGuestCompTotal = formatNumStr(perGuestCompTot.toString())
+			
+			// comp percentage total per guest
+			def perGuestCompPerTot = compPercentTot / guests
+			def fPerGuestCompPerTotal = formatTipNumStr(perGuestCompPerTot.toString())
+			
+			// net total per guest
+			def perGuestNetTot = new Double(fTotal) / guests
+			def fPerGuestNetTotal = formatNumStr(perGuestNetTot.toString())
 			
 			[totalGuests:totalGuests.size(), totalChecks:checkedInUsers.size(), guestsAvg:12.26, checksAvg:22.22,
-				base:formattedBase, tax:formattedTax, comps:formattedComps, compsPer:formattedCompPer]
+				base:fTotalBase, tax:fTotalTax, comps:fTotalComps, compsPer:fTotalCompPer, totals:fTotal,
+				avgBase:formattedAvgBase, avgTax:formattedAvgTax, avgComp:formattedAvgComp, avgCompPer:formattedAvgCompPer, avgTot:formattedAvgTot,
+				perGuestBase:fPerGuestGrossTotal, perGuestTax:fPerGuestTaxTotal, perGuestComp:fPerGuestCompTotal, perGuestCompPer:fPerGuestCompPerTotal, perGuestNet:fPerGuestNetTotal]
 		}catch(Exception e){
 			log.error("Exception in retrieving summary data ==>"+e.getMessage())
 		}
@@ -1648,12 +1818,27 @@ class AdminController {
 	 */
 	def userDetails() {
 		try{
-			if(params){
+			if(params.id){
 				def userProfile = UserProfile.findByBartsyId(params.id)
 				render(view:"userDetails", model:[selectedUser:userProfile])
 			}
 		}catch(Exception e){
 			log.error("Error in retrieving user details ==>"+e.getMessage())
+		}
+	}
+	
+	/**
+	 * Service to get venue details
+	 * @return venue info.
+	 */
+	def venueDetails() {
+		try{
+			if(params.id){
+				def venue = Venue.findByVenueId(params.id)
+				render(view:"venueDetails", model:[venue:venue])
+			}
+		}catch(Exception e){
+			log.error("Error in retrieving venue details ==>"+e.getMessage())
 		}
 	}
 }

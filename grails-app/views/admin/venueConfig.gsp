@@ -114,19 +114,19 @@ label.error {
 			</tr>
 			<tr>	
 				<td><g:message code="email.label" default="Username/Email" /> : </td>
-				<td><input type="text" name="mgrEmail" value="${venue?.managerEmail}" class="txt-field rewards"></td>
+				<td><input type="text" name="mgrEmail" value="${venue?.venueLogin}" class="txt-field rewards"></td>
 			</tr>
 			<tr>
 				<td><g:message code="password.label" default="Password" /> : </td>
-				<td><input type="password" name="mgrPassword" value="${venue?.managerPassword}" class="txt-field rewards"></td>
+				<td><input type="password" name="mgrPassword" value="${venue?.venuePassword}" class="txt-field rewards"></td>
 			</tr>
 			<tr>
 				<td><g:message code="confirmpwd.label" default="Confirm" /> : </td>
-				<td><input type="password" name="mgrConfirm" value="${venue?.managerPassword}" class="txt-field rewards"></td>
+				<td><input type="password" name="mgrConfirm" value="${venue?.venuePassword}" class="txt-field rewards"></td>
 			</tr>
 			<tr>
 				<td><g:message code="phone.label" default="Cell" /> : </td>
-				<td><input type="text" name="mgrCell" value="${venue?.managerCell}" class="txt-field rewards" placeholder="Your cell phone for emergencies"></td>
+				<td><input type="text" name="mgrCell" value="${venue?.phoneNumber}" class="txt-field rewards" placeholder="Your cell phone for emergencies"></td>
 			</tr>
 				
 			<tr>
