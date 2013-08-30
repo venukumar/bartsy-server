@@ -60,7 +60,7 @@
 	    <tr>
           <td>${userInfo.bartsyId}</td>
           <td>
-		  	<modalbox:createLink controller="admin" action="userDetails" id="${userInfo?.bartsyId}" title="Show User Information" width="750">
+		  	<modalbox:createLink controller="admin" action="userDetails" id="${userInfo?.bartsyId}" title="User Details" width="750">
 		  	<% if(userInfo.firstName){%>
 			  ${userInfo.firstName} ${userInfo.lastName}
 		  	  <% }else{ %>
@@ -69,7 +69,7 @@
 		  	</modalbox:createLink>
 		  </td>
           <td>
-		  	<modalbox:createLink controller="admin" action="userDetails" id="${userInfo?.bartsyId}" title="Show User Information" width="750">
+		  	<modalbox:createLink controller="admin" action="userDetails" id="${userInfo?.bartsyId}" title="User Details" width="750">
 		  	${userInfo.email}
 			</modalbox:createLink>
 		  </td>
